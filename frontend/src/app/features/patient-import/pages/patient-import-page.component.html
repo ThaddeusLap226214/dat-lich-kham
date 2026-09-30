@@ -1,0 +1,255 @@
+<div class="patient-import-page">
+  <!-- TOP APP BAR -->
+  <header class="import-header">
+    <div class="header-left">
+      <div class="header-logo">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">local_hospital</span>
+      </div>
+      <span class="header-title">MPI Connect</span>
+    </div>
+    <div class="header-actions">
+      <button aria-label="Lịch sử nhập" class="header-btn" type="button">
+        <span class="material-symbols-outlined">history</span>
+      </button>
+      <button aria-label="Thông báo" class="header-btn" type="button">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="notification-dot"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="import-main">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        Ingestion Node v3.2
+      </div>
+      <h1 class="hero-title">Nhập Dữ liệu Bệnh nhân</h1>
+      <p class="hero-subtitle">Tải lên và khớp hồ sơ bệnh nhân từ các nguồn bên ngoài</p>
+    </section>
+
+    <!-- MAIN LAYOUT GRID -->
+    <div class="import-grid">
+      
+      <!-- LEFT COLUMN: CONFIGURATION & ACTIVE JOBS -->
+      <div class="grid-left">
+        
+        <!-- CONFIGURATION PANEL CARD -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-icon">
+                <span class="material-symbols-outlined">tune</span>
+              </div>
+              <h2 class="card-title">Cấu hình Nhập liệu</h2>
+            </div>
+            <span class="material-symbols-outlined card-info-icon">info</span>
+          </div>
+          
+          <div>
+            <!-- Source System Dropdown -->
+            <div class="form-group">
+              <label class="form-label">Hệ thống Nguồn</label>
+              <div class="select-wrapper">
+                <select 
+                  [(ngModel)]="selectedSourceSystemId"
+                  class="form-select">
+                  <option *ngFor="let system of sourceSystems" [value]="system.id">
+                    {{ system.name }}
+                  </option>
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+
+            <!-- Data Mapping Template -->
+            <div class="form-group">
+              <label class="form-label">Mẫu Ánh xạ Dữ liệu</label>
+              <div class="select-wrapper">
+                <select disabled class="form-select">
+                  <option>Tự động nhận diện qua tiêu đề cột</option>
+                </select>
+                <span class="material-symbols-outlined select-arrow">expand_more</span>
+              </div>
+            </div>
+
+            <!-- Checkbox -->
+            <div class="checkbox-group">
+              <input 
+                [(ngModel)]="skipDuplicates"
+                id="skip_dupes" 
+                type="checkbox" 
+                class="form-checkbox" />
+              <label for="skip_dupes" class="checkbox-label">
+                Tự động xử lý trùng lặp tuyệt đối (điểm > {{ duplicateThreshold }})
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- ACTIVE JOBS QUEUE CARD -->
+        <section class="card">
+          <h3 class="jobs-title">Hàng đợi Đang xử lý</h3>
+          
+          <div *ngIf="isLoadingJobs" class="loading-container">
+            <div class="loading-spinner"></div>
+          </div>
+          
+          <p *ngIf="!isLoadingJobs && activeJobs.length === 0" class="empty-state">
+            Chưa có công việc nào
+          </p>
+          
+          <div *ngIf="!isLoadingJobs && activeJobs.length > 0" class="jobs-list">
+            <div *ngFor="let activeJob of activeJobs" class="job-item">
+              <div class="job-content">
+                <div class="job-icon">
+                  <div *ngIf="activeJob.isProcessing" class="spinner"></div>
+                  <span *ngIf="!activeJob.isProcessing" class="material-symbols-outlined" 
+                    [ngClass]="{
+                      'icon-success': activeJob.job.status === 'COMPLETED',
+                      'icon-error': activeJob.job.status === 'FAILED'
+                    }">
+                    {{ activeJob.job.status === 'COMPLETED' ? 'check_circle' : 
+                       activeJob.job.status === 'FAILED' ? 'error' : 'cancel' }}
+                  </span>
+                </div>
+                
+                <div class="job-details">
+                  <p class="job-name">{{ activeJob.job.fileName }}</p>
+                  <p class="job-status" *ngIf="activeJob.isProcessing">
+                    Đang xử lý: {{ activeJob.progressPercentage }}% 
+                    ({{ activeJob.job.processedRows | number }} / {{ activeJob.job.totalRows | number }})
+                  </p>
+                  <p class="job-status" *ngIf="!activeJob.isProcessing">
+                    {{ activeJob.job.status === 'COMPLETED' ? 'Hoàn thành' : 
+                       activeJob.job.status === 'FAILED' ? 'Thất bại' : 'Đã hủy' }}
+                    <span *ngIf="activeJob.job.completedAt">
+                      - {{ formatDateTime(activeJob.job.completedAt) }}
+                    </span>
+                  </p>
+                  <div *ngIf="activeJob.isProcessing" class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="activeJob.progressPercentage"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+      </div>
+
+      <!-- RIGHT COLUMN: UPLOAD ZONE & PREVIEW -->
+      <div class="grid-right">
+        
+        <!-- DRAG & DROP UPLOAD ZONE -->
+        <section 
+          class="upload-zone"
+          [class.dragging]="isDragging"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          (click)="fileInput.click()">
+          
+          <div *ngIf="isUploading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <h3 class="loading-title">Đang tải lên...</h3>
+            <p class="loading-description">Vui lòng đợi trong giây lát</p>
+          </div>
+          
+          <ng-container *ngIf="!isUploading">
+            <div class="upload-icon-wrapper">
+              <span class="material-symbols-outlined upload-icon">cloud_upload</span>
+            </div>
+            <h3 class="upload-title">Kéo & Thả tệp dữ liệu bệnh nhân</h3>
+            <p class="upload-description">
+              Hỗ trợ định dạng CSV, XLSX tối đa 500MB. Dữ liệu sẽ được xác thực theo schema MPI trước khi nhập.
+            </p>
+            <button type="button" class="upload-btn">
+              Chọn tệp từ máy tính
+            </button>
+          </ng-container>
+          
+          <input 
+            #fileInput
+            type="file" 
+            accept=".csv,.xlsx,.xls"
+            (change)="onFileSelected($event)"
+            style="display: none;" />
+        </section>
+
+        <!-- DATA PREVIEW CARD -->
+        <section *ngIf="validationResponse" class="preview-card">
+          <!-- Card Header -->
+          <div class="preview-header">
+            <div class="preview-header-content">
+              <div class="preview-info">
+                <div class="preview-title-row">
+                  <span class="material-symbols-outlined" 
+                    [ngClass]="{
+                      'icon-success': validationResponse.isValid,
+                      'icon-error': !validationResponse.isValid
+                    }">
+                    {{ validationResponse.isValid ? 'description' : 'error' }}
+                  </span>
+                  <h3 class="preview-filename">{{ validationResponse.fileName }}</h3>
+                  <button (click)="removeFile()" class="close-btn">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                </div>
+                <div class="preview-meta">
+                  <span>{{ validationResponse.columnCount }} cột phát hiện</span>
+                  <span class="meta-separator">•</span>
+                  <span>{{ validationResponse.rowCount | number }} dòng</span>
+                  <span class="meta-separator">•</span>
+                  <span>{{ formatFileSize(validationResponse.fileSize) }}</span>
+                  <span *ngIf="validationResponse.isValid" class="badge badge-success">
+                    Hợp lệ
+                  </span>
+                  <span *ngIf="!validationResponse.isValid" class="badge badge-error">
+                    Có lỗi
+                  </span>
+                </div>
+              </div>
+              
+              <button 
+                *ngIf="validationResponse.isValid"
+                (click)="startImport()"
+                class="start-import-btn">
+                <span class="material-symbols-outlined">play_arrow</span>
+                Bắt đầu Nhập dữ liệu
+              </button>
+            </div>
+          </div>
+
+          <!-- Validation Errors -->
+          <div *ngIf="validationResponse.validationErrors && validationResponse.validationErrors.length > 0" 
+               class="validation-errors">
+            <h4 class="validation-title">Lỗi xác thực:</h4>
+            <ul class="validation-list">
+              <li *ngFor="let error of validationResponse.validationErrors.slice(0, 5)" class="validation-item">
+                Dòng {{ error.row }}, Cột "{{ error.column }}": {{ error.errorMessage }}
+              </li>
+              <li *ngIf="validationResponse.validationErrors.length > 5" class="validation-more">
+                ... và {{ validationResponse.validationErrors.length - 5 }} lỗi khác
+              </li>
+            </ul>
+          </div>
+
+          <!-- Detected Columns -->
+          <div class="detected-columns">
+            <h4 class="columns-title">Các cột được phát hiện:</h4>
+            <div class="columns-list">
+              <span *ngFor="let column of validationResponse.detectedColumns" class="column-tag">
+                {{ column }}
+              </span>
+            </div>
+          </div>
+        </section>
+        
+      </div>
+      
+    </div>
+  </main>
+</div>

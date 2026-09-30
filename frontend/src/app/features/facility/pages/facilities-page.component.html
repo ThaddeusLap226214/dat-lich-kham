@@ -1,0 +1,22 @@
+<div class="facilities-page">
+  <app-facility-list
+    #facilityList
+    (addFacility)="openAddModal()"
+    (editFacility)="openEditModal($event)"
+    (deleteFacility)="openDeleteConfirm($event)">
+  </app-facility-list>
+
+  <app-facility-form
+    #facilityForm
+    (saved)="onFacilitySaved()">
+  </app-facility-form>
+
+  <app-confirm-dialog
+    [isOpen]="isDeleteDialogOpen"
+    title="Xác nhận xóa cơ sở y tế"
+    [message]="deleteMessage"
+    confirmText="Xóa cơ sở"
+    (confirm)="onConfirmDelete()"
+    (cancel)="onCancelDelete()">
+  </app-confirm-dialog>
+</div>

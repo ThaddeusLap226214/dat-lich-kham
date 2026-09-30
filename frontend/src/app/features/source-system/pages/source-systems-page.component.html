@@ -1,0 +1,22 @@
+<div class="source-systems-page">
+  <app-source-system-list
+    #sourceSystemList
+    (addSourceSystem)="openAddModal()"
+    (editSourceSystem)="openEditModal($event)"
+    (deleteSourceSystem)="openDeleteConfirm($event)">
+  </app-source-system-list>
+
+  <app-source-system-form
+    #sourceSystemForm
+    (saved)="onSourceSystemSaved()">
+  </app-source-system-form>
+
+  <app-confirm-dialog
+    [isOpen]="isDeleteDialogOpen"
+    title="Xác nhận xóa hệ thống nguồn"
+    [message]="deleteMessage"
+    confirmText="Xóa hệ thống"
+    (confirm)="onConfirmDelete()"
+    (cancel)="onCancelDelete()">
+  </app-confirm-dialog>
+</div>

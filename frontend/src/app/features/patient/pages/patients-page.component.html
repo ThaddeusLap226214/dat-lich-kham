@@ -1,0 +1,12 @@
+<div class="patients-page">
+  <app-patient-list
+    #patientList
+    (addPatient)="openAddModal()"
+    (editPatient)="openEditModal($event)">
+  </app-patient-list>
+
+  <app-patient-form
+    #patientForm
+    (saved)="onPatientSaved()">
+  </app-patient-form>
+</div>

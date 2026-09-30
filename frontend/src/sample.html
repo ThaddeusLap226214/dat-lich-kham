@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Chi tiết Hồ sơ Gốc - MediSync MPI</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "surface-variant": "#dbe3ed",
+            "inverse-surface": "#293139",
+            "on-secondary-container": "#5a6278",
+            "surface-container-low": "#eff4ff",
+            "tertiary-fixed": "#e1e3e5",
+            "tertiary": "#414546",
+            "inverse-on-surface": "#eaf1fc",
+            "on-primary-container": "#b2d9ff",
+            "warning-high": "#ea580c",
+            "outline": "#717880",
+            "on-surface-variant": "#40474f",
+            "inverse-primary": "#93ccff",
+            "on-tertiary": "#ffffff",
+            "brand-primary": "#0284c7",
+            "tertiary-container": "#595c5e",
+            "surface-bright": "#f7f9ff",
+            "on-secondary-fixed": "#131b2e",
+            "on-background": "#151c24",
+            "surface-container": "#e7eff9",
+            "on-tertiary-fixed": "#191c1e",
+            "background": "#f7f9ff",
+            "on-primary-fixed-variant": "#004b73",
+            "on-tertiary-fixed-variant": "#444749",
+            "primary": "#004870",
+            "surface-container-highest": "#dbe3ed",
+            "on-error-container": "#93000a",
+            "primary-fixed-dim": "#93ccff",
+            "error-critical": "#ba1a1a",
+            "primary-fixed": "#cce5ff",
+            "secondary": "#565e74",
+            "error": "#ba1a1a",
+            "secondary-container": "#d7dff9",
+            "surface": "#f7f9ff",
+            "secondary-fixed-dim": "#bec6e0",
+            "on-surface": "#151c24",
+            "on-tertiary-container": "#d2d4d7",
+            "tertiary-fixed-dim": "#c4c7c9",
+            "secondary-fixed": "#dae2fc",
+            "on-error": "#ffffff",
+            "surface-dim": "#d3dbe5",
+            "on-secondary-fixed-variant": "#3e465b",
+            "outline-variant": "#c0c7d0",
+            "primary-container": "#006194",
+            "surface-container-high": "#e1e9f3",
+            "surface-tint": "#076396",
+            "on-primary-fixed": "#001d31",
+            "success-optimal": "#10b981",
+            "on-secondary": "#ffffff",
+            "error-container": "#ffdad6"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter-mobile": "16px",
+            "section-gap": "40px",
+            "gutter-desktop": "24px",
+            "card-padding": "24px",
+            "unit": "4px",
+            "container-margin": "32px"
+          },
+          "fontFamily": {
+            "headline-md": ["Manrope"],
+            "display-lg": ["Manrope"],
+            "body-sm": ["Manrope"],
+            "label-md": ["Manrope"],
+            "headline-sm": ["Manrope"],
+            "headline-lg": ["Manrope"],
+            "label-sm": ["Manrope"],
+            "body-lg": ["Manrope"],
+            "body-md": ["Manrope"]
+          },
+          "fontSize": {
+            "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+            "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "fontWeight": "500" }],
+            "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+            "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Manrope', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-background text-on-surface h-screen flex overflow-hidden">
+  <!-- SideNavBar -->
+  <nav
+    class="hidden md:flex bg-inverse-surface border-r border-outline-variant shadow-md fixed left-0 top-0 h-full w-16 hover:w-64 transition-all duration-300 z-50 flex-col py-spacing-gutter-desktop group">
+    <div class="flex items-center px-4 mb-8">
+      <span class="material-symbols-outlined text-surface-bright text-2xl" data-icon="monitor_heart" data-weight="fill"
+        style="font-variation-settings: 'FILL' 1;">monitor_heart</span>
+      <div class="ml-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+        <div class="font-headline-sm text-headline-sm font-bold text-surface-bright">MediSync MPI</div>
+        <div class="font-label-sm text-label-sm text-primary-fixed-dim">Clinical Precision v2.4</div>
+      </div>
+    </div>
+    <ul class="flex flex-col flex-grow gap-2 px-2">
+      <li>
+        <a class="flex items-center px-2 py-3 rounded-lg text-on-surface-variant hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-colors group/item"
+          href="#">
+          <span class="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
+          <span
+            class="ml-4 font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a class="flex items-center px-2 py-3 rounded-lg text-on-surface-variant hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-colors group/item"
+          href="#">
+          <span class="material-symbols-outlined shrink-0" data-icon="database">database</span>
+          <span
+            class="ml-4 font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Sources</span>
+        </a>
+      </li>
+      <li>
+        <a class="flex items-center px-2 py-3 rounded-lg text-on-surface-variant hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-colors group/item"
+          href="#">
+          <span class="material-symbols-outlined shrink-0" data-icon="upload">upload</span>
+          <span
+            class="ml-4 font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Import</span>
+        </a>
+      </li>
+      <li>
+        <!-- Active Item: Master -->
+        <a class="flex items-center px-2 py-3 rounded-lg bg-primary-container text-on-primary-container scale-95 transition-transform duration-150 group/item"
+          href="#">
+          <span class="material-symbols-outlined shrink-0" data-icon="database_match" data-weight="fill"
+            style="font-variation-settings: 'FILL' 1;">maps_ar</span>
+          <span
+            class="ml-4 font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Master</span>
+        </a>
+      </li>
+      <li>
+        <a class="flex items-center px-2 py-3 rounded-lg text-on-surface-variant hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-colors group/item"
+          href="#">
+          <span class="material-symbols-outlined shrink-0" data-icon="rebase_edit">rebase_edit</span>
+          <span
+            class="ml-4 font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Review
+            Queue</span>
+        </a>
+      </li>
+      <li>
+        <a class="flex items-center px-2 py-3 rounded-lg text-on-surface-variant hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-colors group/item"
+          href="#">
+          <span class="material-symbols-outlined shrink-0" data-icon="settings">settings</span>
+          <span
+            class="ml-4 font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Config</span>
+        </a>
+      </li>
+      <li>
+        <a class="flex items-center px-2 py-3 rounded-lg text-on-surface-variant hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-colors group/item"
+          href="#">
+          <span class="material-symbols-outlined shrink-0" data-icon="group">group</span>
+          <span
+            class="ml-4 font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Users</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <!-- Main Content Wrapper -->
+  <div class="flex-1 flex flex-col md:ml-16 w-full relative h-full">
+    <!-- TopNavBar -->
+    <header
+      class="bg-surface-bright border-b border-outline-variant shadow-sm sticky top-0 w-full z-40 flex justify-between items-center h-16 px-spacing-gutter-desktop">
+      <div class="flex items-center gap-4">
+        <div class="md:hidden">
+          <span class="material-symbols-outlined text-brand-primary" data-icon="menu">menu</span>
+        </div>
+        <h1 class="font-headline-sm text-headline-sm font-bold text-on-surface">Master Patient Index</h1>
+      </div>
+      <div class="flex items-center gap-6">
+        <div
+          class="hidden lg:flex items-center bg-surface-container-low border border-outline-variant rounded-lg px-3 py-1.5 focus-within:border-brand-primary focus-within:ring-1 focus-within:ring-brand-primary transition-all">
+          <span class="material-symbols-outlined text-on-surface-variant" data-icon="search">search</span>
+          <input
+            class="bg-transparent border-none focus:ring-0 text-body-sm font-body-sm text-on-surface w-64 ml-2 placeholder:text-on-surface-variant"
+            placeholder="Tìm kiếm bệnh nhân..." type="text" />
+        </div>
+        <div class="flex gap-4">
+          <button class="text-on-surface-variant hover:text-brand-primary transition-colors">
+            <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+          </button>
+          <button class="text-on-surface-variant hover:text-brand-primary transition-colors">
+            <span class="material-symbols-outlined" data-icon="help">help</span>
+          </button>
+        </div>
+        <div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+          <img alt="Sarah Jenkins" class="w-full h-full object-cover"
+            data-alt="A professional headshot of a female medical registrar with dark hair, wearing a white coat against a clean, light blue clinic background. The lighting is soft and flattering, exuding competence and approachability, suitable for a healthcare application."
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhg2-JUVqNIJTvWksWTl8THH6ivTUNOrPu_kEY7DyOhnlordZDouEBnw9lqzxhdJaN8gJwwRguYui7-HcBHu9kUIRHaT7F94q2R4sPL7EWJZuXl5E4VbYIo1bPurT3Zzjf4Yxy2KPOyl2PFOA7efVedDjai1qS2ExPfYkaaNG-kK5tWEk2LGgECYLoW4-oAYxyy6xhyQyuUECk3thMGUnkPQgab93jwy_Bsu3O5PMNCFfDxnwJeQMB" />
+        </div>
+      </div>
+    </header>
+    <!-- Main Scrollable Content -->
+    <main class="flex-1 overflow-y-auto p-spacing-gutter-mobile md:p-spacing-gutter-desktop">
+      <div class="max-w-[1600px] mx-auto">
+        <!-- Page Header & Actions -->
+        <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-spacing-section-gap">
+          <div>
+            <div class="flex items-center gap-2 mb-2 text-on-surface-variant font-label-md text-label-md">
+              <a class="hover:text-brand-primary" href="#">Master</a>
+              <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+              <span class="text-on-surface">Chi tiết Hồ sơ Gốc</span>
+            </div>
+            <h2 class="font-headline-lg text-headline-lg text-on-surface">Hồ sơ Gốc: <span
+                class="text-brand-primary">MPI-99201-A</span></h2>
+          </div>
+          <div class="flex gap-3">
+            <button
+              class="flex items-center gap-2 bg-surface text-on-surface border border-outline px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-surface-container-high transition-colors">
+              <span class="material-symbols-outlined" data-icon="history">history</span>
+              Hoàn tác gộp
+            </button>
+            <button
+              class="flex items-center gap-2 bg-brand-primary text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-primary transition-colors shadow-sm">
+              <span class="material-symbols-outlined" data-icon="edit">edit</span>
+              Sửa thông tin
+            </button>
+          </div>
+        </div>
+        <!-- Bento Grid Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-spacing-gutter-desktop">
+          <!-- Top Section: Patient Summary Card (Spans full width or 8 cols on large screens) -->
+          <div
+            class="lg:col-span-12 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant p-card-padding">
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+              <!-- Avatar/Initials -->
+              <div
+                class="w-24 h-24 rounded-full bg-surface-container-low border border-primary-fixed-dim flex items-center justify-center shrink-0">
+                <span class="font-display-lg text-display-lg text-brand-primary">NA</span>
+              </div>
+              <!-- Core Info -->
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="font-headline-md text-headline-md text-on-surface">Nguyễn Văn Anh</h3>
+                  <span
+                    class="px-3 py-1 bg-success-optimal/10 text-success-optimal rounded-full font-label-sm text-label-sm border border-success-optimal/20 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]" data-icon="check_circle"
+                      data-weight="fill">check_circle</span>
+                    Hoạt động
+                  </span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-y-4 gap-x-8">
+                  <div>
+                    <div class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Ngày
+                      sinh (Tuổi)</div>
+                    <div class="font-body-md text-body-md text-on-surface flex items-center gap-2">
+                      <span class="material-symbols-outlined text-on-surface-variant text-sm"
+                        data-icon="calendar_today">calendar_today</span>
+                      12/05/1985 (39t)
+                    </div>
+                  </div>
+                  <div>
+                    <div class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Giới
+                      tính</div>
+                    <div class="font-body-md text-body-md text-on-surface flex items-center gap-2">
+                      <span class="material-symbols-outlined text-on-surface-variant text-sm"
+                        data-icon="male">male</span>
+                      Nam
+                    </div>
+                  </div>
+                  <div>
+                    <div class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">CCCD
+                    </div>
+                    <div class="font-body-md text-body-md text-on-surface flex items-center gap-2">
+                      <span class="material-symbols-outlined text-on-surface-variant text-sm"
+                        data-icon="badge">badge</span>
+                      079xxxxxx1234
+                    </div>
+                  </div>
+                  <div>
+                    <div class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Số
+                      điện thoại</div>
+                    <div class="font-body-md text-body-md text-on-surface flex items-center gap-2">
+                      <span class="material-symbols-outlined text-on-surface-variant text-sm"
+                        data-icon="call">call</span>
+                      090xxxx567
+                    </div>
+                  </div>
+                  <div class="md:col-span-2">
+                    <div class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Địa
+                      chỉ (Ghi nhận gần nhất)</div>
+                    <div class="font-body-md text-body-md text-on-surface flex items-start gap-2">
+                      <span class="material-symbols-outlined text-on-surface-variant text-sm mt-0.5"
+                        data-icon="location_on">location_on</span>
+                      123 Đường Nguyễn Hữu Cảnh, Phường 22, Quận Bình Thạnh, TP. Hồ Chí Minh
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Golden Record Score -->
+              <div
+                class="flex flex-col items-center justify-center p-4 bg-surface-container rounded-lg border border-outline-variant shrink-0 min-w-[120px]">
+                <div class="font-label-sm text-label-sm text-on-surface-variant mb-1">Điểm tin cậy</div>
+                <div
+                  class="relative w-16 h-16 flex items-center justify-center rounded-full border-4 border-success-optimal">
+                  <span class="font-headline-sm text-headline-sm font-bold text-on-surface">98%</span>
+                </div>
+                <div class="font-label-sm text-label-sm text-success-optimal mt-2 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]" data-icon="verified"
+                    data-weight="fill">verified</span>
+                  Đã xác thực
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Linked Identifiers Section (Spans 7 cols) -->
+          <div class="lg:col-span-7 flex flex-col gap-spacing-section-gap">
+            <!-- Identifiers Table -->
+            <div
+              class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant flex flex-col overflow-hidden">
+              <div class="p-card-padding border-b border-outline-variant bg-surface">
+                <h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+                  <span class="material-symbols-outlined text-brand-primary" data-icon="fingerprint">fingerprint</span>
+                  Định danh liên kết (PatientIdentifier)
+                </h3>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr
+                      class="bg-surface-container-low border-b border-outline-variant font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                      <th class="p-4 pl-6 font-semibold">Loại</th>
+                      <th class="p-4 font-semibold">Giá trị</th>
+                      <th class="p-4 font-semibold">Cơ quan cấp</th>
+                      <th class="p-4 font-semibold">Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody class="font-body-sm text-body-sm text-on-surface">
+                    <tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+                      <td class="p-4 pl-6 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-brand-primary"></span>
+                        BHYT
+                      </td>
+                      <td class="p-4 font-medium text-brand-primary">GD4797931234567</td>
+                      <td class="p-4 text-on-surface-variant">BHXH Việt Nam</td>
+                      <td class="p-4">
+                        <span
+                          class="px-2 py-1 bg-success-optimal/10 text-success-optimal rounded font-label-sm text-label-sm">Hợp
+                          lệ</span>
+                      </td>
+                    </tr>
+                    <tr class="border-b border-outline-variant hover:bg-surface-container-low transition-colors">
+                      <td class="p-4 pl-6 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                        Passport
+                      </td>
+                      <td class="p-4 font-medium">C5432198</td>
+                      <td class="p-4 text-on-surface-variant">Cục XNC</td>
+                      <td class="p-4">
+                        <span
+                          class="px-2 py-1 bg-surface-variant text-on-surface-variant rounded font-label-sm text-label-sm">Chưa
+                          xác minh</span>
+                      </td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                      <td class="p-4 pl-6 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-tertiary"></span>
+                        Local MRN
+                      </td>
+                      <td class="p-4 font-medium">MRN-2023-8891</td>
+                      <td class="p-4 text-on-surface-variant">HIS-CORE (BV Đa khoa)</td>
+                      <td class="p-4">
+                        <span
+                          class="px-2 py-1 bg-success-optimal/10 text-success-optimal rounded font-label-sm text-label-sm">Hợp
+                          lệ</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- Source Records Section -->
+            <div
+              class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant flex flex-col overflow-hidden">
+              <div class="p-card-padding border-b border-outline-variant bg-surface flex justify-between items-center">
+                <h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+                  <span class="material-symbols-outlined text-brand-primary" data-icon="source">source</span>
+                  Hồ sơ nguồn (PatientRecord)
+                </h3>
+                <span class="bg-surface-container-high px-2 py-1 rounded text-label-sm font-label-sm text-on-surface">3
+                  Hồ sơ</span>
+              </div>
+              <div class="p-card-padding grid gap-4 bg-surface-container-lowest">
+                <!-- Record Card 1 -->
+                <div
+                  class="border border-outline-variant rounded-lg p-4 bg-surface hover:border-brand-primary transition-colors group cursor-pointer relative overflow-hidden">
+                  <div class="absolute top-0 left-0 w-1 h-full bg-brand-primary"></div>
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="bg-primary-container text-on-primary-container px-2 py-1 rounded text-label-sm font-label-sm font-bold">HIS-CORE</span>
+                      <span class="font-label-md text-label-md text-on-surface">REC-8891-A</span>
+                    </div>
+                    <div class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]"
+                        data-icon="calendar_month">calendar_month</span>
+                      Gộp: 10/10/2023
+                    </div>
+                  </div>
+                  <div class="text-body-sm font-body-sm text-on-surface-variant mb-3">
+                    Nguyễn Văn Anh • 12/05/1985 • Nam • 0904567567
+                  </div>
+                  <div class="flex gap-2">
+                    <span
+                      class="text-label-sm font-label-sm bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded border border-outline-variant">Score:
+                      98</span>
+                    <span
+                      class="text-label-sm font-label-sm bg-success-optimal/10 text-success-optimal px-2 py-0.5 rounded border border-success-optimal/20">Auto-merged</span>
+                  </div>
+                </div>
+                <!-- Record Card 2 -->
+                <div
+                  class="border border-outline-variant rounded-lg p-4 bg-surface hover:border-brand-primary transition-colors group cursor-pointer relative overflow-hidden">
+                  <div class="absolute top-0 left-0 w-1 h-full bg-tertiary"></div>
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="bg-surface-container-high text-on-surface px-2 py-1 rounded text-label-sm font-label-sm font-bold">LIS-LAB</span>
+                      <span class="font-label-md text-label-md text-on-surface">LAB-2023-112</span>
+                    </div>
+                    <div class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]"
+                        data-icon="calendar_month">calendar_month</span>
+                      Gộp: 15/10/2023
+                    </div>
+                  </div>
+                  <div class="text-body-sm font-body-sm text-on-surface-variant mb-3">
+                    Nguyen Van Anh • 1985-05-12 • M
+                  </div>
+                  <div class="flex gap-2">
+                    <span
+                      class="text-label-sm font-label-sm bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded border border-outline-variant">Score:
+                      85</span>
+                    <span
+                      class="text-label-sm font-label-sm bg-warning-high/10 text-warning-high px-2 py-0.5 rounded border border-warning-high/20">Manual-merged</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- History Timeline Section (Spans 5 cols) -->
+          <div class="lg:col-span-5">
+            <div
+              class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant h-full flex flex-col">
+              <div class="p-card-padding border-b border-outline-variant bg-surface sticky top-0 z-10 rounded-t-xl">
+                <h3 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+                  <span class="material-symbols-outlined text-brand-primary"
+                    data-icon="history_toggle_off">history_toggle_off</span>
+                  Lịch sử gộp/tách (MatchDecisionLog)
+                </h3>
+              </div>
+              <div class="p-card-padding flex-1 overflow-y-auto bg-surface-container-lowest">
+                <div class="relative border-l-2 border-outline-variant ml-3 space-y-8">
+                  <!-- Timeline Item 1 -->
+                  <div class="relative pl-6">
+                    <div
+                      class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-brand-primary border-4 border-surface-container-lowest">
+                    </div>
+                    <div class="flex justify-between items-start mb-1">
+                      <div class="font-label-md text-label-md text-on-surface">Cập nhật thủ công (Manual Edit)</div>
+                      <div class="font-label-sm text-label-sm text-on-surface-variant">Hôm nay, 14:30</div>
+                    </div>
+                    <div class="font-body-sm text-body-sm text-on-surface-variant mb-2">
+                      Bởi: <span class="font-semibold text-on-surface">Admin Trần Văn B</span>
+                    </div>
+                    <div class="bg-surface p-3 rounded border border-outline-variant text-body-sm font-body-sm mb-2">
+                      Cập nhật địa chỉ thường trú theo CCCD mới cung cấp.
+                    </div>
+                    <button
+                      class="text-brand-primary font-label-sm text-label-sm hover:underline flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]" data-icon="visibility">visibility</span>
+                      Xem chi tiết log
+                    </button>
+                  </div>
+                  <!-- Timeline Item 2 -->
+                  <div class="relative pl-6">
+                    <div
+                      class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-warning-high border-4 border-surface-container-lowest">
+                    </div>
+                    <div class="flex justify-between items-start mb-1">
+                      <div class="font-label-md text-label-md text-on-surface">Gộp thủ công (Manual Merge)</div>
+                      <div class="font-label-sm text-label-sm text-on-surface-variant">15/10/2023, 09:15</div>
+                    </div>
+                    <div class="font-body-sm text-body-sm text-on-surface-variant mb-2">
+                      Bởi: <span class="font-semibold text-on-surface">Reviewer Lê Thị C</span>
+                    </div>
+                    <div class="bg-surface p-3 rounded border border-outline-variant text-body-sm font-body-sm mb-2">
+                      Gộp hồ sơ <span class="font-mono text-xs bg-surface-container px-1">LAB-2023-112</span> từ
+                      LIS-LAB. Lý do: Thiếu dấu tiếng Việt nhưng khớp SĐT và Ngày sinh.
+                    </div>
+                    <button
+                      class="text-brand-primary font-label-sm text-label-sm hover:underline flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]" data-icon="visibility">visibility</span>
+                      Xem chi tiết log
+                    </button>
+                  </div>
+                  <!-- Timeline Item 3 -->
+                  <div class="relative pl-6">
+                    <div
+                      class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-success-optimal border-4 border-surface-container-lowest">
+                    </div>
+                    <div class="flex justify-between items-start mb-1">
+                      <div class="font-label-md text-label-md text-on-surface">Tự động gộp (Auto Merge)</div>
+                      <div class="font-label-sm text-label-sm text-on-surface-variant">10/10/2023, 11:20</div>
+                    </div>
+                    <div class="font-body-sm text-body-sm text-on-surface-variant mb-2">
+                      Bởi: <span class="font-semibold text-brand-primary">Hệ thống (Rule Engine)</span>
+                    </div>
+                    <div class="bg-surface p-3 rounded border border-outline-variant text-body-sm font-body-sm mb-2">
+                      Tạo hồ sơ gốc và gộp hồ sơ <span
+                        class="font-mono text-xs bg-surface-container px-1">REC-8891-A</span> từ HIS-CORE. Điểm tin cậy:
+                      98%.
+                    </div>
+                    <button
+                      class="text-brand-primary font-label-sm text-label-sm hover:underline flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[14px]" data-icon="visibility">visibility</span>
+                      Xem chi tiết log
+                    </button>
+                  </div>
+                  <!-- Timeline Item End Indicator -->
+                  <div class="relative pl-6 pb-2">
+                    <div class="absolute -left-[5px] top-1 w-2 h-2 rounded-full bg-outline-variant"></div>
+                    <div class="font-label-sm text-label-sm text-on-surface-variant italic">Khởi tạo hồ sơ</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+
+</html>

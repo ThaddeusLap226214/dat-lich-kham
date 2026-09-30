@@ -1,0 +1,87 @@
+.filter-panel {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  font-family: var(--font-label-sm);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--on-surface-variant);
+  margin: 0;
+}
+
+.filter-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.filter-checkbox input {
+  border-radius: 0.25rem;
+  border: 1px solid var(--outline-variant);
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--primary);
+}
+
+.filter-checkbox span {
+  font-family: var(--font-body-md);
+  font-size: 0.875rem;
+  color: var(--on-surface);
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--outline-variant);
+}
+
+.btn-reset, .btn-apply {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-family: var(--font-label-md);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-reset {
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  color: var(--on-surface-variant);
+}
+
+.btn-reset:hover {
+  background: var(--surface-container);
+}
+
+.btn-apply {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: var(--on-primary);
+}
+
+.btn-apply:hover {
+  background: var(--primary-container);
+  border-color: var(--primary-container);
+}

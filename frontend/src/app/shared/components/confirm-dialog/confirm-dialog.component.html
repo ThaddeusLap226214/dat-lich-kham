@@ -1,0 +1,17 @@
+<div class="confirm-dialog-backdrop" [class.active]="isOpen" (click)="onBackdropClick($event)">
+  <div class="confirm-dialog-content" (click)="$event.stopPropagation()">
+    <div class="confirm-dialog-body">
+      <div class="confirm-icon">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <div class="confirm-text">
+        <h3 class="confirm-title">{{ title }}</h3>
+        <p class="confirm-message">{{ message }}</p>
+      </div>
+    </div>
+    <div class="confirm-dialog-actions">
+      <button class="btn-cancel" (click)="onCancel()">Hủy</button>
+      <button class="btn-confirm" (click)="onConfirm()">{{ confirmText }}</button>
+    </div>
+  </div>
+</div>

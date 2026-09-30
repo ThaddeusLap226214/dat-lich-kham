@@ -1,0 +1,17 @@
+# Dùng khi phát triển: mở thêm cổng của từng service để gọi thẳng Swagger, không qua Gateway
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+services:
+  auth-service:
+    ports: ["8081:8081"]
+  provider-service:
+    ports: ["8082:8082"]
+  patient-service:
+    ports: ["8083:8083"]
+  scheduling-service:
+    ports: ["8084:8084"]
+  reminder-service:
+    ports: ["8085:8085"]
+  rabbitmq:
+    ports: ["5672:5672"]
+  mailpit:
+    ports: ["1025:1025"]

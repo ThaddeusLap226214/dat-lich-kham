@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+:root {
+  --on-error: #ffffff;
+  --on-tertiary-fixed-variant: #3f484d;
+  --on-secondary-fixed: #001e2f;
+  --on-error-container: #93000a;
+  --error: #ba1a1a;
+  --primary: #006194;
+  --inverse-primary: #93ccff;
+  --tertiary: #545d62;
+  --tertiary-fixed-dim: #bfc8ce;
+  --surface-container-highest: #d3e4fe;
+  --primary-fixed-dim: #93ccff;
+  --surface-variant: #d3e4fe;
+  --on-tertiary-container: #fbfdff;
+  --on-tertiary: #ffffff;
+  --surface-container: #e5eeff;
+  --surface-bright: #f8f9ff;
+  --background: #f8f9ff;
+  --on-surface-variant: #3f4850;
+  --tertiary-container: #6d767b;
+  --outline: #707881;
+  --surface-container-low: #eff4ff;
+  --surface-container-lowest: #ffffff;
+  --secondary-fixed: #c9e6ff;
+  --outline-variant: #bfc7d2;
+  --surface-dim: #cbdbf5;
+  --on-primary-fixed: #001d31;
+  --inverse-surface: #213145;
+  --surface-tint: #006398;
+  --on-primary: #ffffff;
+  --surface: #f8f9ff;
+  --primary-fixed: #cce5ff;
+  --surface-container-high: #dce9ff;
+  --secondary-container: #39b8fd;
+  --on-primary-fixed-variant: #004b73;
+  --on-surface: #0b1c30;
+  --on-secondary: #ffffff;
+  --primary-container: #007bb9;
+  --on-secondary-fixed-variant: #004c6e;
+  --inverse-on-surface: #eaf1ff;
+  --on-primary-container: #fdfcff;
+  --error-container: #ffdad6;
+  --on-secondary-container: #004666;
+  --secondary: #006591;
+  --tertiary-fixed: #dbe4ea;
+  --secondary-fixed-dim: #89ceff;
+  --on-tertiary-fixed: #141d21;
+  --on-background: #0b1c30;
+
+  --font-family-manrope: 'Manrope', sans-serif;
+  --font-family-inter: 'Inter', sans-serif;
+
+  --font-headline-lg: 700 2rem/2.5rem 'Manrope', sans-serif;
+  --font-headline-md: 600 1.5rem/2rem 'Manrope', sans-serif;
+  --font-title-lg: 600 1.25rem/1.75rem 'Manrope', sans-serif;
+  --font-body-lg: 400 1rem/1.5rem 'Manrope', sans-serif;
+  --font-body-md: 400 0.875rem/1.25rem 'Manrope', sans-serif;
+  --font-label-md: 500 0.75rem/1rem 'Inter', sans-serif;
+  --font-label-sm: 600 0.6875rem/0.875rem 'Inter', sans-serif;
+  --font-display-lg: 700 3rem/3.75rem 'Manrope', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-family-manrope);
+  background-color: var(--background);
+  color: var(--on-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input, select, textarea {
+  font-family: inherit;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
+}

@@ -1,0 +1,193 @@
+<div class="page-header">
+  <div class="page-header-content">
+    <h2 class="page-title">Danh sách Bệnh nhân</h2>
+    <p class="page-subtitle">Quản lý và theo dõi hồ sơ bệnh nhân toàn phòng khám</p>
+  </div>
+  <button class="btn-primary" (click)="onAddPatient()">
+    <span class="material-symbols-outlined">person_add</span>
+    Thêm bệnh nhân mới
+  </button>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card stat-card-primary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Tổng hồ sơ</span>
+      <div class="stat-icon">
+        <span class="material-symbols-outlined">groups</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-primary">{{ totalCount() | number }}</div>
+      <div class="stat-info">
+        <span class="stat-description">Gồm cả hồ sơ đã gộp</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-secondary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Đã xác minh</span>
+      <div class="stat-icon stat-icon-secondary">
+        <span class="material-symbols-outlined">verified</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-secondary">{{ activeCount() | number }}</div>
+      <div class="stat-info">
+        <span class="stat-pulse"></span>
+        <span class="stat-description">{{ percent(activeCount()) | number:'1.1-1' }}% có giấy tờ tùy thân</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-tertiary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Hồ sơ tạm</span>
+      <div class="stat-icon stat-icon-tertiary">
+        <span class="material-symbols-outlined">pending</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-tertiary">{{ temporaryCount() | number }}</div>
+      <div class="stat-info">
+        <span class="stat-pulse stat-pulse-tertiary"></span>
+        <span class="stat-description">{{ percent(temporaryCount()) | number:'1.1-1' }}% chưa có giấy tờ</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="filter-toolbar">
+  <div class="search-box">
+    <span class="material-symbols-outlined">search</span>
+    <input type="text" placeholder="Tìm theo họ tên (có dấu hoặc không), số giấy tờ, số điện thoại..." class="search-input"
+      [value]="searchService.searchQuery()"
+      (input)="searchService.setQuery($any($event.target).value)">
+    @if (searchService.searchQuery()) {
+    <button class="btn-clear" (click)="searchService.clearQuery()">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    }
+  </div>
+
+  <div class="filter-group">
+    <div class="filter-item">
+      <span class="filter-label">Trạng thái:</span>
+      <select [(ngModel)]="selectedStatus" (change)="onStatusFilterChange()" class="filter-select">
+        <option value="ALL">Tất cả</option>
+        @for (status of statusOptions; track status.value) {
+        <option [value]="status.value">{{ status.label }}</option>
+        }
+      </select>
+    </div>
+
+    <button class="btn-reset" (click)="resetFilters()" title="Làm mới bộ lọc">
+      <span class="material-symbols-outlined">refresh</span>
+    </button>
+
+    <button class="btn-export">
+      <span class="material-symbols-outlined">download</span>
+      Xuất Excel
+    </button>
+  </div>
+</div>
+
+<div class="table-card">
+
+  <div class="table-container">
+    <table class="patient-table">
+      <thead>
+        <tr>
+          <th>Họ và tên</th>
+          <th>Giấy tờ</th>
+          <th>Ngày sinh</th>
+          <th>Giới tính</th>
+          <th>Số điện thoại</th>
+          <th>Người giám hộ</th>
+          <th>Trạng thái</th>
+          <th class="text-right">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+        <tr>
+          <td colspan="8" class="loading-cell">
+            <div class="loading-spinner"></div>
+            <span>Đang tải dữ liệu...</span>
+          </td>
+        </tr>
+        } @else if (patients().length === 0) {
+        <tr>
+          <td colspan="8" class="empty-cell">
+            <span class="material-symbols-outlined">search_off</span>
+            <p>Không tìm thấy bệnh nhân nào</p>
+          </td>
+        </tr>
+        } @else {
+        @for (patient of patients(); track patient.id) {
+        <tr class="table-row">
+          <td>
+            <div class="patient-info">
+              <div class="patient-avatar" [class]="'avatar-' + getAvatarColor(patient.gender)">
+                {{ getInitials(patient.fullName) }}
+              </div>
+              <div class="patient-details">
+                <p class="patient-name">{{ patient.fullName }}</p>
+                <p class="patient-id">ID-{{ patient.id }}</p>
+              </div>
+            </div>
+          </td>
+          <td>
+            @if (patient.idNumber) {
+            <span class="id-type">{{ getIdTypeLabel(patient.idType) }}</span> {{ patient.idNumber }}
+            } @else {
+            -
+            }
+          </td>
+          <td>{{ patient.dateOfBirth | date:'dd/MM/yyyy' }}</td>
+          <td>{{ getGenderLabel(patient.gender) }}</td>
+          <td>{{ formatPhone(patient.phone) }}</td>
+          <td>
+            @if (patient.guardianName) {
+            {{ patient.guardianName }}
+            @if (patient.guardianRelation) {
+            <span class="guardian-relation">({{ patient.guardianRelation }})</span>
+            }
+            } @else {
+            -
+            }
+          </td>
+          <td>
+            <span class="status-badge" [class]="'status-' + patient.status.toLowerCase()">
+              <span class="status-dot"></span>
+              {{ getStatusLabel(patient.status) }}
+              @if (patient.mergedIntoId) {
+              → ID-{{ patient.mergedIntoId }}
+              }
+            </span>
+          </td>
+          <td class="text-right">
+            <div class="action-buttons">
+              <button class="btn-action btn-edit" (click)="onEditPatient(patient)"
+                [disabled]="patient.status === MERGED"
+                [title]="patient.status === MERGED ? 'Hồ sơ đã gộp, sửa trên hồ sơ chính' : 'Sửa'">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+        }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (!isLoading() && patients().length > 0) {
+  <app-pagination [pageMeta]="pageMeta()" (pageChange)="onPageChange($event)">
+  </app-pagination>
+  }
+</div>

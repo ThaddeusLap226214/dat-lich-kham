@@ -1,0 +1,20 @@
+<header class="header">
+  <div class="search-wrapper">
+    @if (showSearch()) {
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input type="text" class="search-input" placeholder="Tìm kiếm bệnh nhân..." [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()">
+    }
+  </div>
+
+  <div class="header-actions">
+    <label class="demo-switch" title="Chọn vai trò thay cho đăng nhập, cho tới khi Auth Service làm xong">
+      <span class="demo-label">Chế độ thử</span>
+      <select [ngModel]="identity.identity().key" (ngModelChange)="onIdentityChange($event)">
+        @for (i of identities; track i.key) {
+          <option [value]="i.key">{{ i.label }}</option>
+        }
+      </select>
+    </label>
+  </div>
+</header>

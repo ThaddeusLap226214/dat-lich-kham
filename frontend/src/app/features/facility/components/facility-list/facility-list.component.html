@@ -1,0 +1,219 @@
+<div class="page-header">
+  <div class="page-header-content">
+    <div class="breadcrumb">
+      <span class="breadcrumb-dot"></span>
+      <span class="breadcrumb-label">Phân hệ Mạng lưới Y tế</span>
+    </div>
+    <h2 class="page-title">Quản lý Cơ sở Y tế</h2>
+    <p class="page-subtitle">
+      Quản lý danh mục các bệnh viện, phòng khám thành viên và giám sát các hệ thống nguồn tích hợp dữ liệu trực thuộc
+      Master Patient Index (MPI).
+    </p>
+  </div>
+  <div class="page-actions">
+    <button class="btn-secondary">
+      <span class="material-symbols-outlined">file_download</span>
+      Xuất dữ liệu
+    </button>
+    <button class="btn-primary" (click)="onAddFacility()">
+      <span class="material-symbols-outlined">add_circle</span>
+      + Thêm cơ sở y tế mới
+    </button>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card stat-card-primary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Tổng số cơ sở</span>
+      <div class="stat-icon">
+        <span class="material-symbols-outlined">apartment</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value">{{ totalCount() | number }}</div>
+      <div class="stat-tags">
+        <span class="stat-tag">{{ activeCount() }} Hoạt động</span>
+        <span class="stat-tag">{{ totalCount() - activeCount() }} Tạm dừng</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-secondary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Nguồn tích hợp</span>
+      <div class="stat-icon stat-icon-secondary">
+        <span class="material-symbols-outlined">hub</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-secondary">64</div>
+      <div class="stat-info">
+        <span class="stat-description">HIS, LIS, RIS/PACS, CIS</span>
+        <span class="stat-status stat-status-success">
+          <span class="material-symbols-outlined">check_circle</span> 100% Online
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-success">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Đang hoạt động</span>
+      <div class="stat-icon stat-icon-success">
+        <span class="material-symbols-outlined">verified</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-success">{{ activeCount() | number }}</div>
+      <div class="stat-info">
+        <span class="stat-pulse"></span>
+        <span class="stat-description">{{ (activeCount() / totalCount() * 100) | number:'1.1-1' }}% sẵn sàng nạp
+          EMR</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-warning">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Cần kiểm tra</span>
+      <div class="stat-icon stat-icon-warning">
+        <span class="material-symbols-outlined">sync_problem</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-warning">{{ totalCount() - activeCount() | number }}</div>
+      <div class="stat-info stat-info-warning">
+        <span class="material-symbols-outlined">info</span>
+        <span class="stat-description">Tạm ngừng / Bảo trì nguồn</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="filter-toolbar">
+  <div class="search-box">
+    <span class="material-symbols-outlined">search</span>
+    <input type="text" placeholder="Tìm theo tên cơ sở, mã định danh (Code), số điện thoại..." class="search-input"
+      (input)="searchService.setQuery($any($event.target).value)">
+    <button class="btn-clear" (click)="searchService.clearQuery()">
+    </button>
+  </div>
+
+  <div class="filter-group">
+    <div class="filter-item">
+      <span class="filter-label">Loại hình:</span>
+      <select [(ngModel)]="selectedType" (change)="onTypeFilterChange()" class="filter-select">
+        @for (type of facilityTypeOptions; track type.value) {
+        <option [value]="type.value">{{ type.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-item">
+      <span class="filter-label">Trạng thái:</span>
+      <select [(ngModel)]="selectedStatus" (change)="onStatusFilterChange()" class="filter-select">
+        <option value="ACTIVE">Đang hoạt động</option>
+        <option value="INACTIVE">Ngừng hoạt động</option>
+      </select>
+    </div>
+
+    <button class="btn-reset" (click)="resetFilters()" title="Làm mới bộ lọc">
+      <span class="material-symbols-outlined">refresh</span>
+    </button>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-container">
+    <table class="facility-table">
+      <thead>
+        <tr>
+          <th>Mã cơ sở</th>
+          <th>Tên cơ sở & Loại hình</th>
+          <th>Địa chỉ & Liên hệ</th>
+          <th>Trạng thái</th>
+          <th class="text-right">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+        <tr>
+          <td colspan="5" class="loading-cell">
+            <div class="loading-spinner"></div>
+            <span>Đang tải dữ liệu...</span>
+          </td>
+        </tr>
+        } @else if (facilities().length === 0) {
+        <tr>
+          <td colspan="5" class="empty-cell">
+            <span class="material-symbols-outlined">search_off</span>
+            <p>Không tìm thấy cơ sở y tế nào</p>
+          </td>
+        </tr>
+        } @else {
+        @for (facility of facilities(); track facility.id) {
+        <tr class="table-row" [class.row-inactive]="!facility.isActive">
+          <td>
+            <span class="facility-code">{{ facility.code }}</span>
+          </td>
+          <td>
+            <div class="facility-info">
+              <p class="facility-name">{{ facility.name }}</p>
+              <div class="facility-meta">
+                <span class="facility-type" [class]="getFacilityTypeClass(facility.facilityType)">
+                  {{ getFacilityTypeLabel(facility.facilityType) }}
+                </span>
+              </div>
+            </div>
+          </td>
+          <td class="facility-contact">
+            <div class="contact-info">
+              <span class="contact-address" [title]="facility.address || '-'">
+                {{ facility.address || '-' }}
+              </span>
+              <span class="contact-phone">
+                <span class="material-symbols-outlined">call</span>
+                {{ formatPhone(facility.phoneNumber) }}
+              </span>
+            </div>
+          </td>
+          <td>
+            @if (facility.isActive) {
+            <span class="status-badge status-active">
+              <span class="status-dot"></span>
+              Đang hoạt động
+            </span>
+            } @else {
+            <span class="status-badge status-inactive">
+              <span class="status-dot"></span>
+              Ngừng hoạt động
+            </span>
+            }
+          </td>
+          <td class="text-right">
+            <div class="action-buttons">
+              <button class="btn-action btn-edit" (click)="onEditFacility(facility)" title="Chỉnh sửa">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+              <button class="btn-action btn-delete" (click)="onDeleteFacility(facility)" title="Xóa">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+        }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (!isLoading() && facilities().length > 0) {
+  <app-pagination [pageMeta]="pageMeta()" (pageChange)="onPageChange($event)">
+  </app-pagination>
+  }
+</div>

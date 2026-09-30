@@ -1,0 +1,147 @@
+<div class="modal-backdrop" [class.active]="isOpen" (click)="onBackdropClick($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">{{ isEditMode ? 'Cập nhật thông tin bệnh nhân' : 'Thêm bệnh nhân mới' }}</h3>
+      <button class="btn-close" (click)="close()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-body">
+      <div class="form-grid">
+        <div class="form-group form-group-full">
+          <label class="form-label">Họ và tên <span class="required">*</span></label>
+          <input
+            type="text"
+            formControlName="fullName"
+            class="form-input"
+            placeholder="Nhập họ và tên...">
+          @if (form.get('fullName')?.touched && form.get('fullName')?.errors?.['required']) {
+            <span class="form-error">Họ tên không được để trống</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Ngày sinh <span class="required">*</span></label>
+          <input
+            type="date"
+            formControlName="dateOfBirth"
+            class="form-input">
+          @if (form.get('dateOfBirth')?.touched && form.get('dateOfBirth')?.errors?.['required']) {
+            <span class="form-error">Ngày sinh không được để trống</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Giới tính <span class="required">*</span></label>
+          <div class="radio-group">
+            @for (gender of genderOptions; track gender.value) {
+              <label class="radio-label">
+                <input type="radio" formControlName="gender" [value]="gender.value">
+                <span>{{ gender.label }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Loại giấy tờ</label>
+          <select formControlName="idType" class="form-select">
+            <option value="">Chưa có</option>
+            @for (type of idTypeOptions; track type.value) {
+              <option [value]="type.value">{{ type.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Số giấy tờ</label>
+          <input
+            type="text"
+            formControlName="idNumber"
+            class="form-input"
+            placeholder="Số CCCD / hộ chiếu / thẻ BHYT"
+            maxlength="20">
+          @if (isEditMode) {
+            <span class="form-hint">Không sửa giấy tờ ở đây; bổ sung giấy tờ cho hồ sơ tạm đi theo luồng riêng</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Số điện thoại</label>
+          <input
+            type="tel"
+            formControlName="phone"
+            class="form-input"
+            placeholder="0..."
+            maxlength="10">
+          @if (form.get('phone')?.touched && form.get('phone')?.errors?.['invalidPhone']) {
+            <span class="form-error">Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input
+            type="email"
+            formControlName="email"
+            class="form-input"
+            placeholder="ten@example.com">
+          @if (form.get('email')?.touched && form.get('email')?.errors?.['email']) {
+            <span class="form-error">Email không hợp lệ</span>
+          }
+        </div>
+
+        <div class="form-group form-group-full">
+          <label class="form-label">Địa chỉ</label>
+          <textarea
+            formControlName="address"
+            class="form-input"
+            rows="2"
+            placeholder="Nhập địa chỉ..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Người giám hộ</label>
+          <input
+            type="text"
+            formControlName="guardianName"
+            class="form-input"
+            placeholder="Với trẻ em / người không tự đi khám">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Quan hệ</label>
+          <input
+            type="text"
+            formControlName="guardianRelation"
+            class="form-input"
+            placeholder="Mẹ, Cha, Con...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">SĐT người giám hộ</label>
+          <input
+            type="tel"
+            formControlName="guardianPhone"
+            class="form-input"
+            placeholder="0..."
+            maxlength="10">
+          @if (form.get('guardianPhone')?.touched && form.get('guardianPhone')?.errors?.['invalidPhone']) {
+            <span class="form-error">Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0</span>
+          }
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="close()">Hủy</button>
+        <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+          @if (isSubmitting) {
+            <span class="loading-spinner-small"></span>
+          }
+          {{ isEditMode ? 'Cập nhật' : 'Lưu thông tin' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

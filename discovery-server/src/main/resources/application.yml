@@ -1,0 +1,25 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: discovery-server
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    # Chạy một máy duy nhất nên tắt chế độ tự bảo vệ, để service tắt thì bị gỡ khỏi danh bạ nhanh
+    enable-self-preservation: false
+    response-cache-update-interval-ms: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

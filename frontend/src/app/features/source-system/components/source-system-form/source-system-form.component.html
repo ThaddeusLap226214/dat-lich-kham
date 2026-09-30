@@ -1,0 +1,78 @@
+<div class="modal-backdrop" [class.active]="isOpen" (click)="onBackdropClick($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">{{ isEditMode ? 'Cập nhật thông tin hệ thống nguồn' : 'Thêm hệ thống nguồn mới' }}</h3>
+      <button class="btn-close" (click)="close()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-body">
+      <div class="form-grid">
+        <div class="form-group form-group-full">
+          <label class="form-label">Cơ sở y tế <span class="required">*</span></label>
+          <select formControlName="facilityId" class="form-select">
+            <option value="">-- Chọn cơ sở y tế --</option>
+            @for (facility of facilities; track facility.id) {
+              <option [value]="facility.id">{{ facility.name }} ({{ facility.code }})</option>
+            }
+          </select>
+          @if (form.get('facilityId')?.touched && form.get('facilityId')?.errors?.['required']) {
+            <span class="form-error">Vui lòng chọn cơ sở y tế</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mã nguồn <span class="required">*</span></label>
+          <input
+            type="text"
+            formControlName="code"
+            class="form-input"
+            placeholder="HIS-CR-01">
+          @if (form.get('code')?.touched && form.get('code')?.errors?.['required']) {
+            <span class="form-error">Mã nguồn không được để trống</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tên hệ thống <span class="required">*</span></label>
+          <input
+            type="text"
+            formControlName="name"
+            class="form-input"
+            placeholder="Nhập tên hệ thống nguồn...">
+          @if (form.get('name')?.touched && form.get('name')?.errors?.['required']) {
+            <span class="form-error">Tên hệ thống không được để trống</span>
+          }
+        </div>
+
+        <div class="form-group form-group-full">
+          <label class="form-label">Mô tả</label>
+          <textarea
+            formControlName="description"
+            class="form-textarea"
+            rows="3"
+            placeholder="Nhập mô tả về hệ thống nguồn..."></textarea>
+        </div>
+
+        <div class="form-group form-group-full">
+          <label class="form-label">Trạng thái</label>
+          <select formControlName="isActive" class="form-select">
+            <option [value]="true">Đang hoạt động</option>
+            <option [value]="false">Không hoạt động</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="close()">Hủy</button>
+        <button type="submit" class="btn-submit" [disabled]="isSubmitting">
+          @if (isSubmitting) {
+            <span class="loading-spinner-small"></span>
+          }
+          {{ isEditMode ? 'Cập nhật' : 'Lưu thông tin' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

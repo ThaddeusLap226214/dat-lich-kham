@@ -1,0 +1,179 @@
+<div class="page-header">
+  <div class="page-header-content">
+    <h2 class="page-title">Danh sách Hệ thống Nguồn</h2>
+    <p class="page-subtitle">Quản lý các hệ thống nguồn dữ liệu tích hợp vào MPI</p>
+  </div>
+  <button class="btn-primary" (click)="onAddSourceSystem()">
+    <span class="material-symbols-outlined">add_circle</span>
+    Thêm hệ thống nguồn
+  </button>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card stat-card-primary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Tổng hệ thống</span>
+      <div class="stat-icon">
+        <span class="material-symbols-outlined">storage</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-primary">{{ pageMeta()?.total || 0 | number }}</div>
+      <div class="stat-info">
+        <span class="stat-description">HIS, LIS, RIS/PACS</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-secondary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Đang hoạt động</span>
+      <div class="stat-icon stat-icon-secondary">
+        <span class="material-symbols-outlined">check_circle</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-secondary">{{ activeCount() | number }}</div>
+      <div class="stat-info">
+        <span class="stat-pulse"></span>
+        <span class="stat-description">{{ totalCount() > 0 ? (activeCount() / totalCount() * 100 | number:'1.1-1') : 0
+          }}% đang trực tuyến</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-tertiary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Không hoạt động</span>
+      <div class="stat-icon stat-icon-tertiary">
+        <span class="material-symbols-outlined">cancel</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-tertiary">{{ inactiveCount() | number }}</div>
+      <div class="stat-info">
+        <span class="stat-description">Cần kiểm tra kết nối</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="filter-toolbar">
+  <div class="search-box">
+    <span class="material-symbols-outlined">search</span>
+    <input type="text" placeholder="Tìm theo tên hệ thống, mã nguồn, cơ sở y tế..." class="search-input"
+      (input)="searchService.setQuery($any($event.target).value)">
+    <button class="btn-clear" (click)="searchService.clearQuery()">
+    </button>
+  </div>
+
+  <div class="filter-group">
+    <div class="filter-item">
+      <span class="filter-label">Cơ sở:</span>
+      <select [(ngModel)]="selectedFacilityId" (change)="onFacilityChange()" class="filter-select">
+        @for (facility of facilities(); track facility.id) {
+        <option [value]="facility.id">{{ facility.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-item">
+      <span class="filter-label">Trạng thái:</span>
+      <select [(ngModel)]="selectedStatus" (change)="onStatusFilterChange()" class="filter-select">
+        <option value="true">Đang hoạt động</option>
+        <option value="false">Không hoạt động</option>
+      </select>
+    </div>
+
+    <button class="btn-reset" (click)="resetFilters()" title="Làm mới bộ lọc">
+      <span class="material-symbols-outlined">refresh</span>
+    </button>
+
+    <button class="btn-export">
+      <span class="material-symbols-outlined">download</span>
+      Xuất Excel
+    </button>
+  </div>
+</div>
+
+<div class="table-card">
+
+  <div class="table-container">
+    <table class="source-system-table">
+      <thead>
+        <tr>
+          <th>Mã nguồn</th>
+          <th>Tên hệ thống nguồn</th>
+          <th>Cơ sở y tế trực thuộc</th>
+          <th>Trạng thái</th>
+          <th class="text-right">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+        <tr>
+          <td colspan="5" class="loading-cell">
+            <div class="loading-spinner"></div>
+            <span>Đang tải dữ liệu...</span>
+          </td>
+        </tr>
+        } @else if (sourceSystems().length === 0) {
+        <tr>
+          <td colspan="5" class="empty-cell">
+            <span class="material-symbols-outlined">search_off</span>
+            <p>Không tìm thấy hệ thống nguồn nào</p>
+          </td>
+        </tr>
+        } @else {
+        @for (sourceSystem of sourceSystems(); track sourceSystem.id) {
+        <tr class="table-row">
+          <td>
+            <div class="code-cell">
+              <span class="code-badge">{{ sourceSystem.code }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="name-cell">
+              <p class="system-name">{{ sourceSystem.name }}</p>
+              @if (sourceSystem.description) {
+              <p class="system-desc">{{ sourceSystem.description }}</p>
+              }
+            </div>
+          </td>
+          <td>
+            <div class="facility-cell">
+              <p class="facility-name">{{ sourceSystem.facilityName }}</p>
+              <p class="facility-code">{{ sourceSystem.facilityCode }}</p>
+            </div>
+          </td>
+          <td>
+            <span class="status-badge" [class]="'status-' + getStatusClass(sourceSystem.isActive)">
+              <span class="status-dot"></span>
+              {{ getStatusLabel(sourceSystem.isActive) }}
+            </span>
+          </td>
+          <td class="text-right">
+            <div class="action-buttons">
+              <button class="btn-action btn-edit" (click)="onEditSourceSystem(sourceSystem)" title="Sửa">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+              <button class="btn-action btn-delete" (click)="onDeleteSourceSystem(sourceSystem)" title="Xóa">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+        }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (!isLoading() && sourceSystems().length > 0) {
+  <app-pagination [pageMeta]="pageMeta()" (pageChange)="onPageChange($event)">
+  </app-pagination>
+  }
+</div>

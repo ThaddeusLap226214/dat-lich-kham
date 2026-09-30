@@ -1,0 +1,6 @@
+export enum MatchStatus {
+  PENDING = 'PENDING',
+  MATCHED = 'MATCHED',
+  NEW_MASTER = 'NEW_MASTER',
+  REJECTED = 'REJECTED'
+}

@@ -1,0 +1,44 @@
+server:
+  port: 8085
+
+spring:
+  cloud:
+    loadbalancer:
+      cache:
+        ttl: 5s
+  application:
+    name: reminder-service
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/reminder_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh
+    username: ${DB_USERNAME:reminder_user}
+    password: ${DB_PASSWORD:reminder_user_pw}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  sql:
+    init:
+      mode: always
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+    # Mặc định 40 giây mới đăng ký và 30 giây mới cập nhật danh bạ; rút ngắn để vừa bật xong là gọi được nhau
+    initial-instance-info-replication-interval-seconds: 5
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+reminder:
+  cron: "0 */5 * * * *"
+  hours-before: 24
+  from-address: no-reply@datlichkham.local

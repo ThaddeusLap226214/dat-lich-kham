@@ -1,0 +1,33 @@
+<div class="pagination-info">
+  <span class="text-label-md text-on-surface-variant">
+    Hiển thị {{ displayRangeStart }} - {{ displayRangeEnd }} của {{ pageMeta?.total || 0 }} bệnh nhân
+  </span>
+</div>
+<div class="pagination-controls">
+  <button
+    class="pagination-btn"
+    [disabled]="isFirstPage"
+    (click)="onPageChange(currentPage - 1)">
+    <span class="material-symbols-outlined">chevron_left</span>
+  </button>
+
+  @for (page of visiblePages(); track page) {
+    @if (page === -1) {
+      <span class="pagination-ellipsis">...</span>
+    } @else {
+      <button
+        class="pagination-btn"
+        [class.active]="page === currentPage"
+        (click)="onPageChange(page)">
+        {{ page }}
+      </button>
+    }
+  }
+
+  <button
+    class="pagination-btn"
+    [disabled]="isLastPage"
+    (click)="onPageChange(currentPage + 1)">
+    <span class="material-symbols-outlined">chevron_right</span>
+  </button>
+</div>

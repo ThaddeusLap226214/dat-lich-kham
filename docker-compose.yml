@@ -1,0 +1,262 @@
+# Bật toàn bộ hệ thống: docker compose up -d --build   → web ở http://localhost:4200
+# Web gọi API qua Gateway (8080); các cổng khác mở ra chỉ để quan sát khi demo.
+# Khi phát triển muốn gọi thẳng từng service thì thêm file docker-compose.dev.yml (xem docs/01).
+name: dat-lich-kham
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: mysql
+    restart: unless-stopped
+    mem_limit: 512m
+    command: ["--performance-schema=OFF", "--default-time-zone=+07:00"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pw}
+      AUTH_DB_PASSWORD: ${AUTH_DB_PASSWORD:-auth_user_pw}
+      PROVIDER_DB_PASSWORD: ${PROVIDER_DB_PASSWORD:-provider_user_pw}
+      PATIENT_DB_PASSWORD: ${PATIENT_DB_PASSWORD:-patient_user_pw}
+      SCHEDULING_DB_PASSWORD: ${SCHEDULING_DB_PASSWORD:-scheduling_user_pw}
+      REMINDER_DB_PASSWORD: ${REMINDER_DB_PASSWORD:-reminder_user_pw}
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-clinic}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-clinic_pw}
+    ports:
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 20s
+      retries: 20
+      start_period: 60s
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    restart: unless-stopped
+    mem_limit: 64m
+    ports:
+      - "8025:8025"
+
+  discovery-server:
+    build:
+      context: .
+      args:
+        MODULE: discovery-server
+    image: dat-lich-kham/discovery-server
+    container_name: discovery-server
+    restart: unless-stopped
+    mem_limit: 512m
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  api-gateway:
+    build:
+      context: .
+      args:
+        MODULE: api-gateway
+    image: dat-lich-kham/api-gateway
+    container_name: api-gateway
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-trong-file-env-it-nhat-32-ky-tu!!}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+
+  auth-service:
+    build:
+      context: .
+      args:
+        MODULE: auth-service
+    image: dat-lich-kham/auth-service
+    container_name: auth-service
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      DB_HOST: mysql
+      DB_USERNAME: auth_user
+      DB_PASSWORD: ${AUTH_DB_PASSWORD:-auth_user_pw}
+      JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-trong-file-env-it-nhat-32-ky-tu!!}
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+
+  provider-service:
+    build:
+      context: .
+      args:
+        MODULE: provider-service
+    image: dat-lich-kham/provider-service
+    container_name: provider-service
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      DB_HOST: mysql
+      DB_USERNAME: provider_user
+      DB_PASSWORD: ${PROVIDER_DB_PASSWORD:-provider_user_pw}
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+
+  patient-service:
+    build:
+      context: .
+      args:
+        MODULE: patient-service
+    image: dat-lich-kham/patient-service
+    container_name: patient-service
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      DB_HOST: mysql
+      DB_USERNAME: patient_user
+      DB_PASSWORD: ${PATIENT_DB_PASSWORD:-patient_user_pw}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER:-clinic}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-clinic_pw}
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8083/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  scheduling-service:
+    build:
+      context: .
+      args:
+        MODULE: scheduling-service
+    image: dat-lich-kham/scheduling-service
+    container_name: scheduling-service
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      DB_HOST: mysql
+      DB_USERNAME: scheduling_user
+      DB_PASSWORD: ${SCHEDULING_DB_PASSWORD:-scheduling_user_pw}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER:-clinic}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-clinic_pw}
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  reminder-service:
+    build:
+      context: .
+      args:
+        MODULE: reminder-service
+    image: dat-lich-kham/reminder-service
+    container_name: reminder-service
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      EUREKA_URL: http://discovery-server:8761/eureka/
+      DB_HOST: mysql
+      DB_USERNAME: reminder_user
+      DB_PASSWORD: ${REMINDER_DB_PASSWORD:-reminder_user_pw}
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8085/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 40s
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    image: dat-lich-kham/frontend
+    container_name: frontend
+    restart: unless-stopped
+    mem_limit: 64m
+    ports:
+      - "4200:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+
+volumes:
+  mysql-data:

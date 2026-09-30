@@ -1,0 +1,221 @@
+<div class="page-header">
+  <div class="page-header-content">
+    <h2 class="page-title">Danh sách Hồ sơ gốc</h2>
+    <p class="page-subtitle">Quản lý và theo dõi hồ sơ chính (Master Patient Index)</p>
+  </div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card stat-card-primary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Tổng hồ sơ gốc</span>
+      <div class="stat-icon">
+        <span class="material-symbols-outlined">groups</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-primary">{{ totalMasters() | number }}</div>
+      <div class="stat-info">
+        <span class="stat-description">Master Patient Index</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-secondary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Đang hoạt động</span>
+      <div class="stat-icon stat-icon-secondary">
+        <span class="material-symbols-outlined">check_circle</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-secondary">{{ activeMasters() | number }}</div>
+      <div class="stat-info">
+        <span class="stat-pulse"></span>
+        <span class="stat-description">{{ totalMasters() > 0 ? (activeMasters() / totalMasters() * 100 | number:'1.1-1') : 0 }}% hồ sơ active</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-tertiary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Đã gộp</span>
+      <div class="stat-icon stat-icon-tertiary">
+        <span class="material-symbols-outlined">merge</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-tertiary">{{ mergedMasters() | number }}</div>
+      <div class="stat-info">
+        <span class="stat-description">Gộp hồ sơ trùng</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-card stat-card-quaternary">
+    <div class="stat-background"></div>
+    <div class="stat-header">
+      <span class="stat-label">Nạp mới hôm nay</span>
+      <div class="stat-icon stat-icon-quaternary">
+        <span class="material-symbols-outlined">today</span>
+      </div>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-value-quaternary">+{{ todayNew() | number }}</div>
+      <div class="stat-info">
+        <span class="stat-pulse stat-pulse-quaternary"></span>
+        <span class="stat-description">Hồ sơ trong 24h</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="filter-toolbar">
+  <div class="search-box">
+    <span class="material-symbols-outlined">search</span>
+    <input type="text" 
+      placeholder="Tìm kiếm theo tên, EMPI, CCCD, BHYT, Số ĐT..." 
+      class="search-input"
+      (input)="searchService.setQuery($any($event.target).value)">
+    @if (searchService.searchQuery()) {
+      <button class="btn-clear" (click)="searchService.clearQuery()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    }
+  </div>
+
+  <div class="filter-group">
+    <div class="filter-item">
+      <span class="filter-label">Giới tính:</span>
+      <select [(ngModel)]="selectedGender" (change)="onGenderFilterChange()" class="filter-select">
+        @for (gender of genderOptions; track gender.value) {
+        <option [value]="gender.value">{{ gender.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-item">
+      <span class="filter-label">Trạng thái:</span>
+      <select [(ngModel)]="selectedStatus" (change)="onStatusFilterChange()" class="filter-select">
+        @for (status of statusOptions; track status.value) {
+        <option [value]="status.value">{{ status.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-item">
+      <span class="filter-label">Hệ thống nguồn:</span>
+      <select [(ngModel)]="selectedSourceSystemId" (change)="onSourceSystemFilterChange()" class="filter-select">
+        <option [value]="null">Tất cả</option>
+        @for (system of sourceSystems(); track system.id) {
+        <option [value]="system.id">{{ system.facilityName }} - {{ system.name }}</option>
+        }
+      </select>
+    </div>
+
+    <button class="btn-reset" (click)="resetFilters()" title="Làm mới bộ lọc">
+      <span class="material-symbols-outlined">refresh</span>
+    </button>
+
+    <button class="btn-export">
+      <span class="material-symbols-outlined">download</span>
+      Xuất Excel
+    </button>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-container">
+    <table class="patient-table">
+      <thead>
+        <tr>
+          <th>Họ và tên</th>
+          <th>EMPI</th>
+          <th>Ngày sinh</th>
+          <th>Giới tính</th>
+          <th>CCCD/CMND</th>
+          <th>BHYT</th>
+          <th>Số điện thoại</th>
+          <th>Địa chỉ</th>
+          <th>Trạng thái</th>
+          <th class="text-right">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+          <tr>
+            <td colspan="10" class="loading-cell">
+              <div class="loading-spinner"></div>
+              <span>Đang tải dữ liệu...</span>
+            </td>
+          </tr>
+        } @else if (patientMasters().length === 0) {
+          <tr>
+            <td colspan="10" class="empty-cell">
+              <span class="material-symbols-outlined">search_off</span>
+              <p>Không tìm thấy hồ sơ gốc nào</p>
+            </td>
+          </tr>
+        } @else {
+          @for (master of patientMasters(); track master.id) {
+            <tr class="table-row">
+              <td>
+                <div class="patient-info">
+                  <div class="patient-avatar" [class]="'avatar-' + getAvatarColor(master.gender)">
+                    {{ getInitials(master.fullName) }}
+                  </div>
+                  <div class="patient-details">
+                    <p class="patient-name">{{ master.fullName }}</p>
+                    <p class="patient-id">ID: {{ master.id }}</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="empi-badge">{{ master.enterpriseId }}</span>
+              </td>
+              <td>{{ master.dateOfBirth | date:'dd/MM/yyyy' }}</td>
+              <td>{{ getGenderDisplay(master.gender) }}</td>
+              <td>{{ maskNationalId(master.nationalId) }}</td>
+              <td>{{ maskHealthInsurance(master.healthInsuranceNo) }}</td>
+              <td>{{ maskPhoneNumber(master.phoneNumber) }}</td>
+              <td>
+                <span class="address-text" [title]="master.address || '-'">
+                  {{ getTruncatedAddress(master.address) }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge" [class]="'status-' + master.status.toLowerCase()">
+                  <span class="status-dot"></span>
+                  {{ getStatusDisplay(master.status) }}
+                </span>
+              </td>
+              <td class="text-right">
+                <div class="action-buttons">
+                  <button class="btn-action btn-view" (click)="onViewDetail(master)" title="Xem chi tiết">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                  <button class="btn-action btn-edit" (click)="onEditMaster(master)" title="Sửa">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button class="btn-action btn-history" title="Lịch sử">
+                    <span class="material-symbols-outlined">history</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (!isLoading() && patientMasters().length > 0) {
+    <app-pagination 
+      [pageMeta]="pageMeta()" 
+      (pageChange)="onPageChange($event)">
+    </app-pagination>
+  }
+</div>

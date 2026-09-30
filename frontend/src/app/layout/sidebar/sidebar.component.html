@@ -1,0 +1,26 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-icon">
+        <span class="material-symbols-outlined">medical_services</span>
+      </div>
+      <div class="logo-text">
+        <h1 class="logo-title">Đặt lịch khám</h1>
+        <p class="logo-subtitle">Phòng khám đa khoa</p>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="nav-item" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <span class="material-symbols-outlined">home</span>
+      <span class="nav-label">Trang chủ</span>
+    </a>
+    @for (p of pages(); track p.path) {
+      <a class="nav-item" [routerLink]="'/' + p.path" routerLinkActive="active">
+        <span class="material-symbols-outlined">{{ p.icon }}</span>
+        <span class="nav-label">{{ p.title }}</span>
+      </a>
+    }
+  </nav>
+</aside>
