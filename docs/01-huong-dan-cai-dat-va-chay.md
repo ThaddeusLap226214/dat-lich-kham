@@ -112,6 +112,17 @@ auth-service, provider-service, patient-service, scheduling-service, reminder-se
 
 Thứ tự khởi động được điều khiển bởi `depends_on … condition: service_healthy`: MySQL, RabbitMQ, Eureka trước → 5 service → Gateway → web.
 
+### Các lần chạy sau
+
+Mở Docker Desktop, rồi chạy trong thư mục dự án:
+
+| Việc | Lệnh |
+|---|---|
+| Bật hệ thống | `docker compose up -d` |
+| Tắt hệ thống (giữ dữ liệu) | `docker compose down` |
+
+Sau khi `git pull` code mới, bật bằng `docker compose up -d --build` để build lại. Lệnh `up -d` không build lại nên vẫn chạy code cũ. Muốn tắt và xóa sạch dữ liệu thì xem mục 8.
+
 ---
 
 ## 4. Địa chỉ truy cập

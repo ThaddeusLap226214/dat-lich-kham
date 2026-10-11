@@ -258,9 +258,9 @@ Hệ thống được chia thành 5 phần việc, mỗi phần gồm một serv
 | Phần | Nội dung | Người nhận | Mức độ | Đọc thêm trong tài liệu này |
 |---|---|---|---|---|
 | **P1** | Patient Service (MPI) + trang hồ sơ, hàng chờ duyệt | Như | Nặng — đã có một phần từ code MPI | [4.1. Quy tắc MPI](#41-patient-service--quy-tắc-định-danh-bệnh-nhân-mpi); [mục 5](#5-các-luồng-chính) luồng 1, 4 |
-| **P2** | Scheduling Service + trang đặt lịch, lịch hẹn theo bác sĩ | Thành viên tự chọn | Nặng nhất — trọng tâm Hướng 4 (slot trống, đụng độ lịch) | [4.2. Trạng thái lịch hẹn](#42-scheduling-service--trạng-thái-lịch-hẹn); [mục 5](#5-các-luồng-chính) luồng 1, 2, 4 |
+| **P2** | Scheduling Service + trang đặt lịch, lịch hẹn theo bác sĩ | Vũ | Nặng nhất — trọng tâm Hướng 4 (slot trống, đụng độ lịch) | [4.2. Trạng thái lịch hẹn](#42-scheduling-service--trạng-thái-lịch-hẹn); [mục 5](#5-các-luồng-chính) luồng 1, 2, 4 |
 | **P3** | Provider Service + trang chuyên khoa / bác sĩ, quản trị danh mục, lịch làm việc, lịch khám của bác sĩ | Thành viên tự chọn | Vừa — backend nhẹ nên nhận nhiều trang web hơn | [Mục 5](#5-các-luồng-chính) luồng 1 (giờ làm việc), 3 (tên bác sĩ, phòng) |
-| **P4** | Auth Service + API Gateway + trang đăng nhập, đăng ký, lịch khám của tôi, quản lý tài khoản | Thành viên tự chọn | Nặng — trọng tâm báo cáo Hướng 4 (API Composition) | [3.3. Ghi chú về Auth Service](#33-đối-chiếu-với-giáo-trình); [mục 5](#5-các-luồng-chính) luồng 3 |
+| **P4** | Auth Service + API Gateway + trang đăng nhập, đăng ký, lịch khám của tôi, quản lý tài khoản | Lập | Nặng — trọng tâm báo cáo Hướng 4 (API Composition) | [3.3. Ghi chú về Auth Service](#33-đối-chiếu-với-giáo-trình); [mục 5](#5-các-luồng-chính) luồng 3 |
 | **P5** | Reminder Service + trang nhật ký nhắc lịch + kiểm thử toàn hệ thống | Thành viên tự chọn | Vừa | [Mục 5](#5-các-luồng-chính) luồng 5 |
 
 **Phụ thuộc giữa các phần:**
