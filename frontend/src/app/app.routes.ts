@@ -53,6 +53,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/patient/pages/patients-page.component')
           .then(m => m.PatientsPageComponent)
       },
+      {
+        path: 'ui-kit',
+        loadComponent: () => import('./features/ui-kit/ui-kit-page.component').then(m => m.UiKitPageComponent)
+      },
       ...skeletonRoutes,
       ...legacyMpiRoutes,
       { path: '**', redirectTo: '' }

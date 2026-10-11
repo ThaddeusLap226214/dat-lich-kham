@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { AppPage, PARTS } from '../../core/app-pages';
@@ -10,30 +10,37 @@ import { ProbeResultComponent } from './probe-result.component';
 @Component({
   selector: 'app-skeleton-page',
   standalone: true,
-  imports: [ProbeResultComponent],
+  imports: [ProbeResultComponent, RouterLink],
   template: `
     @if (page(); as p) {
-      <section class="skeleton">
-        <div class="badge">{{ p.part }} · {{ partName() }}</div>
-        <h1>{{ p.title }}</h1>
-        <p class="summary">{{ p.summary }}</p>
+      <section class="ui-page skeleton">
+        <span class="ui-badge ui-tone-info ui-badge-plain">{{ p.part }} · {{ partName() }}</span>
+        <header class="ui-page-header">
+          <div>
+            <h1 class="ui-page-title">{{ p.title }}</h1>
+            <p class="ui-page-subtitle">{{ p.summary }}</p>
+          </div>
+        </header>
 
-        <div class="notice">
+        <div class="ui-alert ui-tone-warning">
           <span class="material-symbols-outlined">construction</span>
-          Trang này là khung — giao diện và phần xử lý do người nhận phần {{ p.part }} viết tiếp.
+          <div>
+            Trang này là khung — giao diện và phần xử lý do người nhận phần {{ p.part }} viết tiếp.
+            Thành phần giao diện dùng chung: <a routerLink="/ui-kit"><strong>Mẫu giao diện (nhóm)</strong></a>.
+          </div>
         </div>
 
-        <h2>Việc cần làm</h2>
+        <h2 class="ui-section-title">Việc cần làm</h2>
         <ul>
           @for (t of p.tasks; track t) {
             <li>{{ t }}</li>
           }
         </ul>
 
-        <h2>API chính của trang</h2>
+        <h2 class="ui-section-title">API chính của trang</h2>
         <div class="api-row">
           <code>{{ p.api.method }} {{ probe.resolveUrl(p.api) }}</code>
-          <button class="btn" (click)="call(p)" [disabled]="loading()">
+          <button class="ui-btn ui-btn-primary" (click)="call(p)" [disabled]="loading()">
             <span class="material-symbols-outlined">play_arrow</span> Gọi thử
           </button>
         </div>
@@ -44,17 +51,12 @@ import { ProbeResultComponent } from './probe-result.component';
     }
   `,
   styles: [`
-    .skeleton { max-width: 56rem; display: flex; flex-direction: column; gap: 1rem; }
-    .badge { align-self: flex-start; background: var(--primary-fixed); color: var(--on-primary-fixed-variant); padding: .25rem .75rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
-    h1 { font: var(--font-headline-md); }
-    h2 { font: var(--font-title-lg); font-size: 1rem; margin-top: .5rem; }
-    .summary { color: var(--on-surface-variant); }
-    .notice { display: flex; gap: .5rem; align-items: center; background: #fff4e0; color: #7a4a00; padding: .75rem 1rem; border-radius: .75rem; font-size: .875rem; }
-    ul { padding-left: 1.25rem; display: flex; flex-direction: column; gap: .25rem; }
+    .skeleton { max-width: 56rem; gap: 1rem; }
+    .skeleton > .ui-badge { align-self: flex-start; }
+    .ui-alert a { text-decoration: underline; }
+    ul { padding-left: 1.25rem; display: flex; flex-direction: column; gap: .25rem; font: var(--font-body-md); }
     .api-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
     .api-row code { background: var(--surface-container-low); padding: .5rem .75rem; border-radius: .5rem; font-size: .8rem; word-break: break-all; }
-    .btn { display: inline-flex; align-items: center; gap: .25rem; border: none; background: var(--primary); color: var(--on-primary); padding: .5rem 1rem; border-radius: .5rem; font-weight: 600; }
-    .btn:disabled { opacity: .6; }
   `]
 })
 export class SkeletonPageComponent {
