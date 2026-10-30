@@ -179,6 +179,7 @@ Mã lỗi theo dạng `ApiError` của `docs/06` A4. Cột "Từ" là mã câu h
 | CS13 | Đổi lịch | Không có API riêng: hủy lịch cũ rồi đặt lịch mới | CT13, CT11 | — | B (N2) |
 | CS14 | Lịch hẹn khi gộp hồ sơ | Chuyển **mọi** lịch của hồ sơ bị gộp (mọi trạng thái) sang hồ sơ giữ lại; khi tách, trả lại đúng các lịch đã chuyển | CT22 | — | N9 |
 | CS15 | "Lịch khám của tôi" gồm những lịch nào | Lịch do tài khoản đặt **hoặc** lịch của hồ sơ mà tài khoản đang quản lý (`owner_account_id`), kể cả lịch lễ tân đặt hộ | CT12 | API nội bộ thêm tham số `patientIds` (mục 5); Gateway ghép ở `my-appointments` | A2 |
+| CS37 | Mô hình hẹn | Hẹn theo khung giờ: **mỗi khung giờ hẹn (slot) một người**. Độ dài khung do từng ca làm việc quy định (`slot_minutes`, 5–120 phút); muốn khám nhanh như bệnh viện công (khoảng 10 phút một lượt) thì đổi dữ liệu ca, không sửa code. Không có khung chứa nhiều người, không bốc số. Xét nghiệm và lượt quay lại sau xét nghiệm nằm ngoài phạm vi | CT04, CT10, CT11 | `slot_lock` (UNIQUE) bảo đảm một khung một người | mới (30/10) |
 
 ### 4.2. Provider Service (P3)
 
@@ -223,7 +224,7 @@ Mã lỗi theo dạng `ApiError` của `docs/06` A4. Cột "Từ" là mã câu h
 
 ### 4.6. Ngoài phạm vi (đã chốt không làm)
 
-Tiếp đón tại quầy và số thứ tự (CT18, câu C) · in phiếu hẹn · SMS · bác sĩ nghỉ đột xuất, ngày lễ · bệnh nhân đến trễ · phạt người không đến · số chứng chỉ hành nghề, ảnh bác sĩ · nhiều giấy tờ trên một hồ sơ.
+Tiếp đón tại quầy và số thứ tự (CT18, câu C) · khung giờ chứa nhiều người · xét nghiệm và lượt quay lại sau xét nghiệm · in phiếu hẹn · SMS · bác sĩ nghỉ đột xuất, ngày lễ · bệnh nhân đến trễ · phạt người không đến · số chứng chỉ hành nghề, ảnh bác sĩ · nhiều giấy tờ trên một hồ sơ.
 
 ---
 
