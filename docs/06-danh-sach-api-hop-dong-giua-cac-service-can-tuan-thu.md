@@ -154,6 +154,35 @@ Web ──(Authorization: Bearer <token>)──► Gateway ──(X-User-Id, X-U
 - Bên nhận **phải bỏ qua** sự kiện có `eventId` đã xử lý (bảng `processed_events`).
 - Patient Service phát sự kiện **sau khi** đã lưu thay đổi vào database thành công.
 
+**Sự kiện lịch hẹn** (Scheduling → Reminder, để gửi thư xác nhận và thư báo hủy):
+
+| Mục | Giá trị |
+|---|---|
+| Exchange | `appointment.events` (loại topic) |
+| Routing key | `appointment.confirmed`, `appointment.cancelled` |
+| Hàng đợi của Reminder | `reminder.appointment-events` (nhận `appointment.*`) |
+| Hàng đợi lỗi (DLQ) | `reminder.appointment-events.dlq` |
+| Định dạng | JSON, lớp `AppointmentEvent` (bản sao riêng trong Scheduling và Reminder) |
+
+```json
+{
+  "eventId": "9b2e4c1d-5a7f-4e3b-8c6d-1f0a2b3c4d5e",
+  "eventType": "APPOINTMENT_CONFIRMED",
+  "occurredAt": "2026-10-25T21:01:30",
+  "appointmentId": 15,
+  "patientId": 12,
+  "doctorId": 2,
+  "roomId": 2,
+  "startTime": "2026-10-26T08:00:00",
+  "endTime": "2026-10-26T08:20:00",
+  "cancelReason": null,
+  "performedByAccountId": 10
+}
+```
+
+- `APPOINTMENT_CONFIRMED`: lịch vừa xác nhận → Reminder gửi thư xác nhận. `APPOINTMENT_CANCELLED`: lịch vừa hủy (có `cancelReason`) → Reminder gửi thư báo hủy.
+- Scheduling phát **sau khi** lưu thành công; Reminder bỏ qua `eventId` đã xử lý (bảng `processed_events` của `reminder_db`), giống quy tắc ở trên.
+
 ---
 
 ## Phần B — Danh sách API
@@ -235,8 +264,8 @@ Cột "Quyền": ai được gọi. `Khách` = không cần đăng nhập. Servi
 |---|---|---|---|---|
 | `GET /api/v1/slots?doctorId=1&date=2026-10-05` | Đã đăng nhập | — | `SlotResponse[]` {startTime, endTime, roomId, workScheduleId, available} — đủ mọi slot trong ngày, `available = false` nếu đã có người giữ/đặt hoặc đã qua giờ | 503 nếu Provider không phản hồi |
 | `POST /api/v1/appointments/hold` | PATIENT, RECEPTIONIST **(GW)** | `HoldRequest` {doctorId, patientId, startTime, reason} | 201 `AppointmentResponse` (status = HELD, holdExpiresAt) | **409 `SLOT_ALREADY_HELD`**, 409 `PATIENT_TIME_CONFLICT`, 400 `SLOT_NOT_IN_SCHEDULE`; 409 `TOO_MANY_HOLDS` (tài khoản đang giữ 3 chỗ, CS03); 409 `TOO_MANY_APPOINTMENTS` (hồ sơ có 5 lịch sắp tới, CS04); 400 `TOO_FAR_IN_ADVANCE` (quá 30 ngày, CS05); 400 `TOO_LATE_TO_BOOK` (bệnh nhân đặt khi còn dưới 2 giờ, CS06) |
-| `POST /api/v1/appointments/{id}/confirm` | Người đã giữ chỗ | — | `AppointmentResponse` (CONFIRMED) | 409 `HOLD_EXPIRED`, 409 `INVALID_STATUS`, 403 |
-| `POST /api/v1/appointments/{id}/cancel` | Người đặt, RECEPTIONIST; **bác sĩ không được hủy** (CS08) | `CancelRequest` {reason} | `AppointmentResponse` (CANCELLED) | 409 `TOO_LATE_TO_CANCEL` (chỉ áp cho PATIENT: hủy khi còn dưới `scheduling.cancel-before-hours` = 2 giờ; đúng 2 giờ vẫn hủy được; lễ tân hủy được tới giờ bắt đầu, CS07), 409 `INVALID_STATUS`, 403 |
+| `POST /api/v1/appointments/{id}/confirm` | Người đã giữ chỗ | — | `AppointmentResponse` (CONFIRMED); **phát sự kiện** `APPOINTMENT_CONFIRMED` ([A7](#a7-sự-kiện-qua-rabbitmq)) | 409 `HOLD_EXPIRED`, 409 `INVALID_STATUS`, 403 |
+| `POST /api/v1/appointments/{id}/cancel` | Người đặt, RECEPTIONIST; **bác sĩ không được hủy** (CS08) | `CancelRequest` {reason} | `AppointmentResponse` (CANCELLED); **phát sự kiện** `APPOINTMENT_CANCELLED` ([A7](#a7-sự-kiện-qua-rabbitmq)) | 409 `TOO_LATE_TO_CANCEL` (chỉ áp cho PATIENT: hủy khi còn dưới `scheduling.cancel-before-hours` = 2 giờ; đúng 2 giờ vẫn hủy được; lễ tân hủy được tới giờ bắt đầu, CS07), 409 `INVALID_STATUS`, 403 |
 | `POST /api/v1/appointments/{id}/complete` | DOCTOR (lịch của mình), RECEPTIONIST | — | `AppointmentResponse` (COMPLETED) | 403, 409 `INVALID_STATUS`, 409 `TOO_EARLY_TO_COMPLETE` (trước giờ bắt đầu, CS09) |
 | `POST /api/v1/appointments/{id}/no-show` | DOCTOR (lịch của mình), RECEPTIONIST | — | `AppointmentResponse` (NO_SHOW, noShowAt) — CS10 | 403, 409 `INVALID_STATUS` (chỉ lịch CONFIRMED), 409 `TOO_EARLY_FOR_NO_SHOW` (trước giờ bắt đầu) |
 | `GET /api/v1/appointments/mine` | Đã đăng nhập | — | `AppointmentResponse[]` do tài khoản đặt (chỉ có mã, chưa ghép tên — web nên gọi bản ghép ở B6) | |
@@ -250,14 +279,18 @@ Cột "Quyền": ai được gọi. `Khách` = không cần đăng nhập. Servi
 
 **Slot** (`GET /slots`): ngày quá `scheduling.book-ahead-days` = 30 ngày → mọi slot `available = false` (CS05); vai trò `PATIENT` thấy `available = false` với slot còn dưới `scheduling.book-before-hours` = 2 giờ (CS06).
 
-**Nhận sự kiện:** `patient.merged`, `patient.unmerged` (Phần A7).
+**Nhận sự kiện:** `patient.merged`, `patient.unmerged`. **Phát sự kiện:** `appointment.confirmed`, `appointment.cancelled` (Phần A7).
 
 ### B5. Reminder Service — `reminder-service:8085`
 
+Dịch vụ thông báo: gửi thư nhắc lịch (theo cron), thư xác nhận và thư báo hủy (theo sự kiện từ Scheduling, [A7](#a7-sự-kiện-qua-rabbitmq)).
+
 | Phương thức & đường dẫn | Quyền | Trả về |
 |---|---|---|
-| `GET /api/v1/reminders/logs?status=` | ADMIN, RECEPTIONIST **(GW)** | `ReminderLogResponse[]` — 100 dòng gần nhất |
+| `GET /api/v1/reminders/logs?status=&type=` | ADMIN, RECEPTIONIST **(GW)** | `ReminderLogResponse[]` — 100 dòng gần nhất; `type` = `BEFORE_APPOINTMENT` / `CONFIRMATION` / `CANCELLATION` |
 | `POST /api/v1/reminders/run` | ADMIN **(GW)** | `RunResult` {checked, sent, skipped, failed} — quét ngay, không chờ cron |
+| `GET /api/v1/reminders/templates` | ADMIN **(GW)** | Mẫu thư của 3 loại {type, subject, body, updatedByAccountId, updatedAt} |
+| `PUT /api/v1/reminders/templates/{type}` | ADMIN **(GW)** | Sửa tiêu đề, nội dung một mẫu thư; trả mẫu sau khi sửa |
 
 **Cron:** `reminder.cron = "0 */5 * * * *"` (mỗi 5 phút), nhắc lịch `CONFIRMED` bắt đầu trong `reminder.hours-before = 24` giờ tới. Email gửi vào Mailpit — xem ở `http://localhost:8025`.
 
@@ -267,6 +300,7 @@ SchedulingClient.findConfirmedBetween(now, now + 24h)
   → bỏ các lịch đã có log SENT / SKIPPED
   → PatientClient.findByIds(các patientId còn lại) lấy email
   → gửi mail (JavaMailSender) → ghi reminder_logs
+  → gửi lại các dòng FAILED của mọi loại thư (nhắc, xác nhận, báo hủy)
 ```
 
 ### B6. API Gateway — `api-gateway:8080` (API Composition)

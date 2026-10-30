@@ -119,17 +119,19 @@ Giáo trình: `LectureNotesSOA-new.pdf`.
 | JWT, API Gateway làm lớp bảo mật đầu tiên, 401 / 403 | 41–43, 73–77 | Auth Service cấp JWT; Gateway xác minh, gắn danh tính; service kiểm tra quyền |
 | Kiểm tra quyền trên từng bản ghi (lỗi "không kiểm tra Authorization") | 43 | Bệnh nhân chỉ xem được hồ sơ, lịch hẹn của chính mình (403) |
 | CORS | 79–80 | Bộ lọc CORS tại Gateway cho web ở cổng 4200 |
-| Correlation ID (truy vết request qua nhiều service) | 85 | Việc cần làm của Gateway (`docs/04`) |
+| Correlation ID (truy vết request qua nhiều service) | 85 | Gateway sinh `X-Correlation-Id`, mọi service ghi vào log và chuyển tiếp khi gọi nhau (đã làm) |
 | Containerization, Dockerfile | 112–115 | `Dockerfile` build nhiều giai đoạn, `docker-compose.yml` |
 
-**Ghi chú về Auth Service.** Hệ thống cần một thành phần xác thực đóng vai trò Identity Provider (giáo trình trang 40–41); cách xây dựng do phần P4 lựa chọn. Hai phương án:
+**Ghi chú về Auth Service.** Hệ thống cần một thành phần xác thực đóng vai trò Identity Provider (giáo trình trang 40–41).
+
+**Quyết định (19/10/2026): dùng Keycloak** (phương án thứ hai dưới đây). Keycloak giữ mật khẩu, vai trò, cấp token; Auth Service **thu hẹp** — giữ bảng `accounts` làm nguồn mã tài khoản (số) và `doctorId`, đăng ký và quản trị tạo / khóa tài khoản thì gọi Keycloak Admin API, có bù trừ khi một bên lỗi. Lý do và các câu đã chốt: [`docs/07`](07-quy-tac-ket-noi.md#quyết-định-và-câu-còn-mở). Hai phương án đã cân nhắc:
 
 | Phương án | Mô tả | Căn cứ |
 |---|---|---|
 | Tự viết ở mức tối thiểu | Đăng ký, đăng nhập, cấp JWT, một vai trò mỗi tài khoản; không OAuth, không quên mật khẩu. Khung hiện tại đã có sẵn bảng `accounts`, băm BCrypt, thư viện JJWT, 5 tài khoản mẫu | Luồng Identity Provider → JWT → API Gateway → service (trang 41–43, 73–77) |
 | Dùng giải pháp có sẵn (Keycloak) | Chạy Keycloak trong Docker Compose làm Identity Provider; tạo realm, vai trò, tài khoản mẫu; Gateway xác minh JWT bằng khóa công khai của Keycloak | Giáo trình xếp xác thực vào **Generic Domain** và khuyến nghị không tự xây (trang 87–88); OAuth 2.0 (trang 75–76) |
 
-Dù chọn phương án nào, phần giao tiếp với các service khác giữ nguyên: Gateway xác minh JWT rồi gắn `X-User-Id`, `X-User-Role`, `X-Doctor-Id` (`docs/06` mục A5), nên các phần P1, P2, P3, P5 không bị ảnh hưởng.
+Phần giao tiếp với các service khác không đổi: Gateway xác minh token rồi gắn `X-User-Id` (lấy từ claim `accountId`), `X-User-Role`, `X-Doctor-Id` (`docs/06` mục A5), nên các service khác không bị ảnh hưởng.
 
 ---
 
@@ -137,12 +139,13 @@ Dù chọn phương án nào, phần giao tiếp với các service khác giữ 
 
 | Service | Ứng với yêu cầu Hướng 4 | Trách nhiệm | Dữ liệu sở hữu |
 |---|---|---|---|
-| **API Gateway** | Tiêu chí 1 | Định tuyến, xác minh JWT, gắn danh tính, chặn theo vai trò, API Composition | Không có |
-| **Auth Service** | (bổ sung) | Tài khoản, đăng nhập, cấp JWT | Tài khoản, mật khẩu đã băm, vai trò |
+| **API Gateway** | Tiêu chí 1 | Định tuyến, xác minh token Keycloak, gắn danh tính, chặn theo vai trò, API Composition, mã truy vết request | Không có |
+| **Keycloak** | (hạ tầng) | Identity Provider: trang đăng nhập, giữ mật khẩu, vai trò, cấp token | `keycloak_db` |
+| **Auth Service** | (bổ sung) | Cấp mã tài khoản, đăng ký, quản trị tạo / khóa tài khoản qua Keycloak Admin API | Tài khoản (mã số, vai trò, `doctorId`, liên kết người dùng Keycloak) |
 | **Provider Service** | Provider/Resource Service | Chuyên khoa, bác sĩ, phòng khám, ca làm việc hằng tuần | Chuyên khoa, bác sĩ, phòng, ca làm việc |
 | **Patient Service (MPI)** | Consumer Service | Hồ sơ bệnh nhân, chống tạo trùng, hàng chờ duyệt, gộp / tách hồ sơ | Hồ sơ, cặp nghi trùng, lịch sử gộp / tách |
 | **Scheduling Service** | Scheduling Service | Tìm slot trống, giữ chỗ, xác nhận, hủy, chống đặt trùng | Lịch hẹn, lịch hẹn đã chuyển hồ sơ, sự kiện đã xử lý |
-| **Reminder Service** | Reminder/Cron Service | Định kỳ quét lịch hẹn sắp tới, gửi email nhắc | Nhật ký đã gửi nhắc |
+| **Reminder Service** | Reminder/Cron Service | Dịch vụ thông báo — nhắc lịch (cron quét lịch sắp tới), thư xác nhận, thư báo hủy; nhận sự kiện từ Scheduling | Nhật ký thư đã gửi, mẫu thư, sự kiện đã xử lý |
 
 ### 4.1. Patient Service — quy tắc định danh bệnh nhân (MPI)
 
@@ -168,11 +171,12 @@ MERGED ──lễ tân tách do gộp nhầm──► trạng thái trước khi
 
 ```
 HELD (đang giữ chỗ) ──bệnh nhân xác nhận──► CONFIRMED (đã đặt) ──đã khám──► COMPLETED
+CONFIRMED ──bệnh nhân không đến──► NO_SHOW
 HELD ──quá thời gian giữ chỗ──► EXPIRED
 CONFIRMED ──bệnh nhân / lễ tân hủy──► CANCELLED
 ```
 
-Các con số nghiệp vụ (cấu hình trong `application.yml`, đổi được):
+Các con số nghiệp vụ (cấu hình trong `application.yml`, đổi được; đủ danh sách chính sách: [`docs/10` mục 4](10-bo-chung-tu-va-hop-dong-nghiep-vu.md)):
 
 | Thông số | Giá trị | Cấu hình |
 |---|---|---|
@@ -220,12 +224,15 @@ Lễ tân chọn "gộp hồ sơ B vào A"
 Lễ tân tách do gộp nhầm → PATIENT_UNMERGED → Scheduling trả lịch hẹn về B (giao dịch bù trừ)
 ```
 
-**Luồng 5 — Nhắc lịch**
+**Luồng 5 — Thông báo: nhắc lịch, xác nhận, báo hủy**
 ```
 Cron trong Reminder chạy mỗi 5 phút
   → Scheduling: lịch CONFIRMED trong 24 giờ tới
   → bỏ các lịch đã nhắc (nhật ký của chính Reminder)
   → Patient: email của hồ sơ → gửi email → ghi nhật ký
+
+Scheduling xác nhận / hủy lịch → phát APPOINTMENT_CONFIRMED / APPOINTMENT_CANCELLED (RabbitMQ)
+  → Reminder nhận, lấy email từ Patient → gửi thư xác nhận / báo hủy → ghi nhật ký
 ```
 
 Chọn giao tiếp bất đồng bộ cho luồng 4 vì Patient không cần biết service nào đang dùng `patient_id`: nếu Scheduling tạm tắt, sự kiện nằm chờ trong hàng đợi và được xử lý khi Scheduling bật lại, thao tác gộp của lễ tân không bị ảnh hưởng.
@@ -238,13 +245,13 @@ Mã nguồn hiện là **bộ khung chạy được**: mọi thành phần đã 
 
 | Thành phần | Đã có | Còn phải làm |
 |---|---|---|
-| Hạ tầng | Eureka, Docker Compose 11 container, MySQL 5 cơ sở dữ liệu + dữ liệu mẫu, RabbitMQ (exchange, hàng đợi, DLQ), Mailpit | — |
-| API Gateway | Định tuyến 5 service, Circuit Breaker + Fallback, CORS, 3 lớp client gọi service khác | Bộ lọc JWT, chặn vai trò, API Composition, Correlation ID |
-| Auth Service | Bảng, entity, API, băm BCrypt, 5 tài khoản mẫu | Đăng ký, đăng nhập, cấp JWT, quản lý tài khoản |
-| Provider Service | Bảng, entity, API, truy vấn ca làm việc theo ngày, dữ liệu mẫu 6 bác sĩ / 25 ca | Toàn bộ phần xử lý |
+| Hạ tầng | Eureka, Docker Compose 12 container, Keycloak (realm nạp sẵn 11 tài khoản), MySQL 6 cơ sở dữ liệu + dữ liệu mẫu, RabbitMQ (exchange, hàng đợi, DLQ), Mailpit; timeout chung 3 giây, lỗi 404/405 đúng dạng `ApiError`, mã truy vết request | — |
+| API Gateway | Định tuyến 5 service, Circuit Breaker + Fallback trả `ApiError`, CORS, 3 lớp client gọi service khác, Correlation ID | Bộ lọc token, chặn vai trò, API Composition |
+| Auth Service | **Xong**: đăng ký, tài khoản của tôi, danh sách, tạo, khóa / mở tài khoản qua Keycloak Admin API, trang *Đăng ký* và *Tài khoản* | — |
+| Provider Service | Bảng, entity, API, dữ liệu mẫu 6 bác sĩ / 25 ca; **API nội bộ giờ làm việc, bác sĩ / phòng theo mã đã chạy** | Danh mục, ca làm việc |
 | Patient Service | Bảng, entity, API; **tìm kiếm, xem, sửa hồ sơ, chuẩn hóa tên, tính điểm giống nhau đã chạy** (chuyển từ code MPI); bộ phát sự kiện | Tạo hồ sơ theo tình huống, hàng chờ, gộp / tách |
 | Scheduling Service | Bảng có ràng buộc chống đặt trùng, entity, API, client gọi Provider, bộ nhận sự kiện | Tính slot, giữ chỗ, xác nhận, hủy, xử lý sự kiện |
-| Reminder Service | Bảng có ràng buộc chống nhắc lặp, entity, cron, client gọi Scheduling / Patient | Phần quét và gửi email |
+| Reminder Service | Bảng có ràng buộc chống nhắc lặp, entity, cron, client gọi Scheduling / Patient | Phần quét và gửi email; nhận sự kiện lịch hẹn, thư xác nhận / báo hủy, mẫu thư |
 | Web | Khung chung: 5 vai trò, menu theo vai trò, trang chủ kiểm tra tình trạng, 14 trang khung có nút gọi thử API; trang hồ sơ bệnh nhân từ code MPI (đã khớp hợp đồng API: danh sách, tìm, lọc, sửa) | Giao diện thật của từng trang |
 
 Chỗ chờ viết trong backend ném `NotImplementedYetException("Chưa làm: …")`; gọi vào sẽ nhận HTTP **501** kèm mô tả việc cần làm.
@@ -252,6 +259,8 @@ Chỗ chờ viết trong backend ném `NotImplementedYetException("Chưa làm: �
 ---
 
 ## 7. Năm phần việc
+
+**Phân việc hiện hành ở [`00b-phan-viec.md`](00b-phan-viec.md)**: Auth Service, Keycloak và phần chung đã làm trước khi nhóm bắt đầu ([`00a`](00a-nhung-gi-da-san-sang.md)); mỗi người còn một service — Như (Patient), Vũ (Scheduling), Vinh (Provider), Lập (API Gateway), Hiếu (Reminder). Bảng dưới là cách chia ban đầu, giữ để tra cứu.
 
 Hệ thống được chia thành 5 phần việc, mỗi phần gồm một service backend và các trang web tương ứng, để mỗi thành viên làm trọn một lát từ cơ sở dữ liệu tới giao diện.
 
@@ -294,7 +303,7 @@ Danh sách việc cụ thể của từng phần: `docs/04`.
 |---|---|
 | 1 API Gateway trước toàn hệ thống | `api-gateway` — mục 3, 4 |
 | Tối thiểu 4 Core Microservices | 5 service: Auth, Provider, Patient, Scheduling, Reminder |
-| Docker Compose chạy toàn hệ thống | `docker-compose.yml`: 11 container — `docs/01` |
+| Docker Compose chạy toàn hệ thống | `docker-compose.yml`: 12 container — `docs/01` |
 | Hướng 4: Provider, Consumer, Scheduling, Reminder | Provider Service, Patient Service, Scheduling Service, Reminder Service |
 | Hướng 4: tìm slot trống, đụng độ lịch | Scheduling Service — luồng 1, 2 |
 | Hướng 4: tác vụ chạy ngầm định kỳ | Reminder Service — luồng 5 |

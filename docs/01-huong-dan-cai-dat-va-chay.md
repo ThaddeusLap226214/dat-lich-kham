@@ -71,9 +71,9 @@ autoMemoryReclaim=dropcache
 
 Áp dụng: tắt Docker Desktop, chạy `wsl --shutdown` trong PowerShell, mở lại Docker Desktop. Kiểm tra bằng `docker info --format "{{.MemTotal}}"` — kết quả khoảng 5 000 000 000 byte là đúng.
 
-Mức 5 GB được chọn theo tổng giới hạn bộ nhớ (`mem_limit`) của các container trong `docker-compose.yml`: 9 × 512 MB + 2 × 64 MB ≈ 4,6 GB, cộng phần dư cho Docker và WSL. Hiện hệ thống chỉ dùng khoảng 2,2 GB vì phần lớn nghiệp vụ chưa viết; khi các service hoàn thiện, mức dùng sẽ tăng dần về giới hạn này. Cần tăng `memory` nếu:
+Mức 5 GB được chọn theo bộ nhớ dùng thật, không phải tổng giới hạn: tổng `mem_limit` của các container trong `docker-compose.yml` là 9 × 512 MB + 2 × 64 MB + 1024 MB (Keycloak) ≈ 5,6 GB, nhưng các container không cùng chạm trần một lúc. Lúc bàn giao phần chung, hệ thống dùng khoảng 2,9 GB (đo bằng `docker stats` ngày 30/10/2026, Keycloak chiếm khoảng 0,7 GB); khi các service hoàn thiện, mức dùng sẽ tăng dần. Cần tăng `memory` nếu:
 
-- nhóm thêm container mới (ví dụ Keycloak cho Auth Service) hoặc tăng `mem_limit` của một service — giữ `memory` ≥ tổng `mem_limit` + khoảng 0,5 GB;
+- nhóm thêm container mới hoặc tăng `mem_limit` của một service;
 - một container tự khởi động lại liên tục và `docker inspect <tên-container> --format "{{.State.OOMKilled}}"` trả `true` (container bị tắt vì thiếu bộ nhớ).
 
 ### 2.3. Chọn thư mục đặt mã nguồn
@@ -103,14 +103,23 @@ Kiểm tra trạng thái:
 docker compose ps
 ```
 
-Hệ thống sẵn sàng khi **cả 11 container** có cột STATUS dạng `Up … (healthy)`:
+Hệ thống sẵn sàng khi **cả 12 container** có cột STATUS dạng `Up … (healthy)`:
 
 ```
-mysql, rabbitmq, mailpit, discovery-server, api-gateway,
+mysql, rabbitmq, mailpit, keycloak, discovery-server, api-gateway,
 auth-service, provider-service, patient-service, scheduling-service, reminder-service, frontend
 ```
 
-Thứ tự khởi động được điều khiển bởi `depends_on … condition: service_healthy`: MySQL, RabbitMQ, Eureka trước → 5 service → Gateway → web.
+Thứ tự khởi động được điều khiển bởi `depends_on … condition: service_healthy`: MySQL, RabbitMQ, Eureka trước → Keycloak, 5 service → Gateway → web. Keycloak lần đầu mất khoảng 1,5 phút (tạo bảng trong `keycloak_db`, nạp realm).
+
+**Máy đã từng chạy hệ thống trước khi có Keycloak** phải xóa dữ liệu cũ **một lần**, vì script tạo database (`docker/mysql/init`) chỉ chạy khi volume MySQL còn trống:
+
+```powershell
+docker compose down -v
+docker compose up -d --build
+```
+
+Lệnh `down -v` xóa dữ liệu thử trên máy mình; dữ liệu mẫu tự nạp lại khi bật.
 
 ### Các lần chạy sau
 
@@ -131,6 +140,8 @@ Sau khi `git pull` code mới, bật bằng `docker compose up -d --build` để
 |---|---|---|
 | **http://localhost:4200** | Web | Giao diện người dùng |
 | http://localhost:8080 | API Gateway | Cổng vào duy nhất của mọi API (`/api/v1/...`) |
+| http://localhost:8180/admin | Keycloak (quản trị) | Xem người dùng, vai trò của realm `dat-lich-kham`; khóa tài khoản, đổi vai trò, đặt lại mật khẩu. Tài khoản `admin` / `admin_pw` (đổi trong `.env`) |
+| http://localhost:8180/realms/dat-lich-kham/account | Keycloak (tài khoản cá nhân) | Đăng nhập thử bằng tài khoản mẫu, ví dụ `benhnhan` / `123456` |
 | http://localhost:8761 | Eureka | Xem các service đã đăng ký vào danh bạ |
 | http://localhost:15672 | RabbitMQ Management | Xem exchange, hàng đợi, tin nhắn. Tài khoản `clinic` / `clinic_pw` |
 | http://localhost:8025 | Mailpit | Xem email nhắc lịch đã gửi |
@@ -154,7 +165,7 @@ Mở http://localhost:4200. Trang chủ gọi thật một API của mỗi thàn
 
 ### 5.2. Chế độ thử (chọn vai trò)
 
-Khi chức năng đăng nhập chưa hoàn thiện, ô **Chế độ thử** trên thanh đầu trang cho phép chọn một trong các tài khoản mẫu. Web tự gắn header `X-User-Id`, `X-User-Role`, `X-Doctor-Id` vào mọi request — đúng các header mà Gateway sẽ gắn sau khi xác minh JWT (xem `docs/06`, mục A5). Menu bên trái thay đổi theo vai trò.
+Keycloak đã chạy và giữ 11 tài khoản mẫu, nhưng web chưa chuyển sang trang đăng nhập Keycloak và Gateway chưa xác minh token (việc P4-4, P4-9). Trong lúc đó, ô **Chế độ thử** trên thanh đầu trang cho phép chọn một trong các tài khoản mẫu. Web tự gắn header `X-User-Id`, `X-User-Role`, `X-Doctor-Id` vào mọi request — đúng các header mà Gateway sẽ gắn sau khi xác minh token (xem `docs/06`, mục A5). Menu bên trái thay đổi theo vai trò.
 
 Mọi vai trò đều thấy *Trang chủ* và *Chuyên khoa & bác sĩ*; ngoài ra:
 
@@ -166,7 +177,7 @@ Mọi vai trò đều thấy *Trang chủ* và *Chuyên khoa & bác sĩ*; ngoài
 | Bác sĩ | `bs.an` | Hồ sơ bệnh nhân, Lịch khám trong ngày |
 | Quản trị | `admin` | Chuyên khoa – bác sĩ – phòng, Lịch làm việc, Tài khoản, Nhật ký nhắc lịch |
 
-Mật khẩu chung của các tài khoản mẫu là `123456`. Mỗi trang chưa hoàn thiện hiển thị phần việc phụ trách, danh sách việc cần làm, API chính và nút **Gọi thử** để xem phản hồi thật của backend.
+Mật khẩu chung của các tài khoản mẫu là `123456` (lưu ở Keycloak). Mỗi trang chưa hoàn thiện hiển thị phần việc phụ trách, danh sách việc cần làm, API chính và nút **Gọi thử** để xem phản hồi thật của backend.
 
 ### 5.3. Swagger — thử API trực tiếp
 
@@ -194,7 +205,7 @@ Kết quả gồm 2 hồ sơ (mã 1 và 3). PowerShell 5.1 có thể hiển th�
 
 ## 6. Kết nối cơ sở dữ liệu
 
-Một máy chủ MySQL chứa 5 cơ sở dữ liệu. Mỗi service có tài khoản riêng và **chỉ có quyền trên cơ sở dữ liệu của mình** (tài khoản của service này truy vấn bảng của service khác sẽ bị MySQL từ chối — lỗi 1142).
+Một máy chủ MySQL chứa 6 cơ sở dữ liệu (5 service + `keycloak_db` của Keycloak — chỉ Keycloak dùng, không ai đọc trực tiếp). Mỗi service có tài khoản riêng và **chỉ có quyền trên cơ sở dữ liệu của mình** (tài khoản của service này truy vấn bảng của service khác sẽ bị MySQL từ chối — lỗi 1142).
 
 | Thông số | Giá trị |
 |---|---|
@@ -208,6 +219,7 @@ Một máy chủ MySQL chứa 5 cơ sở dữ liệu. Mỗi service có tài kho
 | `patient_db` | `patient_user` / `patient_user_pw` | Patient Service |
 | `scheduling_db` | `scheduling_user` / `scheduling_user_pw` | Scheduling Service |
 | `reminder_db` | `reminder_user` / `reminder_user_pw` | Reminder Service |
+| `keycloak_db` | `keycloak_user` / `keycloak_user_pw` | Keycloak |
 
 Các mật khẩu trên là giá trị mặc định chỉ dùng khi chạy trên máy cá nhân; có thể đổi bằng file `.env` (mẫu ở `.env.example`). Cấu trúc bảng và dữ liệu mẫu: `docs/03`.
 
@@ -259,7 +271,7 @@ npm start          # http://localhost:4200
 
 | Hiện tượng | Nguyên nhân | Cách xử lý |
 |---|---|---|
-| Vừa bật, gọi API nhận 503 | Service vừa khởi động, chưa đăng ký xong với Eureka | Chờ tới khi `docker compose ps` báo đủ 11 container `healthy` (khoảng 30 giây) |
+| Vừa bật, gọi API nhận 503 | Service vừa khởi động, chưa đăng ký xong với Eureka | Chờ tới khi `docker compose ps` báo đủ 12 container `healthy` (khoảng 30 giây; lần đầu Keycloak lâu hơn) |
 | Máy chậm, RAM Windows trên 90% | Máy ảo Docker giữ bộ nhớ đệm | Làm mục 2.2; xả ngay: `docker run --rm --privileged alpine sh -c "sync; echo 3 > /proc/sys/vm/drop_caches"` |
 | `mvnw` báo `ClassNotFoundException: MavenWrapperMain` | Đường dẫn chứa chữ có dấu | Chuyển repo sang thư mục không dấu (mục 2.3) |
 | `port is already allocated` | Cổng 3307, 8080, 4200… đang bị chương trình khác dùng | Tắt chương trình đó, hoặc đổi số cổng bên trái trong `ports:` của `docker-compose.yml` |

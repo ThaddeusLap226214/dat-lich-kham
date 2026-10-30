@@ -18,10 +18,10 @@ Hạn nộp: **30/11/2026**. Không chia sprint: mỗi người tự sắp việ
 | Người | Service (thư mục) | Trang web | Đầu mối thường xuyên với |
 |---|---|---|---|
 | Như | Patient Service (`patient-service/`) | *Hồ sơ bệnh nhân của tôi* · *Hồ sơ bệnh nhân* (lễ tân) · *Hàng chờ duyệt hồ sơ trùng* | Vũ (sự kiện gộp / tách), Lập, Hiếu (hồ sơ rút gọn) |
-| Vũ | Scheduling Service (`scheduling-service/`) | *Đặt lịch khám* · *Lịch hẹn theo bác sĩ* (lễ tân) | Vinh (giờ làm việc), Như (hồ sơ, sự kiện), Lập, Hiếu (lịch hẹn) |
+| Vũ | Scheduling Service (`scheduling-service/`) | *Đặt lịch khám* · *Lịch hẹn theo bác sĩ* (lễ tân) | Vinh (giờ làm việc), Như (hồ sơ, sự kiện gộp / tách), Lập (lịch hẹn), Hiếu (lịch hẹn, sự kiện xác nhận / hủy) |
 | Vinh | Provider Service (`provider-service/`) | *Chuyên khoa & bác sĩ* · quản trị danh mục · quản trị lịch làm việc · *Lịch khám trong ngày* (bác sĩ) · *Lịch khám của tôi* (bệnh nhân) | Vũ (slot), Lập (API ghép cho hai trang lịch khám) |
 | Lập | API Gateway (`api-gateway/`) | *Đăng nhập* (chuyển sang Keycloak) | mọi người (token, chặn quyền, API ghép) |
-| Hiếu | Reminder Service (`reminder-service/`) + kiểm thử toàn hệ thống | *Nhật ký nhắc lịch* | Vũ, Như (lấy lịch, lấy email); cả nhóm (kiểm thử) |
+| Hiếu | Reminder Service — dịch vụ thông báo: nhắc lịch, xác nhận, báo hủy (`reminder-service/`) + kiểm thử toàn hệ thống | *Nhật ký thông báo* · *Mẫu thư* | Vũ (lấy lịch, sự kiện xác nhận / hủy), Như (lấy email); cả nhóm (kiểm thử) |
 
 **Việc chung của cả nhóm** (làm cuối): mỗi người viết mục báo cáo của phần mình (bảng dữ liệu, API, sơ đồ tuần tự) · báo cáo phần chung (kiến trúc tổng thể, sơ đồ luồng dữ liệu, đối chiếu yêu cầu đề tài và giáo trình) — nhóm chia khi tới lúc · tổng duyệt demo cả nhóm.
 
@@ -59,6 +59,7 @@ Cách đọc bảng:
 | P2-4 | Giữ chỗ, chống đặt trùng | F32 · CS03, CS04, CS05, CS06, CS12 | Giữ một slot hai lần → lần 2 nhận 409 `SLOT_ALREADY_HELD`; giờ không thuộc ca → 400 `SLOT_NOT_IN_SCHEDULE`; hồ sơ có lịch chồng giờ → 409 `PATIENT_TIME_CONFLICT`, lịch liền kề → 201; giữ chỗ thứ 4 cùng lúc → 409 `TOO_MANY_HOLDS` | — |
 | P2-5 | Xác nhận, hủy, đánh dấu đã khám | F33, F35, F38 · CS02, CS07, CS08, CS09 | Xác nhận sau 5 phút → 409 `HOLD_EXPIRED`; bệnh nhân hủy khi còn dưới 2 giờ → 409 `TOO_LATE_TO_CANCEL`, lễ tân vẫn hủy được; bác sĩ hủy → 403; đánh dấu trước giờ khám → 409 `TOO_EARLY_TO_COMPLETE`; bác sĩ khác đánh dấu → 403 | — |
 | P2-10 | **Mới.** Ghi bệnh nhân không đến: `POST /appointments/{id}/no-show` (bảng đã có trạng thái `NO_SHOW` và cột `no_show_at`, xem `00a` dòng 13) | F39 · CS10 | Chạy đúng kịch bản KB7 ở `docs/10` mục 7 | — |
+| P2-12 | **Mới.** Phát sự kiện `appointment.confirmed`, `appointment.cancelled` **sau khi** lưu thành công (cùng cách Patient phát sự kiện gộp hồ sơ) | F33, F35 · CS31 | Xác nhận một lịch → trang quản trị RabbitMQ thấy tin trên `appointment.events` đúng khuôn `docs/06` A7; hủy → có tin `appointment.cancelled` kèm `cancelReason`; xác nhận bị từ chối (409) → không có tin | — |
 | P2-6 | Nhận sự kiện gộp / tách hồ sơ, bỏ qua sự kiện đã xử lý | F3A · CS14 | Gửi cùng một sự kiện 2 lần → lịch chỉ chuyển 1 lần; gộp 3 vào 1 → mọi lịch của hồ sơ 3 sang hồ sơ 1; tách → về hồ sơ 3; tắt Scheduling lúc gộp, bật lại → sự kiện vẫn được xử lý | Như (P1-5, P1-6). Trong lúc chờ: tự gửi tin mẫu theo `docs/06` A7 từ trang quản trị RabbitMQ |
 | P2-7 | Web: *Đặt lịch khám*; *Lịch hẹn theo bác sĩ* cho lễ tân, có nút Hủy, Đã khám, Không đến | F31–F33, F35, F38, F39 | Hai cửa sổ trình duyệt cùng giữ một slot → chỉ một bên thành công, bên kia được báo và thấy slot bị khóa | Vinh (P3-1 danh sách chuyên khoa, bác sĩ), Như (P1-1, P1-2 chọn / khai hồ sơ) |
 | P2-9 | Trang *Lịch hẹn theo bác sĩ* lấy dữ liệu từ `GET /composite/doctor-agenda` để hiện tên bệnh nhân, bác sĩ, phòng | F37 | Lễ tân chọn bác sĩ 1, ngày có lịch → bảng hiện tên; sau khi gộp hồ sơ, lịch chuyển hiện tên hồ sơ giữ lại | Lập (P4-6). Trong lúc chờ: dùng `GET /appointments` |
@@ -93,19 +94,23 @@ API nội bộ giờ làm việc (P3-3) và bác sĩ, phòng theo mã (P3-2) đ�
 
 **Lưu ý cho cả nhóm:** P4-4, P4-5, P4-9 merge **cùng một lúc**. Trước thời điểm đó mọi người thử bằng Chế độ thử như hiện nay. Sau đó thử bằng đăng nhập thật; Swagger ở cổng 8081–8085 (chế độ phát triển) vẫn dùng header gõ tay. Ngày merge sẽ báo trước trên nhóm.
 
-### 2.5. Hiếu — Reminder Service và kiểm thử toàn hệ thống
+### 2.5. Hiếu — Reminder Service (dịch vụ thông báo) và kiểm thử toàn hệ thống
+
+Reminder Service gửi ba loại thư: **nhắc lịch** (quét định kỳ, gọi Scheduling), **xác nhận** và **báo hủy** (nhận sự kiện từ Scheduling qua RabbitMQ). Nội dung thư lấy từ mẫu do quản lý soạn.
 
 | Mã | Việc | Đặc tả | Xong khi | Chờ ai khi kiểm thử |
 |---|---|---|---|---|
-| P5-1 | Nhật ký nhắc lịch | F42 | Trả tối đa 100 dòng mới nhất, lọc được theo trạng thái | — |
+| P5-1 | Nhật ký thông báo | F42 | Trả tối đa 100 dòng mới nhất, lọc được theo trạng thái và loại thư | — |
+| P5-11 | **Mới.** Mẫu thư: bảng `message_templates` nạp sẵn 3 mẫu, API xem / sửa, trang *Mẫu thư*; mọi thư lấy nội dung từ mẫu | F45 · CS32 | Quản lý sửa tiêu đề mẫu nhắc trên trang → thư nhắc kế tiếp trong Mailpit có tiêu đề mới; vai trò khác gọi `PUT` → 403 | — |
 | P5-2 | Một lần quét: lịch `CONFIRMED` trong 24 giờ tới → bỏ lịch đã nhắc → lấy email → gửi → ghi nhật ký | F41 · CS28–CS32 | Có lịch `CONFIRMED` trong 24 giờ tới → `run` → thư trong Mailpit (`http://localhost:8025`) đúng nội dung CS32; `run` lần 2 → `sent = 0`; hồ sơ không email → `SKIPPED` | Vũ (P2-1), Như (P1-1). Trong lúc chờ: client giả. Dữ liệu mẫu không có lịch trong 24 giờ tới → tự thêm một dòng vào `scheduling_db` |
-| P5-4 | Web: *Nhật ký nhắc lịch*, nút "Quét ngay", liên kết Mailpit | F42 | Quản trị viên xem được thư vừa gửi | — |
+| P5-8 | **Từ ☆ lên ★.** Nhận sự kiện `appointment.confirmed` → gửi email xác nhận; bảng `processed_events` chống xử lý lặp | F43 · CS31, CS35, CS36 | Xác nhận một lịch → trong vài giây Mailpit có thư xác nhận; gửi lại cùng sự kiện → không có thư thứ hai; tắt Reminder, xác nhận một lịch, bật lại → thư vẫn tới | Vũ (P2-12). Trong lúc chờ: tự gửi tin mẫu theo `docs/06` A7 từ trang quản trị RabbitMQ |
+| P5-10 | **Mới.** Nhận sự kiện `appointment.cancelled` → gửi thư báo hủy kèm lý do | F44 · CS31 | Hủy một lịch → Mailpit có thư báo hủy kèm lý do; hồ sơ không email → nhật ký `SKIPPED` | Vũ (P2-12). Trong lúc chờ: như P5-8 |
+| P5-4 | Web: *Nhật ký thông báo*, nút "Quét ngay", liên kết Mailpit | F42 | Quản trị viên xem được thư vừa gửi, lọc theo loại thư | — |
 | P5-3 | Chứng minh độ bền khi tắt / bật Reminder | F41 | `docker compose stop reminder-service` → vẫn đặt lịch được; `start` → lần quét sau gửi nhắc cho lịch vừa đặt | Vũ (P2-4, P2-5) |
 | P5-5 | Bộ request mẫu cho 5 luồng (Postman hoặc file `.http`) và kịch bản demo | `docs/10` mục 7 (KB1–KB7), `docs/11` mục 3.2 | Một người không tham gia code chạy được đủ 5 luồng theo kịch bản | Các luồng đã chạy được (cuối dự án) |
 | P5-6 | Kiểm tra đóng gói trên máy sạch | — | Máy chưa từng chạy dự án bật được hệ thống bằng một lệnh `docker compose up -d --build` | Mọi việc ★ đã vào `main` |
 | C-7 | Kiểm tra `main` định kỳ, ít nhất mỗi tuần một lần | — | Sau `git pull`: `docker compose up -d --build` đủ container, trang chủ web báo UP; chạy lại *Xong khi* các việc mới merge; ghi kết quả lên nhóm | — |
 | ☆ P5-7 | Gửi nhắc lần hai (ví dụ trước 2 giờ) | F41 | Lịch trong 2 giờ tới → thêm dòng nhật ký loại thứ hai, Mailpit có thư thứ hai | — |
-| ☆ P5-8 | Email xác nhận ngay khi đặt (CT14) | — | Xác nhận lịch → trong 1 phút Mailpit có thư xác nhận. Cần thống nhất với Vũ cách báo "đã xác nhận" (sự kiện hoặc quét), ghi vào `docs/06` | Vũ |
 | ☆ P5-9 | Thêm tên bác sĩ, phòng vào thư nhắc | F41 | Thư nhắc có tên bác sĩ, phòng; Provider tắt → vẫn gửi thư không có tên | — |
 
 ---

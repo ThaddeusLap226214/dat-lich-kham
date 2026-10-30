@@ -15,23 +15,23 @@ Cài đặt chi tiết, chế độ phát triển (mở Swagger từng service):
 
 ## 2. Đã sẵn sàng
 
-Cột "Trạng thái": ✅ đã vào `main` và đã kiểm · ⬜ chưa xong.
+Cột "Trạng thái": ✅ đã chạy "Cách kiểm" và đạt (30/10/2026, trên máy sạch: 12 container dựng từ volume trống) · ⬜ chưa kiểm được hết, lý do ghi trong ô.
 
 | # | Thành phần | Đã có gì | Cách kiểm | Trạng thái |
 |---|---|---|---|---|
-| 1 | Hạ tầng | 12 container: 5 service nghiệp vụ, Auth, Gateway, Eureka, MySQL (6 database), RabbitMQ, Mailpit, Keycloak, web | `docker compose ps` đủ 12 dòng `healthy`; trang chủ web `http://localhost:4200` báo các thành phần UP | ⬜ |
-| 2 | Đăng nhập Keycloak | Realm (vùng tài khoản) nạp sẵn 11 tài khoản mẫu khớp `auth_db`, 4 vai trò; token có `accountId`, `role`, `doctorId` | Mở `http://localhost:8180`, đăng nhập trang tài khoản của realm bằng `benhnhan`; danh sách người dùng đủ 11 | ⬜ |
-| 3 | Auth Service (trọn phần) | Đăng ký; tài khoản của tôi; danh sách, tạo, khóa / mở tài khoản nhân viên (gọi Keycloak Admin API, có bù trừ khi một bên lỗi); trang *Đăng ký* và trang quản trị *Tài khoản* | Trang *Đăng ký* tạo tài khoản mới → đăng nhập Keycloak được bằng tài khoản đó; chọn vai trò `admin`, trang *Tài khoản* tạo được tài khoản bác sĩ | ⬜ |
-| 4 | Giao diện chung | `frontend/src/styles/ui.css` (lớp `ui-*`), `shared/ui/` (nhãn trạng thái, hiển thị lỗi API), trang mẫu `/ui-kit` | `http://localhost:4200/ui-kit` hiển thị mẫu và quy tắc dùng | ⬜ |
-| 5 | Lỗi chung | Mọi service trả 404, 405 đúng dạng `ApiError` (`docs/06` A4); Gateway trả 503 đủ trường khi service tắt | Gọi một đường dẫn không tồn tại ở bất kỳ service → 404 dạng `ApiError` | ⬜ |
-| 6 | Timeout chung | Một giá trị chờ tối đa cho mọi lời gọi service → service | `docker compose pause provider-service` → `GET /api/v1/slots` báo lỗi sau đúng khoảng timeout, không treo | ⬜ |
-| 7 | Correlation ID (mã truy vết request) | Gateway sinh `X-Correlation-Id`, mọi service ghi mã này vào log và chuyển tiếp khi gọi service khác | Gọi một API qua Gateway → log Gateway và log service có cùng một mã | ⬜ |
-| 8 | API nội bộ giờ làm việc (Provider) | `GET /internal/v1/doctors/{id}/working-hours?date=` | Bác sĩ 1, một ngày thứ Hai → 2 ca (07:30–11:30 và 13:30–16:30, 20 phút); Chủ nhật → `shifts` rỗng | ⬜ |
-| 9 | API nội bộ bác sĩ, phòng theo mã (Provider) | `GET /internal/v1/doctors?ids=`, `GET /internal/v1/rooms?ids=` | `?ids=1,2` trả đúng 2 bác sĩ kèm tên chuyên khoa | ⬜ |
+| 1 | Hạ tầng | 12 container: 5 service nghiệp vụ, Auth, Gateway, Eureka, MySQL (6 database), RabbitMQ, Mailpit, Keycloak, web | `docker compose ps` đủ 12 dòng `healthy`; trang chủ web `http://localhost:4200` báo các thành phần UP | ✅ 12/12 `healthy`, 6 database |
+| 2 | Đăng nhập Keycloak | Realm (vùng tài khoản) nạp sẵn 11 tài khoản mẫu khớp `auth_db`, 4 vai trò; token có `accountId`, `role`, `doctorId` | Mở `http://localhost:8180/realms/dat-lich-kham/account`, đăng nhập bằng `benhnhan` / `123456`; trang quản trị `http://localhost:8180/admin` (`admin` / `admin_pw`) → realm `dat-lich-kham` → *Users* đủ 11 | ✅ 11 người dùng; token mẫu của `benhnhan` có `accountId` 5, `role` PATIENT; `bs.an` có `doctorId` 1 |
+| 3 | Auth Service (trọn phần) | Đăng ký; tài khoản của tôi; danh sách, tạo, khóa / mở tài khoản nhân viên (gọi Keycloak Admin API, có bù trừ khi một bên lỗi); trang *Đăng ký* và trang quản trị *Tài khoản* | Trang *Đăng ký* tạo tài khoản mới → đăng nhập Keycloak được bằng tài khoản đó; chọn vai trò `admin`, trang *Tài khoản* tạo được tài khoản bác sĩ | ⬜ Phần API đã kiểm đạt (đăng ký, trùng tên / email, tạo bác sĩ, khóa / mở, Keycloak tắt thì không còn dòng thừa); hai trang build được nhưng chưa bấm thử trên trình duyệt |
+| 4 | Giao diện chung | `frontend/src/styles/ui.css` (lớp `ui-*`), `shared/ui/` (nhãn trạng thái, hiển thị lỗi API), trang mẫu `/ui-kit` | `http://localhost:4200/ui-kit` hiển thị mẫu và quy tắc dùng | ⬜ Đã có trong code, `ng build` qua; chưa mở trình duyệt xem |
+| 5 | Lỗi chung | Mọi service trả 404, 405 đúng dạng `ApiError` (`docs/06` A4); Gateway trả 503 đủ trường khi service tắt | Gọi một đường dẫn không tồn tại ở bất kỳ service → 404 dạng `ApiError` | ✅ 404, 405, `/internal` từ ngoài → 404, API ghép → 501, Provider tắt → 503 có `path` |
+| 6 | Timeout chung | Một giá trị chờ tối đa cho mọi lời gọi service → service: `clinic.client-timeout = 3s` trong `application.yml` của Scheduling, Reminder, Gateway | `docker compose pause provider-service` → `GET /api/v1/slots` báo lỗi sau đúng khoảng timeout, không treo | ⬜ Đã cấu hình; chưa kiểm được vì `GET /slots` còn trả 501 trước khi gọi Provider — kiểm khi xong P2-3 |
+| 7 | Correlation ID (mã truy vết request) | Gateway sinh `X-Correlation-Id`, mọi service ghi mã này vào log và chuyển tiếp khi gọi service khác | Gọi một API qua Gateway → log Gateway và log service có cùng một mã (`docker compose logs api-gateway auth-service`, mã nằm trong `[...]`) | ✅ Gateway và Auth cùng mã. Phần chuyển tiếp sang service thứ hai kiểm khi có API gọi nhau chạy được (P2-3) |
+| 8 | API nội bộ giờ làm việc (Provider) | `GET /internal/v1/doctors/{id}/working-hours?date=` | Bác sĩ 1, một ngày thứ Hai → 2 ca (07:30–11:30 và 13:30–16:30, 20 phút); Chủ nhật → `shifts` rỗng. Gọi từ trong mạng Docker: `docker exec scheduling-service curl -s "http://provider-service:8082/internal/v1/doctors/1/working-hours?date=2026-11-02"` | ✅ |
+| 9 | API nội bộ bác sĩ, phòng theo mã (Provider) | `GET /internal/v1/doctors?ids=`, `GET /internal/v1/rooms?ids=` | `?ids=1,2` trả đúng 2 bác sĩ kèm tên chuyên khoa (gọi như dòng 8) | ✅ |
 | 10 | Chế độ thử | Web cho chọn vai trò thay đăng nhập và tự gắn header `X-User-*` | Ô chọn vai trò ở đầu trang; chọn `letan` → menu lễ tân | ✅ có từ trước |
 | 11 | Dữ liệu mẫu | 11 tài khoản, 10 hồ sơ (đủ tình huống trùng, 1 vụ gộp), 14 lịch hẹn tính theo ngày chạy, 5 dòng nhắc lịch | [`docs/03` mục 5](03-thiet-ke-csdl.md) | ✅ có từ trước |
-| 12 | Tài liệu thiết kế đã chốt | Xem mục 3 | Mở các file trong `docs/` | ⬜ |
-| 13 | Dữ liệu cho trạng thái "không đến" | Bảng `appointments` có trạng thái `NO_SHOW`, cột `no_show_at`; lịch `NO_SHOW` vẫn giữ khóa slot (`docs/10` CS10). API ghi nhận là việc P2-10 | Trên `scheduling_db`: `UPDATE appointments SET status='NO_SHOW', no_show_at=NOW() WHERE id=6` chạy được | ⬜ |
+| 12 | Tài liệu thiết kế đã chốt | Xem mục 3 | Mở các file trong `docs/` | ✅ Đủ file, mọi liên kết giữa các file trỏ đúng |
+| 13 | Dữ liệu cho trạng thái "không đến" | Bảng `appointments` có trạng thái `NO_SHOW`, cột `no_show_at`; lịch `NO_SHOW` vẫn giữ khóa slot (`docs/10` CS10). API ghi nhận là việc P2-10 | Trên `scheduling_db`: `UPDATE appointments SET status='NO_SHOW', no_show_at=NOW() WHERE id=6` chạy được | ✅ Lịch 6 thành `NO_SHOW`, vẫn giữ `slot_lock` |
 
 ## 3. Tài liệu — đọc theo thứ tự này
 

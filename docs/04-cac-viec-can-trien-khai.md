@@ -1,5 +1,7 @@
 # 04. Các việc cần triển khai theo từng phần
 
+> **Danh sách việc hiện hành, ai làm, thứ tự làm: [`00b-phan-viec.md`](00b-phan-viec.md).** Khi hai file khác nhau, `00b` là bản đúng. File này giữ để tra **lớp nào cần viết, gợi ý dùng AI, mục giáo trình** của từng việc. Phần chung và Auth Service đã làm xong trước khi nhóm bắt đầu ([`00a`](00a-nhung-gi-da-san-sang.md)): mục 6.1 (Auth), P4-7 (Correlation ID) không còn phải làm.
+
 Tài liệu liệt kê các việc còn lại của hệ thống, chia theo 5 phần việc (`docs/02` mục 7). Mỗi việc ghi rõ lớp hoặc API cần viết, tiêu chí **Xong khi** (kiểm chứng được bằng Swagger, web hoặc cơ sở dữ liệu) và mục **giáo trình** liên quan (`LectureNotesSOA-new.pdf`, số trang).
 
 Ký hiệu mức độ:
@@ -56,7 +58,7 @@ Get-ChildItem .\scheduling-service\src -Recurse -Filter *.java | Select-String "
 ### 1.4. Git
 
 - Nhánh `main` luôn phải chạy được `docker compose up -d --build`.
-- Mỗi việc một nhánh `feature/<service>-<việc>`, ví dụ `feature/scheduling-hold-slot`; xong thì mở Pull Request vào `main`, có ít nhất một thành viên khác duyệt.
+- Mỗi việc một nhánh `feature/<service>-<việc>`, ví dụ `feature/scheduling-hold-slot`; chỉ sửa tài liệu thì đặt `docs/<nội-dung>`. Xong thì mở Pull Request vào `main`, có ít nhất một thành viên khác duyệt.
 - Không commit `.env`, `target/`, `node_modules/`.
 
 ### 1.5. Dùng AI hỗ trợ viết code
@@ -156,36 +158,32 @@ Trong lúc chờ, mỗi phần vẫn thử được service của mình bằng S
 
 ### 6.1. Auth Service
 
-Cách xây dựng Auth do phần P4 chọn (`docs/02` mục 3.3). Bảng dưới mô tả phương án **tự viết** trên khung có sẵn. Nếu chọn **Keycloak**, P4-1 – P4-3 được thay bằng: thêm container Keycloak vào `docker-compose.yml`, tạo realm với 4 vai trò và 5 tài khoản mẫu như `docs/03` mục 5, đưa `role` và `doctorId` vào token; P4-4 xác minh token bằng khóa công khai của Keycloak. Tiêu chí *Xong khi* về đăng nhập, 401, 403 giữ nguyên.
-
-| # | Mức | Việc | Lớp / API | Xong khi | Giáo trình |
-|---|---|---|---|---|---|
-| P4-1 | ★ | Đăng ký tài khoản bệnh nhân, băm mật khẩu BCrypt | `AccountService.register` — `POST /api/v1/auth/register` | Đăng ký mới → 201, cột `password_hash` bắt đầu bằng `$2a$`; đăng ký trùng tên → 409 `USERNAME_TAKEN` | Authentication (39); không ghi log thông tin nhạy cảm (43) |
-| P4-2 | ★ | Đăng nhập, cấp JWT HS256: `sub`, `role`, `doctorId`, `exp` | `AccountService.login`, `JwtService.generateToken` — `POST /api/v1/auth/login` | Đăng nhập `benhnhan` / `123456` → `accessToken`; dán vào jwt.io thấy `sub = 5`, `role = PATIENT`, có `exp`; sai mật khẩu → 401 | JWT: cấu trúc, chữ ký, hạn dùng (41, 73–75); token phải có hạn (43) |
-| P4-3 | ★ | Tài khoản của tôi, danh sách, quản trị viên tạo tài khoản | `getById`, `list`, `create` — `/api/v1/accounts...` | Tài khoản không phải ADMIN tạo tài khoản → 403; tạo DOCTOR thiếu `doctorId` → 400 | Authorization (39, 72–73) |
+**Đã làm xong theo phương án Keycloak** (quyết định 19/10/2026, `docs/02` mục 3.3): container Keycloak + realm nạp sẵn 11 tài khoản, 4 vai trò, token có `accountId`, `role`, `doctorId`; Auth Service đăng ký, tạo, khóa / mở tài khoản qua Keycloak Admin API, có bù trừ; trang *Đăng ký* và *Tài khoản*. Không còn API đăng nhập, không còn `password_hash`, JWT HS256. Cách tự kiểm: [`00a`](00a-nhung-gi-da-san-sang.md) dòng 2, 3.
 
 ### 6.2. API Gateway
 
 | # | Mức | Việc | Lớp / API | Xong khi | Giáo trình |
 |---|---|---|---|---|---|
-| P4-4 | ★ | **Bộ lọc JWT** (`GlobalFilter`): cho qua đường dẫn công khai; xác minh chữ ký và hạn; xóa header `X-User-*` client tự gửi; gắn `X-User-Id`, `X-User-Role`, `X-Doctor-Id`; token sai → 401 | Lớp mới trong `api-gateway/.../security/` | Không token gọi `/api/v1/patients/mine` → 401; token hợp lệ → 200; tự gửi `X-User-Id: 1` kèm token của tài khoản 5 → service vẫn nhận 5 | API Gateway là lớp bảo mật đầu tiên (42–43); kết hợp Gateway + JWT (76–77) |
+| P4-4 | ★ | **Bộ lọc token** (`GlobalFilter`): cho qua đường dẫn công khai; xác minh chữ ký RS256 qua JWKS của Keycloak và hạn; xóa header `X-User-*` client tự gửi; gắn `X-User-Id` (từ claim `accountId`), `X-User-Role`, `X-Doctor-Id`; token sai → 401 dạng `ApiError` | Lớp mới trong `api-gateway/.../security/` | Không token gọi `/api/v1/patients/mine` → 401; token Keycloak hợp lệ → 200; tự gửi `X-User-Id: 1` kèm token của tài khoản 5 → service vẫn nhận 5 | API Gateway là lớp bảo mật đầu tiên (42–43); kết hợp Gateway + JWT (76–77) |
 | P4-5 | ★ | Chặn thô theo vai trò các API đánh dấu **(GW)** trong `docs/06` | Cùng bộ lọc hoặc bộ lọc thứ hai | Vai trò PATIENT gọi `POST /api/v1/doctors` → 403 | Authorization, 403 (73) |
 | P4-6 | ★ | **API Composition** `my-appointments` và `doctor-agenda`: gọi Scheduling, rồi gọi **song song** Provider và Patient (`Mono.zip`), ghép theo mã; bọc Circuit Breaker; Provider / Patient lỗi thì vẫn trả lịch, phần thiếu để trống | `CompositeController`; dùng sẵn `SchedulingClient`, `ProviderClient`, `PatientClient` | Có lịch hẹn → JSON đủ tên bác sĩ, phòng, bệnh nhân; `docker compose stop provider-service` → vẫn trả danh sách, `doctor = null` | API Composition (89–91, 108); Circuit Breaker, Fallback (45–46, 109) |
-| P4-7 | ★ | **Correlation ID**: sinh `X-Correlation-Id` cho mỗi request, chuyển xuống service; các service ghi mã này vào log | Bộ lọc Gateway + cấu hình log từng service | Một request qua Gateway → log của Gateway và service cùng một mã | Distributed Tracing, Correlation ID (85) |
+| P4-7 | ★ | **Correlation ID** — **đã làm**: `web/CorrelationIdFilter` ở Gateway, `common/CorrelationIdFilter` ở mỗi service, client gọi service khác tự chuyển tiếp | — | Một request qua Gateway → log của Gateway và service cùng một mã | Distributed Tracing, Correlation ID (85) |
 | P4-8 | ☆ | Giới hạn số request (rate limiting) | `RequestRateLimiter` của Spring Cloud Gateway (cần Redis) hoặc Bucket4j | Gửi quá ngưỡng → 429 | Rate Limiting, Token Bucket (77–78) |
 
 ### 6.3. Web
 
 | # | Mức | Việc | Xong khi |
 |---|---|---|---|
-| P4-9 | ★ | Trang *Đăng nhập*, *Đăng ký*; lưu token; interceptor gắn `Authorization: Bearer`; 401 → về trang đăng nhập; **bỏ Chế độ thử** (`core/identity.*`) | Đăng nhập `letan` → menu lễ tân; token hết hạn → tự về trang đăng nhập |
-| P4-10 | ★ | Trang *Lịch khám của tôi* (dùng P4-6), nút hủy lịch; trang quản trị *Tài khoản* | Bệnh nhân thấy lịch kèm tên bác sĩ, phòng |
+| P4-9 | ★ | Đăng nhập chuyển sang trang Keycloak (Authorization Code + PKCE, client `web`); interceptor gắn `Authorization: Bearer`; 401 → về đăng nhập; **bỏ Chế độ thử** (`core/identity.*`). Trang *Đăng ký* đã làm | Đăng nhập `letan` → menu lễ tân; token hết hạn → tự về trang đăng nhập |
+| P4-10 | ★ | Trang *Lịch khám của tôi* (dùng P4-6), nút hủy lịch — nay là P3-8 (`00b`). Trang quản trị *Tài khoản* đã làm | Bệnh nhân thấy lịch kèm tên bác sĩ, phòng |
 
 **Nội dung báo cáo của phần:** sơ đồ tuần tự API Composition (luồng 3, `docs/02` mục 5) — trọng tâm báo cáo Hướng 4; luồng đăng nhập → JWT → Gateway → service; lý do chọn phương án xây dựng Auth (`docs/02` mục 3.3).
 
 ---
 
 ## 7. P5 — Reminder Service và kiểm thử toàn hệ thống
+
+Reminder nay là **dịch vụ thông báo** (nhắc lịch, thư xác nhận, thư báo hủy theo sự kiện từ Scheduling). Việc mới P5-8 – P5-11 và *Xong khi* hiện hành: [`00b` mục 2.5](00b-phan-viec.md). Bảng dưới giữ các việc gốc để tra lớp, giáo trình.
 
 | # | Mức | Việc | Lớp / API | Xong khi | Giáo trình |
 |---|---|---|---|---|---|

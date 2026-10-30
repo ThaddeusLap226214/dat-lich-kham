@@ -27,7 +27,7 @@ Nguồn: `docs/02`, `docs/03`, `docs/06`, `docs/07`, `frontend/src/app/core/app-
   |---|---|---|
   | GD — giao dịch | Ghi một lần một việc xảy ra | phiếu giữ chỗ, phiếu hủy |
   | DM — danh mục | Dùng đi dùng lại, ít đổi | chuyên khoa, bác sĩ, ca làm việc |
-  | Sổ | Máy tự ghi dồn nhiều lần | nhật ký nhắc lịch, bản ghi chuyển lịch |
+  | Sổ | Máy tự ghi dồn nhiều lần | nhật ký thông báo, bản ghi chuyển lịch |
   | BC — báo cáo | Tính ra để xem, không lưu | bảng slot trống, danh sách khám trong ngày |
   | Đính kèm | Do bên ngoài phát hành, chỉ lấy vài trường | CCCD, thẻ BHYT |
 
@@ -65,15 +65,19 @@ Mỗi chứng từ một dòng: ai lập, lập từ chứng từ nào, chuyển
 |---|---|---|---|---|---|---|---|---|---|
 | CT10 | Bảng slot trống | BC | lễ tân lật sổ hẹn xem còn giờ nào | Hệ thống | CT04 + các lịch CT11, CT12 | bệnh nhân, lễ tân | — | không lưu, tính mỗi lần gọi | Tự sinh |
 | CT11 | Phiếu giữ chỗ | GD | không có ("em giữ giúp chị giờ đó nhé") | Hệ thống, theo yêu cầu của bệnh nhân / lễ tân | CT10, CT07 | người đặt; CT12 | hệ thống: slot thuộc ca, chưa ai giữ, hồ sơ không trùng giờ, các giới hạn CS03–CS06 | Scheduling `appointments` (`HELD`) | Thay (bước mới) |
-| CT12 | Phiếu hẹn khám | GD | dòng trong sổ hẹn, giấy hẹn | Hệ thống | CT11 | người đặt (trang *Lịch khám của tôi*); CT15; CT16 | hệ thống: chưa quá hạn giữ chỗ | Scheduling `appointments` (`CONFIRMED`) | Thay |
-| CT13 | Phiếu hủy lịch | GD | gọi điện báo hủy, gạch sổ | Người đặt hoặc Lễ tân | CT12 | Scheduling (nhả slot) | hệ thống: hạn hủy CS07, quyền CS08 | Scheduling `appointments` (`CANCELLED`) | Thay |
-| CT14 | Email xác nhận đặt lịch | GD | — | — | CT12 | — | — | — | Ngoài phạm vi (việc nâng cao của Reminder) |
+| CT12 | Phiếu hẹn khám | GD | dòng trong sổ hẹn, giấy hẹn | Hệ thống | CT11 | người đặt (trang *Lịch khám của tôi*); CT14; CT15; CT16 | hệ thống: chưa quá hạn giữ chỗ | Scheduling `appointments` (`CONFIRMED`) | Thay |
+| CT13 | Phiếu hủy lịch | GD | gọi điện báo hủy, gạch sổ | Người đặt hoặc Lễ tân | CT12 | Scheduling (nhả slot); CT24 | hệ thống: hạn hủy CS07, quyền CS08 | Scheduling `appointments` (`CANCELLED`) | Thay |
 
-### Nhóm D — Nhắc lịch (Reminder)
+### Nhóm D — Thông báo (Reminder Service — dịch vụ thông báo)
 
 | Mã | Chứng từ | Loại | Ngoài đời | Ai lập | Từ chứng từ | Chuyển cho | Ai kiểm, kiểm gì | Lưu ở | Hướng |
 |---|---|---|---|---|---|---|---|---|---|
-| CT15 | Email nhắc lịch + nhật ký nhắc | GD (thư) + Sổ (nhật ký) | lễ tân gọi điện nhắc hôm trước | Hệ thống (Reminder) | CT12 + email ở CT07 | email của hồ sơ; Quản lý xem nhật ký | hệ thống: mỗi lịch chỉ nhắc một lần | Reminder `reminder_logs` | Thay (máy làm thay việc gọi điện) |
+| CT14 | Email xác nhận đặt lịch | GD | lễ tân đọc lại giờ hẹn qua điện thoại | Hệ thống (Reminder), khi nhận sự kiện "đã xác nhận" | CT12 + email ở CT07 + mẫu CT25 | email của hồ sơ | hệ thống: mỗi lịch một thư xác nhận | Reminder `reminder_logs` (`CONFIRMATION`) | Thay (máy làm thay) |
+| CT15 | Email nhắc lịch | GD | lễ tân gọi điện nhắc hôm trước | Hệ thống (Reminder), quét định kỳ | CT12 + email ở CT07 + mẫu CT25 | email của hồ sơ | hệ thống: mỗi lịch chỉ nhắc một lần | Reminder `reminder_logs` (`BEFORE_APPOINTMENT`) | Thay (máy làm thay) |
+| CT24 | Email báo hủy lịch | GD | lễ tân gọi lại báo đã hủy | Hệ thống (Reminder), khi nhận sự kiện "đã hủy" | CT13 + email ở CT07 + mẫu CT25 | email của hồ sơ | hệ thống: mỗi lịch một thư báo hủy | Reminder `reminder_logs` (`CANCELLATION`) | Thay (bước mới) |
+| CT25 | Mẫu thư thông báo (nhắc, xác nhận, báo hủy) | DM | không có (mỗi người nói một kiểu) | Quản lý | — | CT14, CT15, CT24 | hệ thống: tiêu đề, nội dung không trống | Reminder `message_templates` | Thay (bước mới) |
+
+Nhật ký của cả ba loại thư nằm chung bảng `reminder_logs` (sổ: máy tự ghi dồn), Quản lý và Lễ tân xem ở trang *Nhật ký thông báo*.
 
 ### Nhóm E — Ngày khám (Gateway ghép, Scheduling)
 
@@ -93,20 +97,21 @@ Mỗi chứng từ một dòng: ai lập, lập từ chứng từ nào, chuyển
 | CT22 | Bản ghi chuyển lịch hẹn | Sổ | — | Hệ thống (Scheduling) | CT21, CT23 | — | hệ thống: mỗi sự kiện xử lý đúng một lần | Scheduling `patient_reassignments` | Tự sinh |
 | CT23 | Biên bản tách hồ sơ | GD | — | Lễ tân | CT21 | Scheduling qua sự kiện `patient.unmerged` → CT22 | hệ thống: hồ sơ phải đang `MERGED` | Patient `merge_history` (`UNMERGE`) | Thay |
 
-**Tổng:** 23 chứng từ — 21 có chỗ lưu hoặc tự sinh, 2 ngoài phạm vi (CT14, CT18). Phần in phiếu hẹn của CT12 cũng ngoài phạm vi.
+**Tổng:** 25 chứng từ — 24 có chỗ lưu hoặc tự sinh, 1 ngoài phạm vi (CT18). Phần in phiếu hẹn của CT12 cũng ngoài phạm vi. CT24, CT25 thêm ngày 30/10 khi Reminder Service thành dịch vụ thông báo.
 
 ### Kiểm chuỗi: mỗi chứng từ có trước, có sau
 
 ```
-CT01 → CT03 → CT04 → CT10 → CT11 → CT12 → CT15 (nhắc)
+CT01 → CT03 → CT04 → CT10 → CT11 → CT12 → CT14 (thư xác nhận) ; CT15 (thư nhắc)
 CT02 ────────↗                       ├──→ CT16 → CT17 (đã khám) | CT19 (không đến)
-                                     └──→ CT13 (hủy)
+                                     └──→ CT13 (hủy) → CT24 (thư báo hủy)
+CT25 (mẫu thư) → CT14, CT15, CT24
 CT06 (tài khoản) → CT07 (hồ sơ) → CT11
 CT08 → CT07 / CT09 → CT20 → CT21 → CT22 ; CT21 → CT23 → CT22
 CT03 → CT05 (tài khoản bác sĩ)
 ```
 
-Đứng đầu chuỗi, không có chứng từ trước: CT01, CT02 (phòng khám tự lập), CT06 (khách tự đăng ký), CT08 (bên ngoài phát hành).
+Đứng đầu chuỗi, không có chứng từ trước: CT01, CT02, CT25 (phòng khám tự lập), CT06 (khách tự đăng ký), CT08 (bên ngoài phát hành).
 
 ---
 
@@ -131,7 +136,10 @@ CT03 → CT05 (tài khoản bác sĩ)
 | CT11 | hồ sơ `patient_id` ✔ · bác sĩ `doctor_id` ✔ · giờ bắt đầu `start_time` ✔ · lý do khám `reason` | `end_time` = `start_time` + `slot_minutes` · `room_id`, `work_schedule_id` chép từ ca (bản chụp, không hỏi lại Provider) · `booked_by_account_id` ← `X-User-Id` · `status` = `HELD` · `hold_expires_at` = lúc giữ + 5 phút |
 | CT12 | các trường của CT11 | `status` = `CONFIRMED` · `confirmed_at` |
 | CT13 | lý do hủy `cancel_reason` | `cancelled_by_account_id` ← `X-User-Id` · `cancelled_at` · `status` = `CANCELLED` |
-| CT15 | — (máy lập) | `appointment_id`, `patient_id`, `appointment_start` (chép từ CT12) · `recipient_email` ← CT07 · `reminder_type` · `status` · `attempt_count`, `last_error`, `sent_at` |
+| CT14 | — (máy lập) | như CT15, `reminder_type` = `CONFIRMATION`; nội dung điền mẫu CT25 bằng dữ liệu của sự kiện `appointment.confirmed` |
+| CT15 | — (máy lập) | `appointment_id`, `patient_id`, `appointment_start` (chép từ CT12) · `recipient_email` ← CT07 · `reminder_type` = `BEFORE_APPOINTMENT` · `status` · `attempt_count`, `last_error`, `sent_at`; nội dung điền mẫu CT25 |
+| CT24 | — (máy lập) | như CT15, `reminder_type` = `CANCELLATION`; lý do hủy lấy từ sự kiện `appointment.cancelled` |
+| CT25 | loại thư `type` ✔ (cố định 3 loại, mỗi loại một mẫu) · tiêu đề `subject` ✔ · nội dung `body` ✔ (chỗ điền `{patientName}`, `{startTime}`, `{appointmentId}`, `{cancelReason}`) | `updated_by_account_id` ← `X-User-Id` · `updated_at` |
 | CT16 | — (máy lập) | giờ, trạng thái, lý do ← CT12 · bác sĩ ← CT03 · phòng ← CT02 · bệnh nhân (tên, ngày sinh) ← CT07 |
 | CT17 | — | `status` = `COMPLETED` · `completed_at` |
 | CT19 | — | `status` = `NO_SHOW` · `no_show_at` (**cột mới**) |
@@ -194,15 +202,17 @@ Mã lỗi theo dạng `ApiError` của `docs/06` A4. Cột "Từ" là mã câu h
 | CS26 | Bác sĩ xem hồ sơ | Bác sĩ đọc được mọi hồ sơ (giữ như `docs/06`) | CT07 | — | A3 |
 | CS27 | Giấy tờ trên một hồ sơ | Một cặp loại + số; chỉ kiểm định dạng CCCD (12 số). Không lưu ngày cấp, nơi cấp, bản chụp | CT08 | 400 `INVALID_ID_NUMBER` (đã có) | G11 |
 
-### 4.4. Reminder Service (P5)
+### 4.4. Reminder Service — dịch vụ thông báo (P5)
 
 | Mã | Chính sách | Giá trị chốt | Áp vào | Cấu hình / mã lỗi | Từ |
 |---|---|---|---|---|---|
 | CS28 | "Trong 24 giờ tới" | Lịch `CONFIRMED` có `0 < start_time − now ≤ 24 giờ`; quét mỗi 5 phút | CT15 | `reminder.hours-before: 24`, `reminder.cron` (đã có) | T2 |
 | CS29 | Đặt sát giờ (dưới 24 giờ) | Nhắc ở lần quét kế tiếp | CT15 | — | K7 |
-| CS30 | Hồ sơ không có email | Ghi `SKIPPED`, không có kênh khác (không SMS) | CT15 | — | N8 |
-| CS31 | Thư khác ngoài thư nhắc | Không gửi thư khi hủy; không gửi email xác nhận khi đặt (CT14 là việc nâng cao) | CT13, CT14 | — | N6, D (N4) |
-| CS32 | Nội dung thư nhắc | Tên bệnh nhân · ngày giờ khám · mã lịch hẹn · lời dặn cố định "Vui lòng đến trước giờ hẹn 15 phút và mang theo giấy tờ tùy thân". Tên bác sĩ, phòng: việc nâng cao | CT15 | lời dặn đặt trong `application.yml` | G17 |
+| CS30 | Hồ sơ không có email | Mọi loại thư ghi `SKIPPED`, không có kênh khác (không SMS) | CT14, CT15, CT24 | — | N8 |
+| CS31 | Thư theo sự kiện | Lịch chuyển `CONFIRMED` → gửi email xác nhận (CT14). Lịch chuyển `CANCELLED`, ai hủy cũng vậy → gửi thư báo hủy kèm lý do (CT24). Lịch `EXPIRED`, `COMPLETED`, `NO_SHOW` không gửi thư | CT14, CT24 | Scheduling phát sự kiện `appointment.confirmed`, `appointment.cancelled` (mục 5) | N6, D (N4) — **đổi 30/10** |
+| CS32 | Nội dung thư | Mỗi loại thư (nhắc, xác nhận, báo hủy) một mẫu trong bảng `message_templates`, Quản lý sửa trên trang *Mẫu thư*. Chỗ điền: tên bệnh nhân, ngày giờ khám, mã lịch hẹn, lý do hủy. Mẫu nạp sẵn có lời dặn "Vui lòng đến trước giờ hẹn 15 phút và mang theo giấy tờ tùy thân". Tên bác sĩ, phòng: việc nâng cao | CT25 | `message_templates` | G17 — **đổi 30/10** |
+| CS35 | Đặt lịch dưới 24 giờ trước giờ khám | Nhận cả thư xác nhận lẫn thư nhắc (hai loại thư khác nhau, không gộp) | CT14, CT15 | — | mới |
+| CS36 | Sự kiện nhận lặp, Reminder đang tắt | Bỏ qua sự kiện có `eventId` đã xử lý; mỗi lịch tối đa một thư cho mỗi loại. Reminder tắt thì sự kiện chờ trong hàng đợi, bật lại gửi tiếp. Thư gửi lỗi (`FAILED`) được thử lại ở lần quét định kỳ kế tiếp, mọi loại thư | CT14, CT15, CT24 | `processed_events` trong `reminder_db`; khóa duy nhất (`appointment_id`, `reminder_type`) | mới |
 
 ### 4.5. Auth Service (P6) — đã làm sẵn, ghi để tra
 
@@ -213,7 +223,7 @@ Mã lỗi theo dạng `ApiError` của `docs/06` A4. Cột "Từ" là mã câu h
 
 ### 4.6. Ngoài phạm vi (đã chốt không làm)
 
-Tiếp đón tại quầy và số thứ tự (CT18, câu C) · in phiếu hẹn · SMS · email xác nhận khi đặt (CT14, câu D — để làm nâng cao) · thông báo khi hủy · bác sĩ nghỉ đột xuất, ngày lễ · bệnh nhân đến trễ · phạt người không đến · số chứng chỉ hành nghề, ảnh bác sĩ · nhiều giấy tờ trên một hồ sơ.
+Tiếp đón tại quầy và số thứ tự (CT18, câu C) · in phiếu hẹn · SMS · bác sĩ nghỉ đột xuất, ngày lễ · bệnh nhân đến trễ · phạt người không đến · số chứng chỉ hành nghề, ảnh bác sĩ · nhiều giấy tờ trên một hồ sơ.
 
 ---
 
@@ -231,13 +241,17 @@ Các chính sách ở mục 4 làm đổi hợp đồng kỹ thuật như dướ
 | 6 | `cancel`: ghi rõ lễ tân không bị giới hạn 2 giờ; bác sĩ không được hủy | `docs/06` B4 | P2 |
 | 7 | Sự kiện gộp: chuyển mọi lịch của hồ sơ bị gộp, không chỉ `HELD` / `CONFIRMED` | `docs/06` A7 | P2 |
 | 8 | `unmerge`: cặp trong hàng chờ chuyển `NOT_DUPLICATE` | `docs/06` B3 | P1 |
-| 9 | Cấu hình mới: `scheduling.max-holds-per-account`, `scheduling.max-upcoming-per-patient`, `scheduling.book-ahead-days`, `scheduling.book-before-hours`, `patient.guardian-required-under-age`, lời dặn trong thư nhắc | `application.yml` của từng service | P2, P1, P5 |
+| 9 | Cấu hình mới: `scheduling.max-holds-per-account`, `scheduling.max-upcoming-per-patient`, `scheduling.book-ahead-days`, `scheduling.book-before-hours`, `patient.guardian-required-under-age` | `application.yml` của từng service | P2, P1 |
+| 10 | Sự kiện mới: exchange `appointment.events` (loại topic), routing key `appointment.confirmed`, `appointment.cancelled`; hàng đợi `reminder.appointment-events` + hàng đợi lỗi `reminder.appointment-events.dlq`; lớp `AppointmentEvent` {eventId, eventType (`APPOINTMENT_CONFIRMED` / `APPOINTMENT_CANCELLED`), occurredAt, appointmentId, patientId, doctorId, roomId, startTime, endTime, cancelReason, performedByAccountId}; Scheduling phát **sau khi** lưu thành công | `docs/06` A7, B4 | P2 (phát), P5 (nhận) |
+| 11 | `reminder_db` thêm bảng `processed_events` (như bên Scheduling) và `message_templates` {`type` khóa chính, `subject`, `body`, `updated_by_account_id`, `updated_at`}, nạp sẵn 3 mẫu; `reminder_logs.reminder_type` có 3 giá trị `BEFORE_APPOINTMENT`, `CONFIRMATION`, `CANCELLATION` | `docs/03` mục 3.5, 5 | P5 |
+| 12 | API mới `GET /api/v1/reminders/templates`, `PUT /api/v1/reminders/templates/{type}` — ADMIN **(GW)**; `GET /reminders/logs` lọc thêm theo `type` | `docs/06` B5 | P5 |
+| 13 | Mô tả Reminder Service: "dịch vụ thông báo — nhắc lịch, xác nhận, báo hủy; nhận sự kiện từ Scheduling" | `docs/02`, sơ đồ tổng quan (thêm mũi tên Scheduling → RabbitMQ → Reminder) | — |
 
 ---
 
 ## 6. Kiểm hai chiều: bảng ↔ chứng từ
 
-**Chiều 1 — mỗi chứng từ có chỗ lưu chưa:** mục 2, cột "Lưu ở". Không có bảng riêng: CT10, CT16 (tính mỗi lần), CT08 (chỉ lấy hai trường), CT14, CT18 (ngoài phạm vi).
+**Chiều 1 — mỗi chứng từ có chỗ lưu chưa:** mục 2, cột "Lưu ở". Không có bảng riêng: CT10, CT16 (tính mỗi lần), CT08 (chỉ lấy hai trường), CT18 (ngoài phạm vi).
 
 **Chiều 2 — mỗi bảng ứng với chứng từ nào:**
 
@@ -251,7 +265,9 @@ Các chính sách ở mục 4 làm đổi hợp đồng kỹ thuật như dướ
 | `scheduling_db` | `appointments` | CT11, CT12, CT13, CT17, CT19 |
 | | `patient_reassignments` | CT22 |
 | | `processed_events` | bảng kỹ thuật (chống xử lý sự kiện hai lần), không ứng chứng từ |
-| `reminder_db` | `reminder_logs` | CT15 |
+| `reminder_db` | `reminder_logs` | CT14, CT15, CT24 |
+| | `message_templates` | CT25 |
+| | `processed_events` | bảng kỹ thuật (chống xử lý sự kiện hai lần), không ứng chứng từ |
 | `keycloak_db` | (bảng của Keycloak) | mật khẩu, vai trò của CT05, CT06 |
 
 Cột kỹ thuật không ứng chứng từ: `version` (khóa lạc quan), `slot_lock`, `active_identity` (cột tự tính), `normalized_name`, `score` (chỉ tham khảo).
@@ -305,9 +321,10 @@ Chị Mai đăng ký, khai hồ sơ cho mình và con, đặt khám nhi với b�
 | 5 | Chị Mai | Trang `doctors`: chọn chuyên khoa Nhi khoa (id 2) → bác sĩ 2 | CT01, CT03, CT04 | `GET /doctors?specialtyId=2` trả bác sĩ 2; ca T2 07:30–11:30 |
 | 6 | Chị Mai (21:00 ngày 25/10) | `GET /slots?doctorId=2&date=2026-10-26` | CT10 | 16 slot 15 phút từ 07:30; `available` = false ở 07:45 (lịch 7) và 09:00 (lịch 13); 08:00 `available` = true (lịch 12 đã `EXPIRED`) |
 | 7 | Chị Mai (21:00) | `POST /appointments/hold` {`doctorId` 2, `patientId` 12, `startTime` 2026-10-26T08:00:00, `reason` "Ho, sốt 2 ngày"} | CT11 | 201; `appointments.id` = 15, `HELD`, `end_time` 08:15, `room_id` 2, `work_schedule_id` 8, `booked_by_account_id` 12, `hold_expires_at` 2026-10-25T21:05:00, `slot_lock` = `2@2026-10-26 08:00:00` |
-| 8 | Chị Mai (21:02) | `POST /appointments/15/confirm` | CT12 | `CONFIRMED`, `confirmed_at` 21:02 |
+| 8 | Chị Mai (21:02) | `POST /appointments/15/confirm` | CT12 | `CONFIRMED`, `confirmed_at` 21:02; Scheduling phát `appointment.confirmed` |
+| 8b | Hệ thống (Reminder, vài giây sau) | Nhận `appointment.confirmed` | CT14 | Thư xác nhận tới `mai.ngo@example.com` theo mẫu `CONFIRMATION`; `reminder_logs.id` = 6, loại `CONFIRMATION`, `SENT` |
 | 9 | Chị Mai | `GET /composite/my-appointments` | CT12 | Một `AppointmentView`: `appointmentId` 15, bác sĩ "Trần Thị Bình" BS.CKI Nhi khoa, phòng P102, bệnh nhân "Ngô Gia Huy" sinh 2020 |
-| 10 | Hệ thống (cron 21:05) | Quét lịch `CONFIRMED` trong 24 giờ tới | CT15 | Lịch 15 nằm trong 24 giờ: gửi email tới `mai.ngo@example.com` (email của hồ sơ 12); `reminder_logs.id` = 6, `SENT`, `attempt_count` 1, `appointment_start` 2026-10-26T08:00. Đặt sát giờ (dưới 24 giờ) thì thư nhắc đến trong tối đa 5 phút sau khi xác nhận |
+| 10 | Hệ thống (cron 21:05) | Quét lịch `CONFIRMED` trong 24 giờ tới | CT15 | Lịch 15 nằm trong 24 giờ: gửi email tới `mai.ngo@example.com` (email của hồ sơ 12); `reminder_logs.id` = 7, loại `BEFORE_APPOINTMENT`, `SENT`, `attempt_count` 1, `appointment_start` 2026-10-26T08:00. Đặt dưới 24 giờ nên nhận cả thư xác nhận (bước 8b) lẫn thư nhắc (CS35) |
 | 11 | Bác sĩ Bình (tài khoản 4) | 26/10, `GET /composite/doctor-agenda?doctorId=2&date=2026-10-26` | CT16 | Có lịch 7 (07:45), 15 (08:00, Ngô Gia Huy, lý do "Ho, sốt 2 ngày"), 13 (09:00) |
 | 12 | Bác sĩ Bình | 08:12, `POST /appointments/15/complete` | CT17 | `COMPLETED`, `completed_at` 2026-10-26T08:12 |
 
@@ -320,9 +337,9 @@ Hồ sơ 7 (Nguyễn Văn Hùng, sinh 09/09/1958, CCCD, SĐT 0935111222, không 
 | 1 | Lễ tân (26/10, 10:00) | Trang `patients`: `GET /patients?keyword=Hùng` | CT07 | Hai dòng: hồ sơ 7 (`ACTIVE`, sinh 1958-09-09) và hồ sơ 8 (`TEMPORARY`, sinh 1958-09-19, đang chờ duyệt trùng, cặp 8–7). Lễ tân chọn hồ sơ 7 |
 | 2 | Lễ tân | `GET /slots?doctorId=1&date=2026-10-28` | CT10 | 21 slot (sáng 12, chiều 9); 09:10 `available` = true |
 | 3 | Lễ tân | `POST /appointments/hold` {`doctorId` 1, `patientId` 7, `startTime` 2026-10-28T09:10:00, `reason` "Tái khám huyết áp"} | CT11 | 201; `appointments.id` = 15, `HELD`, `end_time` 09:30, `room_id` 1, `work_schedule_id` 3, `booked_by_account_id` 2, `hold_expires_at` 10:05 |
-| 4 | Lễ tân | `POST /appointments/15/confirm` | CT12 | `CONFIRMED` |
+| 4 | Lễ tân | `POST /appointments/15/confirm` | CT12, CT14 | `CONFIRMED`; Reminder nhận `appointment.confirmed`, hồ sơ 7 không email → `reminder_logs.id` = 6, loại `CONFIRMATION`, `SKIPPED` |
 | 5 | Người nhà (nếu có tài khoản) | `GET /composite/my-appointments` | CT12 | Không thấy lịch 15: hồ sơ 7 không có `owner_account_id` nên không thuộc tài khoản nào. Nếu hồ sơ có chủ thì chủ hồ sơ thấy cả lịch lễ tân đặt hộ (CS15) |
-| 6 | Hệ thống (cron, khoảng 09:10 ngày 27/10) | Quét nhắc lịch | CT15 | `PatientClient` trả hồ sơ 7 không có email → `reminder_logs.id` = 6, `status` `SKIPPED`, `recipient_email` NULL. Không có kênh nhắc khác (CS30) |
+| 6 | Hệ thống (cron, khoảng 09:10 ngày 27/10) | Quét nhắc lịch | CT15 | `PatientClient` trả hồ sơ 7 không có email → `reminder_logs.id` = 7, loại `BEFORE_APPOINTMENT`, `status` `SKIPPED`, `recipient_email` NULL. Không có kênh nhắc khác (CS30) |
 | 7 | Bác sĩ An (tài khoản 3) | 28/10, `GET /composite/doctor-agenda?doctorId=1&date=2026-10-28` | CT16 | Lịch 15 hiện bệnh nhân "Nguyễn Văn Hùng" sinh 1958-09-09 |
 | 8 | Bác sĩ An | 09:30, `POST /appointments/15/complete` | CT17 | `COMPLETED`, `completed_at` 2026-10-28T09:30 |
 
@@ -353,7 +370,7 @@ Hạn hủy: bệnh nhân hủy được khi còn từ 2 giờ trở lên; lễ 
 | 4 | Chị Hoa (26/10, 07:30) | `POST /appointments/13/cancel` (lịch 13: hồ sơ 2, bác sĩ 2, 09:00; còn 1 giờ 30 phút; đặt bởi tài khoản 5) | CT13 | 409 `TOO_LATE_TO_CANCEL`; lịch 13 vẫn `CONFIRMED` |
 | 5 | Lễ tân (tài khoản 2, 07:35) | `POST /appointments/13/cancel` {`reason` "Con sốt cao, gia đình báo qua điện thoại"} | CT13 | `CANCELLED`, `cancelled_by_account_id` 2 — lễ tân không bị giới hạn 2 giờ (CS07) |
 | 6 | Chị Hoa | `POST /appointments/13/cancel` lần nữa | CT13 | 409 `INVALID_STATUS` |
-| 7 | Hệ thống | Email nhắc đã gửi trước đó (nếu có) | CT15 | Không gửi thư báo hủy (CS31); thư nhắc cũ vẫn nằm trong hộp thư người nhận |
+| 7 | Hệ thống (Reminder) | Nhận `appointment.cancelled` của lịch 8 (bước 1) và lịch 13 (bước 5) | CT24 | Mỗi lịch một thư báo hủy, gửi tới email của hồ sơ (hồ sơ 4, hồ sơ 2), nội dung có lý do hủy; hồ sơ không email → `SKIPPED` (CS31, CS30). Lần hủy bị từ chối ở bước 4, 6 không sinh sự kiện |
 
 ### KB6 — Hồ sơ trùng → gộp → lịch chuyển → tách
 

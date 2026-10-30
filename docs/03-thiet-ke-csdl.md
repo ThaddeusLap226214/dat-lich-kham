@@ -290,13 +290,27 @@ erDiagram
 |---|---|
 | `appointment_id`, `patient_id` | Mã bên Scheduling / Patient (không khóa ngoại) |
 | `appointment_start` | Giờ khám (chép lại để hiển thị, khỏi gọi Scheduling) |
-| `reminder_type` | Hiện chỉ có `BEFORE_APPOINTMENT` |
+| `reminder_type` | `BEFORE_APPOINTMENT` (nhắc trước 24 giờ), `CONFIRMATION` (xác nhận khi đặt), `CANCELLATION` (báo hủy). `schema.sql` hiện chỉ có giá trị đầu, hai giá trị sau thêm trong P5-8 |
 | `recipient_email` | Email đã gửi tới |
 | `status` | `SENT` (đã gửi), `FAILED` (lỗi, lần quét sau thử lại), `SKIPPED` (hồ sơ không có email) |
 | `attempt_count`, `last_error` | Số lần thử, lỗi gần nhất |
 | `sent_at` | Lúc gửi thành công |
 
 Cặp (`appointment_id`, `reminder_type`) là duy nhất → mỗi lịch chỉ được nhắc một lần dù cron chạy bao nhiêu lần.
+
+Hai bảng dưới thuộc thiết kế Reminder thành dịch vụ thông báo theo sự kiện (`docs/10` mục 5, dòng 10–13). **Chưa có trong `schema.sql`**: Reminder tạo trong P5-8 (`processed_events`) và P5-11 (`message_templates`).
+
+**`processed_events`** (sự kiện lịch hẹn đã xử lý): giống bảng cùng tên của Scheduling — `event_id` khóa chính, `event_type`, `processed_at`. Nhận lại cùng `eventId` từ `appointment.events` thì bỏ qua.
+
+**`message_templates`** (mẫu thư)
+
+| Cột | Ý nghĩa |
+|---|---|
+| `type` | Khóa chính: `BEFORE_APPOINTMENT`, `CONFIRMATION`, `CANCELLATION` |
+| `subject`, `body` | Tiêu đề, nội dung thư (có chỗ điền tên bệnh nhân, giờ khám, mã lịch) |
+| `updated_by_account_id`, `updated_at` | Quản trị viên sửa lần cuối, lúc sửa |
+
+Nạp sẵn 3 mẫu khi khởi động.
 
 ---
 

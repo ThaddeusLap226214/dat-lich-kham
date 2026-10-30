@@ -100,7 +100,7 @@ tìm trong `pom.xml`, `*.yml`, `*.java` không thấy.
 
 | Mã | Tên trên hình | Nội dung | Căn cứ |
 |---|---|---|---|
-| H1 | Docker Compose: 11 container (+ Keycloak sẽ thêm) | `mysql`, `rabbitmq`, `mailpit`, `discovery-server`, `api-gateway`, `auth-service`, `provider-service`, `patient-service`, `scheduling-service`, `reminder-service`, `frontend`; bật theo thứ tự nhờ `depends_on` + `healthcheck` | `docker-compose.yml` |
+| H1 | Docker Compose: 12 container | `mysql`, `rabbitmq`, `mailpit`, `keycloak`, `discovery-server`, `api-gateway`, `auth-service`, `provider-service`, `patient-service`, `scheduling-service`, `reminder-service`, `frontend`; bật theo thứ tự nhờ `depends_on` + `healthcheck` | `docker-compose.yml` |
 | H2 | Mạng nội bộ của Compose | Container gọi nhau bằng tên (`mysql`, `rabbitmq`, `mailpit`, `discovery-server`); service gọi nhau qua tên Eureka | `DB_HOST`, `RABBITMQ_HOST`, `MAIL_HOST`, `EUREKA_URL` trong compose |
 | H3 | Cổng mở ra máy | 4200 web · 8080 gateway · 8761 Eureka · 15672 RabbitMQ quản trị · 8025 Mailpit · 3307 MySQL. Bản dev mở thêm 8081–8085, 5672, 1025 | `docker-compose.yml`, `docker-compose.dev.yml` |
 
@@ -144,7 +144,7 @@ Gateway chỉ chuyển tiếp. Gateway chỉ tự gọi nhiều service ở API 
 
 | # | Chỗ lệch | Ở đâu |
 |---|---|---|
-| 1 | `docs/02` mục 3.3, 4, 7 và `docs/06` mục A5 vẫn mô tả Auth Service cấp JWT (HS256, khóa chung `JWT_SECRET`); quyết định 19/10 chọn Keycloak, compose chưa có Keycloak | `docs/02`, `docs/06`, `docker-compose.yml` |
+| 1 | ~~`docs/02` mục 3.3, 4, 7 và `docs/06` mục A5 vẫn mô tả Auth Service cấp JWT; compose chưa có Keycloak~~ — **đã sửa 30/10/2026**: compose có Keycloak, tài liệu viết theo Keycloak | `docs/02`, `docs/06`, `docker-compose.yml` |
 | 2 | `docs/02` mục 2.2 liệt kê 4 vai trò; mục 6 và web có 5 (thêm `GUEST` — khách chưa đăng nhập) | `docs/02` mục 2.2 vs mục 6; `identity.service.ts` |
 | 3 | Sơ đồ `docs/02` mục 3.1 vẽ 5 database như 5 khối rời; thực tế là **một** container MySQL chứa 5 database | `docker-compose.yml`, `01-create-databases.sh` |
 | 4 | Web còn các trang lấy từ repo MPI (`facilities`, `source-systems`, `patient-import`, `patient-masters`, `dashboard`) gọi `/api/v1/facilities`, `/imports`, `/source-systems` — Gateway không có route cho các đường này, `docs/02` không nhắc | `frontend/src/app/app.routes.ts`, `features/*/services` |

@@ -39,7 +39,7 @@ Hệ thống xây theo kiến trúc microservices (mỗi dịch vụ một khố
 | M1 | Danh mục và lịch làm việc | Provider Service | Quản lý phòng khám | CT01–CT04 | Vinh |
 | M2 | Hồ sơ bệnh nhân (MPI — quản lý định danh bệnh nhân) | Patient Service | Quầy lễ tân, lưu trữ hồ sơ | CT07–CT09, CT20, CT21, CT23 | Như |
 | M3 | Hẹn khám | Scheduling Service; hai màn hình ghép ở Gateway | Lễ tân (sổ hẹn), bác sĩ | CT10–CT13, CT16, CT17, CT19, CT22 | Vũ; phần ghép: Lập |
-| M4 | Nhắc lịch | Reminder Service | Lễ tân gọi điện nhắc hôm trước | CT15 | Hiếu |
+| M4 | Thông báo (nhắc lịch, xác nhận, báo hủy) | Reminder Service | Lễ tân gọi điện xác nhận, nhắc hôm trước, báo hủy | CT14, CT15, CT24, CT25 | Hiếu |
 | M5 | Tài khoản và đăng nhập | Auth Service + Keycloak | Quản lý cấp tài khoản | CT05, CT06 | đã làm sẵn |
 
 **Thành phần hạ tầng** (không phải module nghiệp vụ, không có quy trình riêng): API Gateway (cổng vào duy nhất: xác minh đăng nhập, chặn theo vai trò, ghép dữ liệu — Lập) · Keycloak (máy chủ đăng nhập) · Eureka (danh bạ service) · RabbitMQ (hàng đợi sự kiện) · MySQL · Mailpit (hộp thư thử) · Web Angular.
@@ -49,12 +49,13 @@ Phụ thuộc giữa các module khối (mũi tên = "cần dữ liệu của"):
 ```
 M3 Hẹn khám ──(giờ làm việc, đồng bộ)──► M1 Danh mục
 M3 Hẹn khám ◄──(sự kiện gộp / tách)──── M2 Hồ sơ
-M4 Nhắc lịch ──(lịch sắp tới, đồng bộ)─► M3 ; ──(email hồ sơ, đồng bộ)─► M2
+M4 Thông báo ──(lịch sắp tới, đồng bộ)─► M3 ; ──(email hồ sơ, đồng bộ)─► M2
+M4 Thông báo ◄──(sự kiện đã xác nhận / đã hủy)── M3 Hẹn khám
 Gateway (ghép) ──► M3, M1, M2
 M5 Tài khoản: cấp accountId cho mọi module qua token đăng nhập; không module nào gọi M5 trực tiếp
 ```
 
-Không có vòng phụ thuộc đồng bộ: M1 và M2 không gọi ai, M3 chỉ gọi M1, M4 gọi M3 và M2.
+Không có vòng phụ thuộc đồng bộ: M1 và M2 không gọi ai, M3 chỉ gọi M1, M4 gọi M3 và M2. M3 báo cho M4 bằng sự kiện (bất đồng bộ), nên M3 không phải chờ M4 và vẫn chạy khi M4 tắt.
 
 ### 2.2. Module chi tiết (chức năng con)
 
@@ -89,8 +90,11 @@ Mỗi chức năng con là một việc, một vai trò làm, ra một kết qu�
 | F3A | Chuyển lịch hẹn khi hồ sơ được gộp / tách | Hệ thống (theo sự kiện) | CT22 | UC22 |
 | F3B | Cung cấp lịch hẹn (nội bộ) | Hệ thống (cho Gateway, M4) | danh sách lịch | — |
 | **M4** | | | | |
-| F41 | Quét và gửi nhắc lịch | Hệ thống (mỗi 5 phút) | CT15 | UC19 |
-| F42 | Xem nhật ký nhắc, quét ngay | Quản lý (xem: cả lễ tân) | nhật ký CT15 | UC18 |
+| F41 | Quét và gửi nhắc lịch; thử lại thư gửi lỗi | Hệ thống (mỗi 5 phút) | CT15 | UC19 |
+| F42 | Xem nhật ký thông báo, quét ngay | Quản lý (xem: cả lễ tân) | nhật ký CT14, CT15, CT24 | UC18 |
+| F43 | Gửi email xác nhận khi lịch được xác nhận | Hệ thống (theo sự kiện) | CT14 | mới |
+| F44 | Gửi thư báo hủy khi lịch bị hủy | Hệ thống (theo sự kiện) | CT24 | mới |
+| F45 | Quản lý mẫu thư | Quản lý | CT25 | mới |
 | **M5** | | | | |
 | F51 | Đăng ký tài khoản bệnh nhân | Khách | CT06 | UC01 |
 | F52 | Đăng nhập, đăng xuất | Mọi vai trò | token đăng nhập | UC02 |
@@ -109,8 +113,8 @@ Phần này tả **làm cái gì**, đúng cả khi không có máy tính. Bỏ 
 |---|---|---|---|
 | M1 Danh mục | F11 lập danh mục → F12 lập ca → F13 công bố cho khách | — | Giờ làm việc → M3 · tên bác sĩ, phòng → màn hình ghép |
 | M2 Hồ sơ | F21 / F22 khai hồ sơ → F24 dò trùng → (F23 bổ sung giấy tờ) → F25 duyệt trùng → (F26 tách nếu gộp nhầm) | Tài khoản quản lý hồ sơ ← M5 | Hồ sơ rút gọn → M4, màn hình ghép · việc gộp / tách → M3 |
-| M3 Hẹn khám | F31 xem slot → F32 giữ chỗ → F33 xác nhận → (F35 hủy) → ngày khám: F37 xem danh sách → F38 đã khám hoặc F39 không đến | Giờ làm việc ← M1 · hồ sơ được chọn ← M2 · việc gộp / tách ← M2 | Lịch sắp tới → M4 · lịch hẹn → màn hình ghép |
-| M4 Nhắc lịch | F41 quét lịch sắp tới → lấy email → gửi → ghi nhật ký → F42 xem | Lịch sắp tới ← M3 · email ← M2 | — |
+| M3 Hẹn khám | F31 xem slot → F32 giữ chỗ → F33 xác nhận → (F35 hủy) → ngày khám: F37 xem danh sách → F38 đã khám hoặc F39 không đến | Giờ làm việc ← M1 · hồ sơ được chọn ← M2 · việc gộp / tách ← M2 | Lịch sắp tới, việc xác nhận / hủy → M4 · lịch hẹn → màn hình ghép |
+| M4 Thông báo | F45 soạn mẫu thư (làm trước, ít đổi) → khi lịch được xác nhận: F43 gửi thư xác nhận · khi lịch bị hủy: F44 gửi thư báo hủy · trước giờ khám 24 giờ: F41 gửi thư nhắc → F42 xem nhật ký | Lịch sắp tới, việc xác nhận / hủy ← M3 · email ← M2 | — |
 | M5 Tài khoản | F51 khách tự đăng ký / F53 quản lý cấp cho nhân viên → F52 đăng nhập | Mã bác sĩ ← M1 (quản lý chọn) | Mã tài khoản, vai trò cho mọi module |
 
 ### 3.2. Quy trình xuyên module
@@ -125,9 +129,12 @@ Hai quy trình chạy qua nhiều module, dùng làm luồng demo chính.
 | 2 | Bệnh nhân | Khai hồ sơ cho mình hoặc người nhà | CT08 (nếu có) | CT07 | M2 |
 | 3 | Bệnh nhân | Chọn chuyên khoa, bác sĩ, xem giờ còn trống | CT01, CT03, CT04 | CT10 | M1 → M3 |
 | 4 | Bệnh nhân | Chọn giờ, giữ chỗ rồi xác nhận | CT10, CT07 | CT11 → CT12 | M3 |
-| 5 | Phòng khám | Nhắc bệnh nhân trước giờ khám | CT12, email CT07 | CT15 | M4 |
-| 6 | Bác sĩ | Xem danh sách khám trong ngày | CT12 | CT16 | M3 |
-| 7 | Bác sĩ | Khám xong đánh dấu, hoặc ghi không đến | CT16 | CT17 / CT19 | M3 |
+| 5 | Phòng khám | Gửi thư xác nhận lịch hẹn | CT12, email CT07, CT25 | CT14 | M4 |
+| 6 | Phòng khám | Nhắc bệnh nhân trước giờ khám | CT12, email CT07, CT25 | CT15 | M4 |
+| 7 | Bác sĩ | Xem danh sách khám trong ngày | CT12 | CT16 | M3 |
+| 8 | Bác sĩ | Khám xong đánh dấu, hoặc ghi không đến | CT16 | CT17 / CT19 | M3 |
+
+Nhánh hủy: ở bất kỳ lúc nào trước bước 7, người đặt hoặc lễ tân hủy lịch (CT13, M3) → phòng khám gửi thư báo hủy (CT24, M4).
 
 **Q2 — Từ hồ sơ trùng đến lịch hẹn đi theo hồ sơ** (khớp KB6)
 
@@ -141,7 +148,7 @@ Hai quy trình chạy qua nhiều module, dùng làm luồng demo chính.
 
 ### 3.3. ② Từng bước của các chức năng con chính
 
-Chức năng chỉ thêm / sửa danh mục (F11, F13, F22 phần tìm và sửa, F42, F54) không tả từng bước: một người nhập, hệ thống lưu, không có nhánh nghiệp vụ.
+Chức năng chỉ thêm / sửa danh mục (F11, F13, F22 phần tìm và sửa, F42, F45, F54) không tả từng bước: một người nhập, hệ thống lưu, không có nhánh nghiệp vụ.
 
 **F12 — Lập ca làm việc**
 
@@ -200,7 +207,14 @@ Chức năng chỉ thêm / sửa danh mục (F11, F13, F22 phần tìm và sửa
 | Bước | Ai | Làm gì | Giấy vào → ra | Quy tắc | Ngoại lệ |
 |---|---|---|---|---|---|
 | 1 | Phòng khám | Lọc các lịch đã xác nhận trong 24 giờ tới, chưa nhắc | CT12 | 24 giờ (CS28); đặt sát giờ thì nhắc ngay (CS29) | — |
-| 2 | Phòng khám | Gửi thư nhắc tới email của hồ sơ, ghi lại đã nhắc | CT07 (email) → CT15 | Nội dung thư theo CS32; mỗi lịch nhắc một lần | Hồ sơ không email → ghi "bỏ qua" (CS30); gửi lỗi → thử lại lần sau |
+| 2 | Phòng khám | Gửi thư nhắc tới email của hồ sơ, ghi lại đã nhắc | CT07 (email), CT25 → CT15 | Nội dung theo mẫu (CS32); mỗi lịch nhắc một lần | Hồ sơ không email → ghi "bỏ qua" (CS30); gửi lỗi → thử lại lần sau (CS36) |
+
+**F43, F44 — Thư xác nhận, thư báo hủy**
+
+| Bước | Ai | Làm gì | Giấy vào → ra | Quy tắc | Ngoại lệ |
+|---|---|---|---|---|---|
+| 1 | Phòng khám | Lịch vừa được xác nhận → gửi thư xác nhận tới email của hồ sơ | CT12, CT07, CT25 → CT14 | Mỗi lịch một thư (CS36); đặt dưới 24 giờ vẫn nhận thêm thư nhắc (CS35) | Hồ sơ không email → "bỏ qua" |
+| 2 | Phòng khám | Lịch vừa bị hủy, ai hủy cũng vậy → gửi thư báo hủy kèm lý do | CT13, CT07, CT25 → CT24 | CS31 | Hết hạn giữ chỗ, đã khám, không đến → không gửi |
 
 **F51, F53 — Cấp tài khoản**
 
@@ -220,9 +234,9 @@ Phần này tả **làm bằng cách nào** trên hệ thống. Bảng ở mục
 | Trường hợp | Bước |
 |---|---|
 | **Giữ nguyên** (chỉ đổi giấy sang máy) | khai hồ sơ, lập ca, lập danh mục, hủy lịch, đánh dấu đã khám, ghi không đến |
-| **Máy làm thay** | lật sổ tìm giờ trống → bảng slot tự tính (CT10) · gọi điện nhắc → thư nhắc tự gửi (CT15) · chép sổ hẹn ra danh sách in → danh sách tự ghép (CT16) · dò hồ sơ trùng bằng mắt → máy đề nghị, người quyết (CT20) · gạch lịch hẹn khi hồ sơ trùng → tự chuyển lịch (CT22) |
+| **Máy làm thay** | lật sổ tìm giờ trống → bảng slot tự tính (CT10) · gọi điện xác nhận, nhắc, báo hủy → thư tự gửi (CT14, CT15, CT24) · chép sổ hẹn ra danh sách in → danh sách tự ghép (CT16) · dò hồ sơ trùng bằng mắt → máy đề nghị, người quyết (CT20) · gạch lịch hẹn khi hồ sơ trùng → tự chuyển lịch (CT22) |
 | **Bỏ** | ghi tay sổ hẹn; gọi lại phòng khám hỏi lịch của mình (bệnh nhân tự xem F36) |
-| **Sinh thêm bước mới** | đăng ký, đăng nhập, phân quyền theo vai trò (M5, Gateway) · giữ chỗ 5 phút trước khi xác nhận (chống hai người cùng đặt một giờ) · nhả chỗ quá hạn (F34) · bắn sự kiện gộp / tách giữa hai service |
+| **Sinh thêm bước mới** | đăng ký, đăng nhập, phân quyền theo vai trò (M5, Gateway) · giữ chỗ 5 phút trước khi xác nhận (chống hai người cùng đặt một giờ) · nhả chỗ quá hạn (F34) · phát sự kiện gộp / tách hồ sơ và sự kiện đã xác nhận / đã hủy lịch giữa các service · soạn mẫu thư (F45) |
 
 ### 4.2. ③ Từng chức năng con trên hệ thống
 
@@ -244,17 +258,20 @@ Quyền: **(GW)** = Gateway chặn theo vai trò trước; còn lại service t�
 | F27 | — | nội bộ `GET /internal/v1/patients?ids=` | — | — | — | Gateway, Reminder | hồ sơ rút gọn có email |
 | F31 | *Đặt lịch khám* (`booking`) | `GET /slots?doctorId=&date=` | bác sĩ, ngày | gọi F14; cắt ca theo `slotMinutes`, bỏ phần lẻ (CS11); `available = false` nếu đã có người giữ / đặt, đã qua giờ, ngoài 30 ngày (CS05), hoặc dưới 2 giờ với PATIENT (CS06); Provider lỗi → 503 | — | đã đăng nhập | CT10 |
 | F32 | *Đặt lịch khám* (`booking`) | `POST /appointments/hold` | bác sĩ, hồ sơ, giờ bắt đầu, lý do | nhả chỗ quá hạn trước; giờ thuộc ca → 400 `SLOT_NOT_IN_SCHEDULE`; trùng slot → 409 `SLOT_ALREADY_HELD` (database chặn bằng `slot_lock`); hồ sơ chồng giờ → 409 `PATIENT_TIME_CONFLICT`; CS03, CS04, CS05, CS06; chép `room_id`, `work_schedule_id`, tính `end_time`, `hold_expires_at` | `HELD` | PATIENT, RECEPTIONIST | CT11 |
-| F33 | *Đặt lịch khám* (`booking`) | `POST /appointments/{id}/confirm` | — | người giữ chỗ → 403; quá hạn → 409 `HOLD_EXPIRED` (CS02) | `CONFIRMED` | người đã giữ chỗ | CT12 |
+| F33 | *Đặt lịch khám* (`booking`) | `POST /appointments/{id}/confirm` | — | không phải người đã giữ chỗ → 403; quá hạn → 409 `HOLD_EXPIRED` (CS02); lưu xong thì phát sự kiện `appointment.confirmed` | `CONFIRMED` | người đã giữ chỗ | CT12 + sự kiện |
 | F34 | — | không có API; chạy định kỳ | — | `HELD` có `hold_expires_at` đã qua → `EXPIRED`, nhả `slot_lock` | `EXPIRED` | Hệ thống | — |
-| F35 | *Lịch khám của tôi* (`my-appointments`), *Lịch hẹn theo bác sĩ* (`appointments`) | `POST /appointments/{id}/cancel` | lý do | CS07 → 409 `TOO_LATE_TO_CANCEL`; CS08 → 403; không phải `CONFIRMED` → 409 `INVALID_STATUS`; nhả `slot_lock` | `CANCELLED` | người đặt, RECEPTIONIST | CT13 |
+| F35 | *Lịch khám của tôi* (`my-appointments`), *Lịch hẹn theo bác sĩ* (`appointments`) | `POST /appointments/{id}/cancel` | lý do | CS07 → 409 `TOO_LATE_TO_CANCEL`; CS08 → 403; không phải `CONFIRMED` → 409 `INVALID_STATUS`; nhả `slot_lock`; lưu xong thì phát sự kiện `appointment.cancelled` (kèm lý do) | `CANCELLED` | người đặt, RECEPTIONIST | CT13 + sự kiện |
 | F36 | *Lịch khám của tôi* (`my-appointments`) | `GET /composite/my-appointments` (Gateway) | — | Gateway lấy hồ sơ của tài khoản (F27 / `mine`), lấy lịch theo người đặt hoặc theo hồ sơ (CS15, F3B), gọi song song F15, F27 để ghép tên; service ghép lỗi → trả danh sách, phần thiếu để `null` | — | đã đăng nhập | CT12 kèm tên |
 | F37 | *Lịch khám trong ngày* (`doctor-agenda`), *Lịch hẹn theo bác sĩ* (`appointments`) | `GET /composite/doctor-agenda?doctorId=&date=` (Gateway); `GET /appointments?doctorId=&date=` | bác sĩ, ngày | bác sĩ chỉ xem `doctorId` của mình | — | DOCTOR, RECEPTIONIST | CT16 |
 | F38 | *Lịch khám trong ngày* (nút "Đã khám"), *Lịch hẹn theo bác sĩ* | `POST /appointments/{id}/complete` | — | bác sĩ khác → 403; trước giờ bắt đầu → 409 `TOO_EARLY_TO_COMPLETE` (CS09); không phải `CONFIRMED` → 409 `INVALID_STATUS` | `COMPLETED` | DOCTOR (lịch của mình), RECEPTIONIST | CT17 |
 | F39 | *Lịch khám trong ngày* (nút "Không đến"), *Lịch hẹn theo bác sĩ* | `POST /appointments/{id}/no-show` (**mới**) | — | như F38; trước giờ bắt đầu → 409 `TOO_EARLY_FOR_NO_SHOW` (CS10) | `NO_SHOW` | DOCTOR (lịch của mình), RECEPTIONIST | CT19 |
 | F3A | — | nhận sự kiện `patient.merged`, `patient.unmerged` (RabbitMQ) | — | bỏ qua `eventId` đã có trong `processed_events`; gộp: chuyển mọi lịch của hồ sơ bị gộp (CS14), ghi `patient_reassignments`; tách: trả lại, ghi `reverted_at`; lỗi → hàng đợi lỗi (DLQ) | `patient_id` đổi | Hệ thống | CT22 |
 | F3B | — | nội bộ `GET /internal/v1/appointments?bookedByAccountId=&patientIds=&doctorId=&status=&from=&to=` | — | mọi tham số không bắt buộc | — | Gateway, Reminder | danh sách lịch |
-| F41 | — | `reminder.cron` mỗi 5 phút | — | gọi F3B (`CONFIRMED`, 24 giờ tới, CS28) → bỏ lịch đã có log `SENT` / `SKIPPED` → gọi F27 lấy email → gửi thư (CS32) → ghi log; không email → `SKIPPED` (CS30); lỗi gửi → `FAILED`, tăng `attempt_count`; service khác lỗi → thử lại lần sau | `SENT` / `SKIPPED` / `FAILED` | Hệ thống | CT15 |
-| F42 | *Nhật ký nhắc lịch* (`admin/reminders`) | `GET /reminders/logs?status=`, `POST /reminders/run` | lọc trạng thái | 100 dòng mới nhất; "Quét ngay" chạy F41 một lần | — | xem: ADMIN, RECEPTIONIST; quét: ADMIN (GW) | `RunResult` |
+| F41 | — | `reminder.cron` mỗi 5 phút | — | gọi F3B (`CONFIRMED`, 24 giờ tới, CS28) → bỏ lịch đã có log `SENT` / `SKIPPED` → gọi F27 lấy email → điền mẫu `BEFORE_APPOINTMENT` (F45) → gửi thư → ghi log; không email → `SKIPPED` (CS30); lỗi gửi → `FAILED`, tăng `attempt_count`; mỗi lần quét cũng gửi lại các dòng `FAILED` của mọi loại thư (CS36); service khác lỗi → thử lại lần sau | `SENT` / `SKIPPED` / `FAILED` | Hệ thống | CT15 |
+| F42 | *Nhật ký thông báo* (`admin/reminders`) | `GET /reminders/logs?status=&type=`, `POST /reminders/run` | lọc trạng thái, loại thư | 100 dòng mới nhất; "Quét ngay" chạy F41 một lần | — | xem: ADMIN, RECEPTIONIST; quét: ADMIN (GW) | `RunResult` |
+| F43 | — | nhận sự kiện `appointment.confirmed` (RabbitMQ, hàng đợi `reminder.appointment-events`) | — | bỏ qua `eventId` đã có trong `processed_events`; gọi F27 lấy email; điền mẫu `CONFIRMATION` bằng dữ liệu trong sự kiện; gửi, ghi log loại `CONFIRMATION`; không email → `SKIPPED`; lỗi gửi → `FAILED` (F41 gửi lại); lỗi xử lý → hàng đợi lỗi | `SENT` / `SKIPPED` / `FAILED` | Hệ thống | CT14 |
+| F44 | — | nhận sự kiện `appointment.cancelled` | — | như F43, mẫu `CANCELLATION`, điền thêm `cancelReason` | như F43 | Hệ thống | CT24 |
+| F45 | *Mẫu thư* (`admin/message-templates`, trang mới) | `GET /reminders/templates`, `PUT /reminders/templates/{type}` | tiêu đề, nội dung có chỗ điền | 3 loại cố định, không thêm, không xóa; tiêu đề, nội dung không trống | — | ADMIN (GW) | CT25 |
 | F51 | *Đăng ký* (`register`) | `POST /auth/register` | tên đăng nhập, mật khẩu, họ tên, email, SĐT | trùng → 409 `USERNAME_TAKEN` / `EMAIL_TAKEN`; Auth cấp `accountId` rồi tạo người dùng Keycloak, Keycloak lỗi thì xóa dòng vừa tạo (bù trừ) | `enabled` | Khách | CT06 |
 | F52 | *Đăng nhập* (`login`) → trang Keycloak | Keycloak (OIDC — chuẩn đăng nhập); Gateway xác minh token | tên đăng nhập, mật khẩu | Keycloak kiểm mật khẩu, cấp token có `accountId`, `role`, `doctorId`; Gateway xóa `X-User-*` client tự gửi rồi gắn lại từ token | — | mọi vai trò | token |
 | F53 | *Tài khoản* (`admin/accounts`) | `GET /accounts?role=`, `POST /accounts`, khóa / mở tài khoản | tên đăng nhập, họ tên, vai trò, bác sĩ (chọn từ danh sách), mật khẩu ban đầu | `DOCTOR` thiếu `doctorId` → 400 `DOCTOR_ID_REQUIRED`; tạo / khóa đồng thời ở Keycloak | `enabled` | ADMIN (GW) | CT05 |
@@ -284,7 +301,7 @@ Cặp:    PENDING ──(gộp)──► MERGED ──(tách)──► NOT_DUPLI
         PENDING ──(không trùng)──► NOT_DUPLICATE
 ```
 
-**M4 — một dòng nhật ký nhắc:** `FAILED` ──(lần quét sau, gửi được)──► `SENT`; `SKIPPED` là kết thúc. Mỗi lịch chỉ có một dòng (khóa duy nhất `appointment_id` + `reminder_type`).
+**M4 — một dòng nhật ký thông báo:** `FAILED` ──(lần quét sau, gửi được)──► `SENT`; `SKIPPED` là kết thúc. Mỗi lịch tối đa một dòng cho mỗi loại thư — nhắc, xác nhận, báo hủy (khóa duy nhất `appointment_id` + `reminder_type`).
 
 **M1, M5:** danh mục và tài khoản chỉ có `active` / `enabled` (đang dùng hay ngừng). Không xóa dòng, để chứng từ cũ còn trỏ tới được.
 
@@ -298,6 +315,7 @@ Cặp:    PENDING ──(gộp)──► MERGED ──(tách)──► NOT_DUPLI
 | N4 | Reminder → Patient | REST đồng bộ, nội bộ | email của hồ sơ | F41 | như N3 |
 | N5 | Gateway → Scheduling, Provider, Patient | REST đồng bộ, gọi song song, Circuit Breaker (bộ ngắt mạch) | lịch + tên bác sĩ, phòng, bệnh nhân | F36, F37 | vẫn trả danh sách, phần thiếu để `null` |
 | N6 | Auth → Keycloak | Keycloak Admin API (API quản trị) | tạo / khóa người dùng | F51, F53 | báo lỗi, xóa dòng `accounts` vừa tạo (bù trừ) |
+| N8 | Scheduling → Reminder | sự kiện RabbitMQ `appointment.events` (bất đồng bộ) | lịch đã xác nhận / đã hủy | F33, F35 → F43, F44 | Reminder tắt thì tin chờ trong hàng đợi, bật lại gửi tiếp; Scheduling không chờ |
 | N7 | Web → Gateway → mọi service | REST qua cổng duy nhất, token Keycloak | mọi request của người dùng | mọi trang | Gateway trả lỗi dạng `ApiError` |
 
 Mã tham chiếu chéo service (không có khóa ngoại, chỉ lưu số): `appointments.patient_id` → Patient · `appointments.doctor_id`, `room_id`, `work_schedule_id` → Provider · `appointments.booked_by_account_id`, `patients.owner_account_id`, `..._by_account_id` → Auth · `accounts.doctor_id` → Provider · `reminder_logs.appointment_id`, `patient_id` → Scheduling, Patient.
