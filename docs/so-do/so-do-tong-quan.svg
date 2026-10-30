@@ -1,0 +1,1162 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="1152pt" height="784.8pt" viewBox="0 0 1152 784.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-19T10:40:35.706700</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 784.8 
+L 1152 784.8 
+L 1152 0 
+L 0 0 
+z
+" style="fill: #f5f5f5"/>
+  </g>
+  <g id="axes_1">
+   <g id="line2d_1">
+    <path d="M 576 97.92 
+L 576 122.4 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_2">
+    <path d="M 576 97.92 
+Q 576 110.16 576 122.4 
+" style="fill: none"/>
+    <path d="M 579.2 116 
+L 576 122.4 
+L 572.8 116 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 381.6 146.16 
+L 194.4 146.16 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 381.6 146.16 
+Q 288 146.16 194.4 146.16 
+" style="fill: none"/>
+    <path d="M 200.8 149.36 
+L 194.4 146.16 
+L 200.8 142.96 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 576 169.92 
+L 576 204.48 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 576 169.92 
+Q 576 187.2 576 204.48 
+" style="fill: none"/>
+    <path d="M 579.2 198.08 
+L 576 204.48 
+L 572.8 198.08 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_4">
+    <path d="M 194.4 237.6 
+L 144 237.6 
+L 144 187.2 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 144 237.6 
+Q 144 212.4 144 187.2 
+" style="fill: none"/>
+    <path d="M 140.8 193.6 
+L 144 187.2 
+L 147.2 193.6 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_5">
+    <path d="M 576 282.24 
+L 576 302.4 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="line2d_6">
+    <path d="M 151.2 302.4 
+L 1000.8 302.4 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="line2d_7">
+    <path d="M 151.2 302.4 
+L 151.2 432 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 151.2 302.4 
+Q 151.2 367.2 151.2 432 
+" style="fill: none"/>
+    <path d="M 154.4 425.6 
+L 151.2 432 
+L 148 425.6 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_8">
+    <path d="M 363.6 302.4 
+L 363.6 432 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 363.6 302.4 
+Q 363.6 367.2 363.6 432 
+" style="fill: none"/>
+    <path d="M 366.8 425.6 
+L 363.6 432 
+L 360.4 425.6 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_9">
+    <path d="M 576 302.4 
+L 576 432 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 576 302.4 
+Q 576 367.2 576 432 
+" style="fill: none"/>
+    <path d="M 579.2 425.6 
+L 576 432 
+L 572.8 425.6 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_10">
+    <path d="M 788.4 302.4 
+L 788.4 432 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 788.4 302.4 
+Q 788.4 367.2 788.4 432 
+" style="fill: none"/>
+    <path d="M 791.6 425.6 
+L 788.4 432 
+L 785.2 425.6 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_11">
+    <path d="M 1000.8 302.4 
+L 1000.8 432 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 1000.8 302.4 
+Q 1000.8 367.2 1000.8 432 
+" style="fill: none"/>
+    <path d="M 1004 425.6 
+L 1000.8 432 
+L 997.6 425.6 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_12">
+    <path d="M 514.8 498.24 
+L 514.8 524.16 
+L 388.8 524.16 
+L 388.8 498.24 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 388.8 524.16 
+Q 388.8 511.2 388.8 498.24 
+" style="fill: none"/>
+    <path d="M 385.6 504.64 
+L 388.8 498.24 
+L 392 504.64 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_13">
+    <path d="M 950.4 498.24 
+L 950.4 554.4 
+L 644.4 554.4 
+L 644.4 498.24 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 644.4 554.4 
+Q 644.4 526.32 644.4 498.24 
+" style="fill: none"/>
+    <path d="M 641.2 504.64 
+L 644.4 498.24 
+L 647.6 504.64 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_14">
+    <path d="M 928.8 498.24 
+L 928.8 524.16 
+L 849.6 524.16 
+L 849.6 498.24 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 849.6 524.16 
+Q 849.6 511.2 849.6 498.24 
+" style="fill: none"/>
+    <path d="M 846.4 504.64 
+L 849.6 498.24 
+L 852.8 504.64 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_15">
+    <path d="M 727.2 432 
+L 727.2 388.8 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke-dasharray: 9.6,6.4; stroke-dashoffset: 0; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 727.2 432 
+Q 727.2 410.4 727.2 388.8 
+" style="fill: none"/>
+    <path d="M 724 395.2 
+L 727.2 388.8 
+L 730.4 395.2 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_16">
+    <path d="M 633.6 388.8 
+L 633.6 432 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke-dasharray: 9.6,6.4; stroke-dashoffset: 0; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 633.6 388.8 
+Q 633.6 410.4 633.6 432 
+" style="fill: none"/>
+    <path d="M 636.8 425.6 
+L 633.6 432 
+L 630.4 425.6 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_17">
+    <path d="M 936 432 
+L 936 388.8 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 936 432 
+Q 936 410.4 936 388.8 
+" style="fill: none"/>
+    <path d="M 932.8 395.2 
+L 936 388.8 
+L 939.2 395.2 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_18">
+    <path d="M 72 432 
+L 72 187.2 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 72 432 
+Q 72 309.6 72 187.2 
+" style="fill: none"/>
+    <path d="M 68.8 193.6 
+L 72 187.2 
+L 75.2 193.6 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 21.6 41.76 
+L 1130.4 41.76 
+L 1130.4 97.92 
+L 21.6 97.92 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 381.6 122.4 
+L 770.4 122.4 
+L 770.4 169.92 
+L 381.6 169.92 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 21.6 116.64 
+L 194.4 116.64 
+L 194.4 187.2 
+L 21.6 187.2 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 957.6 116.64 
+L 1130.4 116.64 
+L 1130.4 187.2 
+L 957.6 187.2 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 194.4 204.48 
+L 936 204.48 
+L 936 282.24 
+L 194.4 282.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #2563eb; stroke-width: 2.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 201.6 234.72 
+L 439.2 234.72 
+L 439.2 275.04 
+L 201.6 275.04 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 446.4 234.72 
+L 684 234.72 
+L 684 275.04 
+L 446.4 275.04 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 691.2 234.72 
+L 928.8 234.72 
+L 928.8 275.04 
+L 691.2 275.04 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 61.2 432 
+L 241.2 432 
+L 241.2 498.24 
+L 61.2 498.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_27">
+    <path d="M 273.6 432 
+L 453.6 432 
+L 453.6 498.24 
+L 273.6 498.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_28">
+    <path d="M 486 432 
+L 666 432 
+L 666 498.24 
+L 486 498.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_29">
+    <path d="M 698.4 432 
+L 878.4 432 
+L 878.4 498.24 
+L 698.4 498.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_30">
+    <path d="M 910.8 432 
+L 1090.8 432 
+L 1090.8 498.24 
+L 910.8 498.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_31">
+    <path d="M 586.8 338.4 
+L 777.6 338.4 
+L 777.6 388.8 
+L 586.8 388.8 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_32">
+    <path d="M 799.2 338.4 
+L 990 338.4 
+L 990 388.8 
+L 799.2 388.8 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_33">
+    <path d="M 21.6 580.32 
+L 1130.4 580.32 
+L 1130.4 649.44 
+L 21.6 649.44 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_34">
+    <path d="M 21.6 666.72 
+L 1130.4 666.72 
+L 1130.4 707.04 
+L 21.6 707.04 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.5; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_35">
+    <path d="M 28.8 717.12 
+L 40.32 717.12 
+L 40.32 728.64 
+L 28.8 728.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #9ca3af"/>
+   </g>
+   <g id="patch_36">
+    <path d="M 168.48 717.12 
+L 180 717.12 
+L 180 728.64 
+L 168.48 728.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #2563eb"/>
+   </g>
+   <g id="patch_37">
+    <path d="M 354.24 717.12 
+L 365.76 717.12 
+L 365.76 728.64 
+L 354.24 728.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ea580c"/>
+   </g>
+   <g id="patch_38">
+    <path d="M 465.12 717.12 
+L 476.64 717.12 
+L 476.64 728.64 
+L 465.12 728.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #16a34a"/>
+   </g>
+   <g id="patch_39">
+    <path d="M 662.4 717.12 
+L 673.92 717.12 
+L 673.92 728.64 
+L 662.4 728.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ca8a04"/>
+   </g>
+   <g id="line2d_19">
+    <path d="M 744.48 722.88 
+L 773.28 722.88 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_20">
+    <path d="M 888.48 722.88 
+L 917.28 722.88 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke-dasharray: 9.6,6.4; stroke-dashoffset: 0; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_40">
+    <path d="M 43.92 72.72 
+L 52.56 72.72 
+L 52.56 81.36 
+L 43.92 81.36 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #9ca3af"/>
+   </g>
+   <g id="patch_41">
+    <path d="M 252.72 72.72 
+L 261.36 72.72 
+L 261.36 81.36 
+L 252.72 81.36 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #9ca3af"/>
+   </g>
+   <g id="patch_42">
+    <path d="M 385.92 72.72 
+L 394.56 72.72 
+L 394.56 81.36 
+L 385.92 81.36 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #9ca3af"/>
+   </g>
+   <g id="patch_43">
+    <path d="M 522.72 72.72 
+L 531.36 72.72 
+L 531.36 81.36 
+L 522.72 81.36 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #9ca3af"/>
+   </g>
+   <g id="patch_44">
+    <path d="M 720.72 72.72 
+L 729.36 72.72 
+L 729.36 81.36 
+L 720.72 81.36 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #9ca3af"/>
+   </g>
+   <g id="patch_45">
+    <path d="M 381.6 122.4 
+L 385.92 122.4 
+L 385.92 169.92 
+L 381.6 169.92 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ea580c"/>
+   </g>
+   <g id="patch_46">
+    <path d="M 21.6 116.64 
+L 25.92 116.64 
+L 25.92 187.2 
+L 21.6 187.2 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #16a34a"/>
+   </g>
+   <g id="patch_47">
+    <path d="M 957.6 116.64 
+L 961.92 116.64 
+L 961.92 187.2 
+L 957.6 187.2 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #2563eb"/>
+   </g>
+   <g id="patch_48">
+    <path d="M 201.6 234.72 
+L 205.92 234.72 
+L 205.92 275.04 
+L 201.6 275.04 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #2563eb"/>
+   </g>
+   <g id="patch_49">
+    <path d="M 446.4 234.72 
+L 450.72 234.72 
+L 450.72 275.04 
+L 446.4 275.04 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ea580c"/>
+   </g>
+   <g id="patch_50">
+    <path d="M 691.2 234.72 
+L 695.52 234.72 
+L 695.52 275.04 
+L 691.2 275.04 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ea580c"/>
+   </g>
+   <g id="patch_51">
+    <path d="M 61.2 432 
+L 65.52 432 
+L 65.52 498.24 
+L 61.2 498.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ea580c"/>
+   </g>
+   <g id="patch_52">
+    <path d="M 273.6 432 
+L 277.92 432 
+L 277.92 498.24 
+L 273.6 498.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ea580c"/>
+   </g>
+   <g id="patch_53">
+    <path d="M 486 432 
+L 490.32 432 
+L 490.32 498.24 
+L 486 498.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ea580c"/>
+   </g>
+   <g id="patch_54">
+    <path d="M 698.4 432 
+L 702.72 432 
+L 702.72 498.24 
+L 698.4 498.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ea580c"/>
+   </g>
+   <g id="patch_55">
+    <path d="M 910.8 432 
+L 915.12 432 
+L 915.12 498.24 
+L 910.8 498.24 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ea580c"/>
+   </g>
+   <g id="patch_56">
+    <path d="M 586.8 338.4 
+L 591.12 338.4 
+L 591.12 388.8 
+L 586.8 388.8 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #16a34a"/>
+   </g>
+   <g id="patch_57">
+    <path d="M 799.2 338.4 
+L 803.52 338.4 
+L 803.52 388.8 
+L 799.2 388.8 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #16a34a"/>
+   </g>
+   <g id="patch_58">
+    <path d="M 21.6 580.32 
+L 25.92 580.32 
+L 25.92 649.44 
+L 21.6 649.44 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #16a34a"/>
+   </g>
+   <g id="patch_59">
+    <path d="M 36.72 682.56 
+L 45.36 682.56 
+L 45.36 691.2 
+L 36.72 691.2 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ca8a04"/>
+   </g>
+   <g id="patch_60">
+    <path d="M 396.72 682.56 
+L 405.36 682.56 
+L 405.36 691.2 
+L 396.72 691.2 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ca8a04"/>
+   </g>
+   <g id="patch_61">
+    <path d="M 756.72 682.56 
+L 765.36 682.56 
+L 765.36 691.2 
+L 756.72 691.2 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ca8a04"/>
+   </g>
+   <g id="line2d_21">
+    <path d="M 151.2 498.24 
+L 151.2 588.96 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_62">
+    <path d="M 151.2 498.24 
+Q 151.2 543.6 151.2 588.96 
+" style="fill: none"/>
+    <path d="M 154.4 582.56 
+L 151.2 588.96 
+L 148 582.56 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_22">
+    <path d="M 331.2 498.24 
+L 331.2 588.96 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_63">
+    <path d="M 331.2 498.24 
+Q 331.2 543.6 331.2 588.96 
+" style="fill: none"/>
+    <path d="M 334.4 582.56 
+L 331.2 588.96 
+L 328 582.56 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_23">
+    <path d="M 532.8 498.24 
+L 532.8 588.96 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_64">
+    <path d="M 532.8 498.24 
+Q 532.8 543.6 532.8 588.96 
+" style="fill: none"/>
+    <path d="M 536 582.56 
+L 532.8 588.96 
+L 529.6 582.56 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_24">
+    <path d="M 806.4 498.24 
+L 806.4 588.96 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_65">
+    <path d="M 806.4 498.24 
+Q 806.4 543.6 806.4 588.96 
+" style="fill: none"/>
+    <path d="M 809.6 582.56 
+L 806.4 588.96 
+L 803.2 582.56 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_25">
+    <path d="M 979.2 498.24 
+L 979.2 588.96 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_66">
+    <path d="M 979.2 498.24 
+Q 979.2 543.6 979.2 588.96 
+" style="fill: none"/>
+    <path d="M 982.4 582.56 
+L 979.2 588.96 
+L 976 582.56 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="line2d_26">
+    <path d="M 32.4 187.2 
+L 32.4 588.96 
+" clip-path="url(#p9dd408a357)" style="fill: none; stroke: #4b5563; stroke-width: 1.6"/>
+   </g>
+   <g id="patch_67">
+    <path d="M 32.4 187.2 
+Q 32.4 388.08 32.4 588.96 
+" style="fill: none"/>
+    <path d="M 35.6 582.56 
+L 32.4 588.96 
+L 29.2 582.56 
+z
+" style="fill: #4b5563"/>
+   </g>
+   <g id="patch_68">
+    <path d="M 25.92 588.96 
+L 108 588.96 
+L 108 620.64 
+L 25.92 620.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_69">
+    <path d="M 115.2 588.96 
+L 187.2 588.96 
+L 187.2 620.64 
+L 115.2 620.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_70">
+    <path d="M 280.8 588.96 
+L 381.6 588.96 
+L 381.6 620.64 
+L 280.8 620.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_71">
+    <path d="M 482.4 588.96 
+L 583.2 588.96 
+L 583.2 620.64 
+L 482.4 620.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_72">
+    <path d="M 756 588.96 
+L 856.8 588.96 
+L 856.8 620.64 
+L 756 620.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_73">
+    <path d="M 928.8 588.96 
+L 1029.6 588.96 
+L 1029.6 620.64 
+L 928.8 620.64 
+z
+" clip-path="url(#p9dd408a357)" style="fill: #ffffff; stroke: #e5e7eb; stroke-width: 1.4; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 18.72px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #111827" x="576" y="27.290588" transform="rotate(-0 576 27.290588)">Kiến trúc tổng thể — Nền tảng đặt lịch khám đa khoa</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 12.96px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="31.68" y="60.906825" transform="rotate(-0 31.68 60.906825)">Clients</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="56.88" y="79.856437" transform="rotate(-0 56.88 79.856437)">Bệnh nhân / người nhà</text>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="265.68" y="79.795687" transform="rotate(-0 265.68 79.795687)">Lễ tân</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="398.88" y="79.795687" transform="rotate(-0 398.88 79.795687)">Bác sĩ</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="535.68" y="79.92225" transform="rotate(-0 535.68 79.92225)">Quản trị phòng khám</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="733.68" y="79.856437" transform="rotate(-0 733.68 79.856437)">Khách chưa đăng nhập</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 8.64px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: end; fill: #6b7280" x="1119.6" y="56.20455" transform="rotate(-0 1119.6 56.20455)">vai trò: PATIENT · RECEPTIONIST · DOCTOR · ADMIN</text>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="578.16" y="141.437531" transform="rotate(-0 578.16 141.437531)">Web Angular :4200</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="578.16" y="156.542119" transform="rotate(-0 578.16 156.542119)">trang theo vai trò · mỗi phần P1–P5 làm trang của mình</text>
+   </g>
+   <g id="text_11">
+    <text style="font-weight: 700; font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="110.16" y="139.745531" transform="rotate(-0 110.16 139.745531)">Keycloak :8180</text>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="110.16" y="154.536412" transform="rotate(-0 110.16 154.536412)">tài khoản · vai trò · cấp JWT</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #6b7280" x="110.16" y="169.212263" transform="rotate(-0 110.16 169.212263)">P4</text>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #1e40af" x="1046.16" y="139.771687" transform="rotate(-0 1046.16 139.771687)">Eureka :8761</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #1e40af" x="1046.16" y="154.2834" transform="rotate(-0 1046.16 154.2834)">danh bạ service (Discovery)</text>
+   </g>
+   <g id="text_16">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #6b7280" x="1046.16" y="169.264913" transform="rotate(-0 1046.16 169.264913)">mọi service tự đăng ký tên</text>
+   </g>
+   <g id="text_17">
+    <text style="font-weight: 700; font-size: 13.68px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1e40af" x="204.48" y="223.744275" transform="rotate(-0 204.48 223.744275)">API Gateway :8080</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #6b7280" x="345.6" y="223.63155" transform="rotate(-0 345.6 223.63155)">cửa vào duy nhất · đặt trên khung Petclinic</text>
+   </g>
+   <g id="text_19">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #1e40af" x="322.56" y="250.718062" transform="rotate(-0 322.56 250.718062)">Định tuyến + Circuit Breaker</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 8.64px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #1e40af" x="322.56" y="264.39615" transform="rotate(-0 322.56 264.39615)">ngắt riêng từng route · Fallback · Eureka</text>
+   </g>
+   <g id="text_21">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="567.36" y="250.496775" transform="rotate(-0 567.36 250.496775)">Xác minh JWT + vai trò (P4)</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 8.64px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="567.36" y="264.39615" transform="rotate(-0 567.36 264.39615)">gắn X-User-* · X-Correlation-Id</text>
+   </g>
+   <g id="text_23">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="812.16" y="250.496775" transform="rotate(-0 812.16 250.496775)">API Composition (P4)</text>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 8.64px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="812.16" y="264.079575" transform="rotate(-0 812.16 264.079575)">/composite: ghép Scheduling + Provider + Patient</text>
+   </g>
+   <g id="text_25">
+    <text style="font-weight: 700; font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="153.36" y="452.971688" transform="rotate(-0 153.36 452.971688)">Auth Service :8081</text>
+   </g>
+   <g id="text_26">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="153.36" y="467.61795" transform="rotate(-0 153.36 467.61795)">đăng ký · quản lý tài khoản</text>
+   </g>
+   <g id="text_27">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #6b7280" x="153.36" y="482.640413" transform="rotate(-0 153.36 482.640413)">cấp accountId · P4</text>
+   </g>
+   <g id="text_28">
+    <text style="font-weight: 700; font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="365.76" y="452.971688" transform="rotate(-0 365.76 452.971688)">Provider Service :8082</text>
+   </g>
+   <g id="text_29">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="365.76" y="467.560913" transform="rotate(-0 365.76 467.560913)">chuyên khoa · bác sĩ · phòng · ca</text>
+   </g>
+   <g id="text_30">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #6b7280" x="365.76" y="482.412262" transform="rotate(-0 365.76 482.412262)">P3</text>
+   </g>
+   <g id="text_31">
+    <text style="font-weight: 700; font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="578.16" y="452.945531" transform="rotate(-0 578.16 452.945531)">Scheduling Service :8084</text>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="578.16" y="468.050119" transform="rotate(-0 578.16 468.050119)">tìm slot · giữ chỗ · chống trùng</text>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #6b7280" x="578.16" y="482.412262" transform="rotate(-0 578.16 482.412262)">P2</text>
+   </g>
+   <g id="text_34">
+    <text style="font-weight: 700; font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="790.56" y="452.971688" transform="rotate(-0 790.56 452.971688)">Patient Service (MPI) :8083</text>
+   </g>
+   <g id="text_35">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="790.56" y="467.71155" transform="rotate(-0 790.56 467.71155)">hồ sơ · nghi trùng · gộp / tách</text>
+   </g>
+   <g id="text_36">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #6b7280" x="790.56" y="482.412262" transform="rotate(-0 790.56 482.412262)">P1</text>
+   </g>
+   <g id="text_37">
+    <text style="font-weight: 700; font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="1002.96" y="452.971688" transform="rotate(-0 1002.96 452.971688)">Reminder Service :8085</text>
+   </g>
+   <g id="text_38">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #9a3412" x="1002.96" y="467.894363" transform="rotate(-0 1002.96 467.894363)">cron 5 phút · gửi email nhắc</text>
+   </g>
+   <g id="text_39">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #6b7280" x="1002.96" y="482.412262" transform="rotate(-0 1002.96 482.412262)">P5</text>
+   </g>
+   <g id="text_40">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="684.36" y="359.216775" transform="rotate(-0 684.36 359.216775)">RabbitMQ :5672</text>
+   </g>
+   <g id="text_41">
+    <text style="font-size: 8.64px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="684.36" y="372.799575" transform="rotate(-0 684.36 372.799575)">patient.events · hàng đợi + DLQ</text>
+   </g>
+   <g id="text_42">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="896.76" y="359.216775" transform="rotate(-0 896.76 359.216775)">Email — Mailpit (SMTP :1025)</text>
+   </g>
+   <g id="text_43">
+    <text style="font-size: 8.64px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="896.76" y="372.861" transform="rotate(-0 896.76 372.861)">hộp thư giả lập, xem thư :8025</text>
+   </g>
+   <g id="text_44">
+    <text style="font-weight: 700; font-size: 11.52px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #166534" x="34.56" y="637.9236" transform="rotate(-0 34.56 637.9236)">MySQL 8.4</text>
+   </g>
+   <g id="text_45">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #6b7280" x="108" y="637.970119" transform="rotate(-0 108 637.970119)">một instance (cổng máy :3307) · 6 database: 5 của service + keycloak_db · mỗi tài khoản chỉ có quyền trên database của mình</text>
+   </g>
+   <g id="text_46">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="66.96" y="607.347563" transform="rotate(-0 66.96 607.347563)">keycloak_db</text>
+   </g>
+   <g id="text_47">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="151.2" y="607.371975" transform="rotate(-0 151.2 607.371975)">auth_db</text>
+   </g>
+   <g id="text_48">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="331.2" y="607.371975" transform="rotate(-0 331.2 607.371975)">provider_db</text>
+   </g>
+   <g id="text_49">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="532.8" y="607.347563" transform="rotate(-0 532.8 607.347563)">scheduling_db</text>
+   </g>
+   <g id="text_50">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="806.4" y="607.371975" transform="rotate(-0 806.4 607.371975)">patient_db</text>
+   </g>
+   <g id="text_51">
+    <text style="font-weight: 700; font-size: 10.08px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #166534" x="979.2" y="607.371975" transform="rotate(-0 979.2 607.371975)">reminder_db</text>
+   </g>
+   <g id="text_52">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="49.68" y="689.696438" transform="rotate(-0 49.68 689.696438)">Docker Compose: 12 container (thêm Keycloak)</text>
+   </g>
+   <g id="text_53">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="409.68" y="690.081188" transform="rotate(-0 409.68 690.081188)">Mạng nội bộ của Compose: gọi nhau bằng tên container</text>
+   </g>
+   <g id="text_54">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="769.68" y="690.1605" transform="rotate(-0 769.68 690.1605)">Cổng mở ra máy: 4200 · 8080 · 8180 · 8761 · 15672 · 8025 · 3307</text>
+   </g>
+   <g id="text_55">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="46.08" y="725.635688" transform="rotate(-0 46.08 725.635688)">Cửa vào (Clients)</text>
+   </g>
+   <g id="text_56">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="185.76" y="726.260906" transform="rotate(-0 185.76 726.260906)">Có sẵn từ khung Petclinic</text>
+   </g>
+   <g id="text_57">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="371.52" y="725.635688" transform="rotate(-0 371.52 725.635688)">Nhóm tự viết</text>
+   </g>
+   <g id="text_58">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="482.4" y="726.260906" transform="rotate(-0 482.4 726.260906)">Phần mềm có sẵn, mượn ngoài</text>
+   </g>
+   <g id="text_59">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="679.68" y="725.87025" transform="rotate(-0 679.68 725.87025)">Hạ tầng</text>
+   </g>
+   <g id="text_60">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="779.04" y="725.87025" transform="rotate(-0 779.04 725.87025)">gọi HTTP đồng bộ</text>
+   </g>
+   <g id="text_61">
+    <text style="font-size: 10.8px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #111827" x="923.04" y="725.87025" transform="rotate(-0 923.04 725.87025)">bất đồng bộ qua RabbitMQ</text>
+   </g>
+   <g id="text_62">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #6b7280" x="28.8" y="751.39155" transform="rotate(-0 28.8 751.39155)">Mũi tên: bên gọi → bên được gọi; nhãn: dữ liệu đi qua. Không vẽ đường service → Eureka (mọi service đều đăng ký tên với Eureka).</text>
+   </g>
+   <g id="text_63">
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #6b7280" x="28.8" y="768.67155" transform="rotate(-0 28.8 768.67155)">Đặc tả, mã khối, kịch bản đi thử: docs/so-do/so-do-tong-quan-dac-ta.md</text>
+   </g>
+   <g id="text_64">
+    <g id="patch_74">
+     <path d="M 551.967469 116.207437 
+L 600.032531 116.207437 
+L 600.032531 104.112562 
+L 551.967469 104.112562 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="576" y="112.600912" transform="rotate(-0 576 112.600912)">trình duyệt</text>
+   </g>
+   <g id="text_65">
+    <g id="patch_75">
+     <path d="M 237.551063 152.207437 
+L 338.448937 152.207437 
+L 338.448937 140.112562 
+L 237.551063 140.112562 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="288" y="148.600912" transform="rotate(-0 288 148.600912)">đăng nhập → nhận JWT</text>
+   </g>
+   <g id="text_66">
+    <g id="patch_76">
+     <path d="M 528.45705 193.145062 
+L 623.54295 193.145062 
+L 623.54295 181.254938 
+L 528.45705 181.254938 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="576" y="189.588263" transform="rotate(-0 576 189.588263)">REST /api/v1/** + JWT</text>
+   </g>
+   <g id="text_67">
+    <g id="patch_77">
+     <path d="M 111.201244 222.047438 
+L 176.798756 222.047438 
+L 176.798756 209.952562 
+L 111.201244 209.952562 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="144" y="218.440912" transform="rotate(-0 144 218.440912)">khóa công khai</text>
+   </g>
+   <g id="text_68">
+    <g id="patch_78">
+     <path d="M 114.989962 327.065063 
+L 187.410037 327.065063 
+L 187.410037 315.174938 
+L 114.989962 315.174938 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="151.2" y="323.508263" transform="rotate(-0 151.2 323.508263)">/auth · /accounts</text>
+   </g>
+   <g id="text_69">
+    <g id="patch_79">
+     <path d="M 325.3176 327.157931 
+L 401.8824 327.157931 
+L 401.8824 315.082069 
+L 325.3176 315.082069 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="363.6" y="323.551406" transform="rotate(-0 363.6 323.551406)">bác sĩ · phòng · ca</text>
+   </g>
+   <g id="text_70">
+    <g id="patch_80">
+     <path d="M 547.465894 327.065063 
+L 604.534106 327.065063 
+L 604.534106 315.174938 
+L 547.465894 315.174938 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="576" y="323.508263" transform="rotate(-0 576 323.508263)">slot · lịch hẹn</text>
+   </g>
+   <g id="text_71">
+    <g id="patch_81">
+     <path d="M 740.094356 327.318075 
+L 836.705644 327.318075 
+L 836.705644 314.921925 
+L 740.094356 314.921925 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="788.4" y="323.71155" transform="rotate(-0 788.4 323.71155)">hồ sơ · hàng chờ trùng</text>
+   </g>
+   <g id="text_72">
+    <g id="patch_82">
+     <path d="M 973.137544 327.500888 
+L 1028.462456 327.500888 
+L 1028.462456 314.739113 
+L 973.137544 314.739113 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="1000.8" y="323.894363" transform="rotate(-0 1000.8 323.894363)">nhật ký nhắc</text>
+   </g>
+   <g id="text_73">
+    <g id="patch_83">
+     <path d="M 403.939181 530.207438 
+L 500.380819 530.207438 
+L 500.380819 518.112563 
+L 403.939181 518.112563 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="452.16" y="526.600913" transform="rotate(-0 452.16 526.600913)">giờ làm việc theo ngày</text>
+   </g>
+   <g id="text_74">
+    <g id="patch_84">
+     <path d="M 821.502169 560.437931 
+L 935.297831 560.437931 
+L 935.297831 548.362069 
+L 821.502169 548.362069 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="878.4" y="556.831406" transform="rotate(-0 878.4 556.831406)">lịch CONFIRMED 24 giờ tới</text>
+   </g>
+   <g id="text_75">
+    <g id="patch_85">
+     <path d="M 855.460856 530.105063 
+L 922.939144 530.105063 
+L 922.939144 518.214938 
+L 855.460856 518.214938 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="889.2" y="526.548263" transform="rotate(-0 889.2 526.548263)">email của hồ sơ</text>
+   </g>
+   <g id="text_76">
+    <g id="patch_86">
+     <path d="M 691.645894 416.598075 
+L 762.754106 416.598075 
+L 762.754106 404.201925 
+L 691.645894 404.201925 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="727.2" y="412.99155" transform="rotate(-0 727.2 412.99155)">gộp / tách hồ sơ</text>
+   </g>
+   <g id="text_77">
+    <g id="patch_87">
+     <path d="M 599.991019 416.849625 
+L 667.208981 416.849625 
+L 667.208981 403.950375 
+L 599.991019 403.950375 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="633.6" y="413.2431" transform="rotate(-0 633.6 413.2431)">chuyển lịch hẹn</text>
+   </g>
+   <g id="text_78">
+    <g id="patch_88">
+     <path d="M 903.9888 416.396981 
+L 968.0112 416.396981 
+L 968.0112 404.403019 
+L 903.9888 404.403019 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #374151" x="936" y="412.840181" transform="rotate(-0 936 412.840181)">email nhắc lịch</text>
+   </g>
+   <g id="text_79">
+    <g id="patch_89">
+     <path d="M 43.476131 299.179058 
+L 100.523869 299.179058 
+L 100.523869 276.820943 
+L 43.476131 276.820943 
+z
+" style="fill: #f5f5f5"/>
+    </g>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; fill: #374151" transform="translate(44.880131 285.154268)">tạo tài khoản</text>
+    <text style="font-size: 9.36px; font-family: 'Segoe UI', 'Arial', 'DejaVu Sans'; fill: #374151" transform="translate(47.421225 295.622258)">(Admin API)</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p9dd408a357">
+   <rect x="0" y="0" width="1152" height="784.8"/>
+  </clipPath>
+ </defs>
+</svg>

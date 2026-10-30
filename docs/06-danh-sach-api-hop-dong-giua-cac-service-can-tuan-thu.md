@@ -8,7 +8,7 @@ Xem nhanh bằng Swagger (trang tài liệu API tự sinh): chạy hệ thống 
 
 | Phần | Service | Danh sách API | Liên quan tới service khác |
 |---|---|---|---|
-| P4 | Auth Service | [B1](#b1-auth-service--auth-service8081) | Cấp JWT; Gateway xác minh ([A5](#a5-đăng-nhập-và-danh-tính)) |
+| P6 | Auth Service | [B1](#b1-auth-service--auth-service8081) | Cấp mã tài khoản, tạo / khóa người dùng trong Keycloak; Keycloak cấp token, Gateway xác minh ([A5](#a5-đăng-nhập-và-danh-tính)) |
 | P3 | Provider Service | [B2](#b2-provider-service--provider-service8082) | Cung cấp API nội bộ: giờ làm việc cho Scheduling; bác sĩ, phòng theo mã cho Gateway |
 | P1 | Patient Service (MPI) | [B3](#b3-patient-service--patient-service8083) | Cung cấp API nội bộ: hồ sơ rút gọn cho Gateway, Reminder; phát sự kiện gộp / tách ([A7](#a7-sự-kiện-qua-rabbitmq)) |
 | P2 | Scheduling Service | [B4](#b4-scheduling-service--scheduling-service8084) | Gọi Provider lấy giờ làm việc; cung cấp API nội bộ lịch hẹn cho Gateway, Reminder; nhận sự kiện gộp / tách ([A7](#a7-sự-kiện-qua-rabbitmq)) |
@@ -81,40 +81,47 @@ Mọi service trả lỗi cùng một dạng (lớp `ApiError`, bắt tại `Glo
 | 401 | Chưa đăng nhập / token sai, hết hạn — **Gateway trả** | `UNAUTHORIZED` |
 | 403 | Đăng nhập rồi nhưng không đủ quyền | `FORBIDDEN` |
 | 404 | Không có bản ghi | `NOT_FOUND` |
+| 404 | Đường dẫn không có (kể cả `/internal/**` gọi từ ngoài qua Gateway) | `NOT_FOUND` (tự động) |
+| 405 | Đường dẫn có nhưng sai phương thức | `METHOD_NOT_ALLOWED` (tự động) |
+| 415 | Gửi body không phải `application/json` | `UNSUPPORTED_MEDIA_TYPE` (tự động) |
 | 409 | Xung đột nghiệp vụ (trùng, sai trạng thái, hết hạn) | mã riêng, xem từng API |
 | 501 | Phần khung chưa viết | `NOT_IMPLEMENTED` |
 | 503 | Service phía sau không phản hồi — **Gateway trả** | `SERVICE_UNAVAILABLE` |
 
+Các lỗi "tự động" do `GlobalExceptionHandler` của mỗi service (và bộ xử lý lỗi của Gateway) trả, người làm service không phải viết. Lỗi do chính Gateway trả cũng đúng dạng `ApiError` ở trên (đủ 5 trường).
+
 ### A5. Đăng nhập và danh tính
 
 ```
-Web ──(Authorization: Bearer <JWT>)──► Gateway ──(X-User-Id, X-User-Role, X-Doctor-Id)──► Service
+Web ──(đăng nhập)──► Keycloak ──(access token)──► Web
+Web ──(Authorization: Bearer <token>)──► Gateway ──(X-User-Id, X-User-Role, X-Doctor-Id, X-Correlation-Id)──► Service
 ```
 
-1. Web đăng nhập ở `POST /api/v1/auth/login`, nhận `accessToken` (JWT).
-2. Mọi request sau gửi kèm header `Authorization: Bearer <accessToken>`.
-3. **Gateway** xác minh JWT (chữ ký + hạn dùng), rồi gắn 3 header cho service phía sau:
+1. Web chuyển sang trang đăng nhập của **Keycloak** (realm `dat-lich-kham`, client `web`, luồng Authorization Code + PKCE), nhận access token. Web không giữ form mật khẩu; Auth Service không có API đăng nhập.
+2. Mọi request sau gửi kèm header `Authorization: Bearer <token>`.
+3. **Gateway** xác minh token (chữ ký RS256 bằng khóa công khai JWKS của Keycloak, hạn dùng, `iss = http://localhost:8180/realms/dat-lich-kham`), rồi gắn 3 header cho service phía sau:
 
-   | Header | Giá trị | Lấy từ claim JWT |
+   | Header | Giá trị | Lấy từ claim của token |
    |---|---|---|
-   | `X-User-Id` | Mã tài khoản | `sub` |
+   | `X-User-Id` | Mã tài khoản (số, = `accounts.id`) | `accountId` (**không** dùng `sub` — `sub` của Keycloak là UUID) |
    | `X-User-Role` | `PATIENT` / `RECEPTIONIST` / `DOCTOR` / `ADMIN` | `role` |
    | `X-Doctor-Id` | Mã bác sĩ (chỉ tài khoản DOCTOR) | `doctorId` |
 
-   Ngoài ra Gateway gắn `X-Correlation-Id` (mã UUID riêng cho mỗi request, giữ nguyên khi service gọi tiếp service khác) để truy vết một request qua nhiều service trong log (giáo trình trang 85).
+   Ngoài ra Gateway gắn `X-Correlation-Id` (mã UUID riêng cho mỗi request, giữ nguyên khi service gọi tiếp service khác) để truy vết một request qua nhiều service trong log (giáo trình trang 85). Phần này **đã chạy**: mỗi dòng log của service có mã ở đầu dòng, response cũng trả header này.
 
-4. Service **không tự đọc JWT**, chỉ tin 3 header trên. Service vẫn phải **tự kiểm tra quyền trên từng bản ghi** (ví dụ bệnh nhân chỉ xem được hồ sơ của mình) — thiếu bước này là lỗi bảo mật phổ biến nhất (giáo trình trang 43, mục 1.14.1). Gateway phải **xóa** các header `X-User-*` / `X-Doctor-Id` mà client tự gửi lên, tránh giả danh.
-5. Không cần đăng nhập: `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET /api/v1/specialties`, `GET /api/v1/doctors/**`.
+4. Service **không tự đọc token**, chỉ tin 3 header trên. Service vẫn phải **tự kiểm tra quyền trên từng bản ghi** (ví dụ bệnh nhân chỉ xem được hồ sơ của mình) — thiếu bước này là lỗi bảo mật phổ biến nhất (giáo trình trang 43, mục 1.14.1). Gateway phải **xóa** các header `X-User-*` / `X-Doctor-Id` mà client tự gửi lên, tránh giả danh.
+5. Không cần đăng nhập: `POST /api/v1/auth/register`, `GET /api/v1/specialties`, `GET /api/v1/doctors/**`.
 
-**JWT:** token phải chứa mã tài khoản (`sub`), vai trò (`role`), mã bác sĩ (`doctorId`, có thể null) và hạn dùng (`exp`) — đây là phần bắt buộc của hợp đồng. Cấu hình mặc định của khung (phương án tự viết): thuật toán HS256, khóa ký lấy từ biến môi trường `JWT_SECRET` (Auth ký, Gateway xác minh, cùng một giá trị), thêm claim `username`, `iat`, hạn 480 phút (`jwt.expiration-minutes`). Nếu dùng Keycloak (`docs/02` mục 3.3), thuật toán và cách lấy khóa theo Keycloak; các header Gateway gắn xuống service không đổi.
+**Token:** phải chứa `accountId` (số), `role`, `doctorId` (có thể không có) và `exp` — đây là phần bắt buộc của hợp đồng. Keycloak đưa ba trường đầu vào token bằng protocol mapper (bộ ánh xạ thuộc tính người dùng vào token) của client `web`; thuộc tính người dùng do Auth Service ghi khi tạo tài khoản (R23). Token sống 30 phút. Cấu hình realm: `docker/keycloak/realm-dat-lich-kham.json`.
 
-**Khi Gateway chưa có bộ lọc JWT:** tự gửi 3 header bằng tay khi thử API, ví dụ trong Swagger hoặc Postman: `X-User-Id: 5`, `X-User-Role: PATIENT`. Gateway hiện chuyển nguyên header xuống service.
+**Khi Gateway chưa có bộ lọc token (P4-4):** web đang ở "Chế độ thử", tự gửi 3 header; khi thử API bằng Swagger hoặc Postman cũng tự gửi bằng tay: `X-User-Id: 5`, `X-User-Role: PATIENT`. Gateway hiện chuyển nguyên header xuống service.
 
 ### A6. Service gọi service
 
 - Gọi theo **tên service**, không ghi địa chỉ IP/cổng: `http://provider-service/...`. Đã có sẵn bean `RestClient.Builder` gắn `@LoadBalanced` trong `client/ClientConfig.java` của Scheduling và Reminder; Gateway dùng `WebClient.Builder`.
 - Chỉ gọi **API nội bộ** (`/internal/v1/...`) hoặc API công khai có sẵn; **không** đọc database của nhau.
 - Lời gọi đồng bộ phải có **thời gian chờ tối đa** (timeout) và phương án khi service kia lỗi: Gateway dùng Circuit Breaker + Fallback (đã cấu hình, chờ tối đa 5 giây); Scheduling gọi Provider lỗi thì trả 503; Reminder gọi lỗi thì thử lại ở lần quét sau (giáo trình trang 45–46).
+- **Đã cấu hình sẵn, không phải tự làm:** builder `@LoadBalanced` (Scheduling, Reminder: `RestClient`; Gateway: `WebClient`) chờ tối đa `clinic.client-timeout = 3s` (một giá trị chung, đặt trong `application.yml`) và tự chuyển tiếp `X-Correlation-Id`. Quá 3 giây, lời gọi ném lỗi (`ResourceAccessException` với `RestClient`) — người làm service bắt lỗi này để trả 503 hoặc thử lại.
 - Mỗi service tự khai báo record cho dữ liệu nhận về (ví dụ `WorkingHours` trong Scheduling), chỉ chứa trường mình cần. **Không dùng chung code** giữa các service — dùng chung thì sửa một chỗ vỡ nhiều nơi.
 
 ### A7. Sự kiện qua RabbitMQ
@@ -124,6 +131,7 @@ Web ──(Authorization: Bearer <JWT>)──► Gateway ──(X-User-Id, X-Use
 | Exchange | `patient.events` (loại topic) |
 | Routing key | `patient.merged`, `patient.unmerged` |
 | Hàng đợi của Scheduling | `scheduling.patient-events` (nhận `patient.*`) |
+| Exchange lỗi | `patient.events.dlx` — tin nhắn xử lý lỗi đi qua exchange này sang hàng đợi lỗi |
 | Hàng đợi lỗi (DLQ) | `scheduling.patient-events.dlq` — tin nhắn xử lý lỗi được chuyển vào đây thay vì lặp vô hạn |
 | Định dạng | JSON, lớp `PatientEvent` (có bản sao trong mỗi service) |
 
@@ -140,7 +148,7 @@ Web ──(Authorization: Bearer <JWT>)──► Gateway ──(X-User-Id, X-Use
 }
 ```
 
-- `PATIENT_MERGED`: hồ sơ `sourcePatientId` (B) đã gộp vào `targetPatientId` (A) → Scheduling chuyển các lịch `HELD`/`CONFIRMED` của B sang A.
+- `PATIENT_MERGED`: hồ sơ `sourcePatientId` (B) đã gộp vào `targetPatientId` (A) → Scheduling chuyển **mọi** lịch của B (mọi trạng thái, kể cả đã khám, đã hủy — CS14 trong `docs/10`) sang A, ghi từng lịch vào `patient_reassignments`.
 - `PATIENT_UNMERGED`: tách lại; `relatedMergeEventId` = `eventId` của lần gộp bị hoàn tác → Scheduling trả các lịch đã chuyển về B.
 - Tên sự kiện là một việc **đã xảy ra**, đặt ở dạng quá khứ; bên phát không biết và không chờ bên nhận (Pub/Sub — giáo trình trang 103–104).
 - Bên nhận **phải bỏ qua** sự kiện có `eventId` đã xử lý (bảng `processed_events`).
@@ -156,13 +164,22 @@ Cột "Quyền": ai được gọi. `Khách` = không cần đăng nhập. Servi
 
 | Phương thức & đường dẫn | Quyền | Gửi lên | Trả về | Lỗi riêng |
 |---|---|---|---|---|
+**Đã làm xong** (trước khi nhóm bắt đầu). Đăng nhập không có API ở đây: web chuyển sang trang Keycloak ([A5](#a5-đăng-nhập-và-danh-tính)).
+
+| Phương thức & đường dẫn | Quyền | Gửi lên | Trả về | Lỗi riêng |
+|---|---|---|---|---|
 | `POST /api/v1/auth/register` | Khách | `RegisterRequest` {username, password, fullName, email, phone} | 201 `AccountResponse` (role = PATIENT) | 409 `USERNAME_TAKEN`, 409 `EMAIL_TAKEN` |
-| `POST /api/v1/auth/login` | Khách | `LoginRequest` {username, password} | 200 `LoginResponse` {accessToken, tokenType = "Bearer", expiresInSeconds, account} | 401 `INVALID_CREDENTIALS`, 403 `ACCOUNT_DISABLED` |
 | `GET /api/v1/accounts/me` | Đã đăng nhập | — | `AccountResponse` | |
-| `GET /api/v1/accounts?role=` | ADMIN **(GW)** | — | `AccountResponse[]` | |
-| `POST /api/v1/accounts` | ADMIN **(GW)** | `CreateAccountRequest` {…, role, doctorId} | 201 `AccountResponse` | 409 `USERNAME_TAKEN`; 400 `DOCTOR_ID_REQUIRED` khi role = DOCTOR mà thiếu doctorId |
+| `GET /api/v1/accounts?role=` | ADMIN **(GW)** | — | `AccountResponse[]` (xếp theo mã) | 403 |
+| `POST /api/v1/accounts` | ADMIN **(GW)** | `CreateAccountRequest` {username, password (mật khẩu ban đầu), fullName, email, phone, role, doctorId} | 201 `AccountResponse` | 409 `USERNAME_TAKEN`, 409 `EMAIL_TAKEN`; 400 `DOCTOR_ID_REQUIRED` khi role = DOCTOR mà thiếu doctorId; 403 |
+| `POST /api/v1/accounts/{id}/lock` | ADMIN **(GW)** | — | `AccountResponse` (enabled = false); người dùng Keycloak bị tắt, không đăng nhập được | 400 `CANNOT_LOCK_SELF`, 404, 403 |
+| `POST /api/v1/accounts/{id}/unlock` | ADMIN **(GW)** | — | `AccountResponse` (enabled = true) | 404, 403 |
 
 `AccountResponse` = {id, username, fullName, email, phone, role, doctorId, enabled}.
+
+- `username` chỉ gồm chữ không dấu, số, `.`, `_`, `-`; Auth đổi về chữ thường (Keycloak cũng vậy).
+- Lỗi chung của các API tạo / khóa khi Keycloak có vấn đề: 503 `KEYCLOAK_UNAVAILABLE` (Keycloak tắt hoặc quá 3 giây), 502 `KEYCLOAK_ERROR` (Keycloak từ chối). Khi lỗi, Auth **bù trừ**: dòng `accounts` vừa ghi bị xóa, người dùng Keycloak vừa tạo bị xóa — không còn tài khoản "nửa vời".
+- Đổi vai trò, đặt lại mật khẩu: làm trên trang quản trị Keycloak (`http://localhost:8180/admin`), không có API (CS34). Tài khoản bác sĩ chọn bác sĩ có sẵn; Auth không gọi Provider kiểm `doctorId` (CS33).
 
 ### B2. Provider Service — `provider-service:8082`
 
@@ -171,7 +188,7 @@ Cột "Quyền": ai được gọi. `Khách` = không cần đăng nhập. Servi
 | `GET /api/v1/specialties` | Khách | — | `SpecialtyResponse[]` (chỉ đang hoạt động) | |
 | `POST /api/v1/specialties` | ADMIN **(GW)** | `SpecialtyRequest` {code, name, description, active} | 201 | 409 `CODE_TAKEN` |
 | `PUT /api/v1/specialties/{id}` | ADMIN **(GW)** | `SpecialtyRequest` | 200 | 404 |
-| `GET /api/v1/rooms` | ADMIN, RECEPTIONIST | — | `RoomResponse[]` | |
+| `GET /api/v1/rooms` | ADMIN, RECEPTIONIST **(GW)** | — | `RoomResponse[]` | |
 | `POST /api/v1/rooms`, `PUT /api/v1/rooms/{id}` | ADMIN **(GW)** | `RoomRequest` {code, name, location, active} | 201 / 200 | 409 `CODE_TAKEN` |
 | `GET /api/v1/doctors?specialtyId=` | Khách | — | `DoctorResponse[]` {id, fullName, title, specialtyId, specialtyName, phone, email, active} | |
 | `GET /api/v1/doctors/{id}` | Khách | — | `DoctorResponse` | 404 |
@@ -180,22 +197,22 @@ Cột "Quyền": ai được gọi. `Khách` = không cần đăng nhập. Servi
 | `POST /api/v1/doctors/{id}/work-schedules` | ADMIN **(GW)** | `WorkScheduleRequest` {roomId, dayOfWeek, startTime, endTime, slotMinutes, effectiveFrom, effectiveTo, active} | 201 | 409 `SCHEDULE_OVERLAP` (chồng giờ ca khác cùng ngày của bác sĩ) |
 | `PUT /api/v1/work-schedules/{id}` | ADMIN **(GW)** | `WorkScheduleRequest` | 200 | 409 `SCHEDULE_OVERLAP` |
 | `DELETE /api/v1/work-schedules/{id}` | ADMIN **(GW)** | — | 204 (đặt `active = false`) | |
-| **Nội bộ** `GET /internal/v1/doctors/{id}/working-hours?date=2026-10-05` | Scheduling | — | `WorkingHoursResponse` {doctorId, date, shifts: [{workScheduleId, roomId, startTime, endTime, slotMinutes}]} — ngày nghỉ thì `shifts` rỗng | 404 |
-| **Nội bộ** `GET /internal/v1/doctors?ids=1,2,3` | Gateway | — | `DoctorResponse[]` | |
-| **Nội bộ** `GET /internal/v1/rooms?ids=1,2` | Gateway | — | `RoomResponse[]` | |
+| **Nội bộ, đã làm** `GET /internal/v1/doctors/{id}/working-hours?date=2026-10-05` | Scheduling | — | `WorkingHoursResponse` {doctorId, date, shifts: [{workScheduleId, roomId, startTime, endTime, slotMinutes}]} — chỉ ca `active`, còn hiệu lực ngày đó; ngày nghỉ thì `shifts` rỗng | 404 (bác sĩ không có) |
+| **Nội bộ, đã làm** `GET /internal/v1/doctors?ids=1,2,3` | Gateway | — | `DoctorResponse[]` (mã không có thì bỏ qua) | |
+| **Nội bộ, đã làm** `GET /internal/v1/rooms?ids=1,2` | Gateway | — | `RoomResponse[]` (mã không có thì bỏ qua) | |
 
 ### B3. Patient Service — `patient-service:8083`
 
 | Phương thức & đường dẫn | Quyền | Gửi lên | Trả về | Lỗi riêng |
 |---|---|---|---|---|
-| `POST /api/v1/patients` | PATIENT, RECEPTIONIST | `PatientRequest` {fullName, dateOfBirth, gender, phone, email, address, idType, idNumber, guardianName, guardianPhone, guardianRelation} | `CreatePatientResponse` {patient, outcome, duplicateQueued}. **201** nếu tạo mới (`CREATED_ACTIVE` / `CREATED_TEMPORARY`), **200** nếu dùng lại hồ sơ có sẵn (`REUSED_EXISTING`) | 400 `INVALID_ID_NUMBER` (CCCD phải đủ 12 số) |
+| `POST /api/v1/patients` | PATIENT, RECEPTIONIST | `PatientRequest` {fullName, dateOfBirth, gender, phone, email, address, idType, idNumber, guardianName, guardianPhone, guardianRelation} | `CreatePatientResponse` {patient, outcome, duplicateQueued}. **201** nếu tạo mới (`CREATED_ACTIVE` / `CREATED_TEMPORARY`), **200** nếu dùng lại hồ sơ có sẵn (`REUSED_EXISTING`) | 400 `INVALID_ID_NUMBER` (CCCD phải đủ 12 số); 400 `GUARDIAN_REQUIRED` (dưới `patient.guardian-required-under-age` = 14 tuổi mà thiếu `guardianName` / `guardianPhone`, CS19) |
 | `GET /api/v1/patients/mine` | PATIENT | — | `PatientResponse[]` các hồ sơ tài khoản đang quản lý (trừ MERGED) | |
-| `GET /api/v1/patients?keyword=&status=&page=&size=` | RECEPTIONIST, DOCTOR | — | `PageResponse<PatientResponse>` | |
+| `GET /api/v1/patients?keyword=&status=&page=&size=` | RECEPTIONIST, DOCTOR **(GW)** | — | `PageResponse<PatientResponse>` | |
 | `GET /api/v1/patients/{id}` | Chủ hồ sơ, RECEPTIONIST, DOCTOR | — | `PatientResponse` | 403, 404 |
-| `PUT /api/v1/patients/{id}` | Chủ hồ sơ, RECEPTIONIST | `PatientRequest` (không đổi giấy tờ ở đây) | `PatientResponse` | 409 `PATIENT_MERGED` (hồ sơ đã gộp thì không sửa) |
-| `POST /api/v1/patients/{id}/identity` | RECEPTIONIST | `AddIdentityRequest` {idType, idNumber} | `PatientResponse` — tình huống 4: thành ACTIVE; tình huống 5: vẫn TEMPORARY và có cặp mới trong hàng chờ | 409 `NOT_TEMPORARY` |
-| `POST /api/v1/patients/{id}/unmerge` | RECEPTIONIST | `ReviewNoteRequest` {note} | `MergeHistoryResponse` | 409 `NOT_MERGED` |
-| `GET /api/v1/patients/{id}/merge-history` | RECEPTIONIST | — | `MergeHistoryResponse[]` | |
+| `PUT /api/v1/patients/{id}` | Chủ hồ sơ, RECEPTIONIST | `PatientRequest` (không đổi giấy tờ ở đây) | `PatientResponse` | 409 `PATIENT_MERGED` (hồ sơ đã gộp thì không sửa); 400 `GUARDIAN_REQUIRED` |
+| `POST /api/v1/patients/{id}/identity` | RECEPTIONIST **(GW)** | `AddIdentityRequest` {idType, idNumber} | `PatientResponse` — tình huống 4: thành ACTIVE; tình huống 5: vẫn TEMPORARY và có cặp mới trong hàng chờ | 409 `NOT_TEMPORARY` |
+| `POST /api/v1/patients/{id}/unmerge` | RECEPTIONIST **(GW)** | `ReviewNoteRequest` {note} | `MergeHistoryResponse`; cặp tương ứng trong hàng chờ chuyển `NOT_DUPLICATE`, `review_note` = ghi chú lần tách (CS24) | 409 `NOT_MERGED` |
+| `GET /api/v1/patients/{id}/merge-history` | RECEPTIONIST **(GW)** | — | `MergeHistoryResponse[]` | |
 | `GET /api/v1/duplicate-candidates?status=PENDING&page=&size=` | RECEPTIONIST **(GW)** | — | `PageResponse<DuplicateCandidateResponse>` (kèm đủ 2 hồ sơ để so sánh) | |
 | `GET /api/v1/duplicate-candidates/count?status=PENDING` | RECEPTIONIST **(GW)** | — | `{"count": 3}` | |
 | `POST /api/v1/duplicate-candidates/{id}/merge` | RECEPTIONIST **(GW)** | `MergeRequest` {keepPatientId, note} — `keepPatientId` là hồ sơ giữ lại | `MergeHistoryResponse` + phát sự kiện `PATIENT_MERGED` | 409 `CANDIDATE_ALREADY_REVIEWED`, 400 `KEEP_PATIENT_NOT_IN_PAIR` |
@@ -217,16 +234,21 @@ Cột "Quyền": ai được gọi. `Khách` = không cần đăng nhập. Servi
 | Phương thức & đường dẫn | Quyền | Gửi lên | Trả về | Lỗi riêng |
 |---|---|---|---|---|
 | `GET /api/v1/slots?doctorId=1&date=2026-10-05` | Đã đăng nhập | — | `SlotResponse[]` {startTime, endTime, roomId, workScheduleId, available} — đủ mọi slot trong ngày, `available = false` nếu đã có người giữ/đặt hoặc đã qua giờ | 503 nếu Provider không phản hồi |
-| `POST /api/v1/appointments/hold` | PATIENT, RECEPTIONIST | `HoldRequest` {doctorId, patientId, startTime, reason} | 201 `AppointmentResponse` (status = HELD, holdExpiresAt) | **409 `SLOT_ALREADY_HELD`**, 409 `PATIENT_TIME_CONFLICT`, 400 `SLOT_NOT_IN_SCHEDULE` |
+| `POST /api/v1/appointments/hold` | PATIENT, RECEPTIONIST **(GW)** | `HoldRequest` {doctorId, patientId, startTime, reason} | 201 `AppointmentResponse` (status = HELD, holdExpiresAt) | **409 `SLOT_ALREADY_HELD`**, 409 `PATIENT_TIME_CONFLICT`, 400 `SLOT_NOT_IN_SCHEDULE`; 409 `TOO_MANY_HOLDS` (tài khoản đang giữ 3 chỗ, CS03); 409 `TOO_MANY_APPOINTMENTS` (hồ sơ có 5 lịch sắp tới, CS04); 400 `TOO_FAR_IN_ADVANCE` (quá 30 ngày, CS05); 400 `TOO_LATE_TO_BOOK` (bệnh nhân đặt khi còn dưới 2 giờ, CS06) |
 | `POST /api/v1/appointments/{id}/confirm` | Người đã giữ chỗ | — | `AppointmentResponse` (CONFIRMED) | 409 `HOLD_EXPIRED`, 409 `INVALID_STATUS`, 403 |
-| `POST /api/v1/appointments/{id}/cancel` | Người đặt, RECEPTIONIST | `CancelRequest` {reason} | `AppointmentResponse` (CANCELLED) | 409 `TOO_LATE_TO_CANCEL` (PATIENT hủy muộn hơn `scheduling.cancel-before-hours` = 2 giờ trước giờ khám), 409 `INVALID_STATUS` |
-| `POST /api/v1/appointments/{id}/complete` | DOCTOR (lịch của mình), RECEPTIONIST | — | `AppointmentResponse` (COMPLETED) | 403, 409 `INVALID_STATUS` |
+| `POST /api/v1/appointments/{id}/cancel` | Người đặt, RECEPTIONIST; **bác sĩ không được hủy** (CS08) | `CancelRequest` {reason} | `AppointmentResponse` (CANCELLED) | 409 `TOO_LATE_TO_CANCEL` (chỉ áp cho PATIENT: hủy khi còn dưới `scheduling.cancel-before-hours` = 2 giờ; đúng 2 giờ vẫn hủy được; lễ tân hủy được tới giờ bắt đầu, CS07), 409 `INVALID_STATUS`, 403 |
+| `POST /api/v1/appointments/{id}/complete` | DOCTOR (lịch của mình), RECEPTIONIST | — | `AppointmentResponse` (COMPLETED) | 403, 409 `INVALID_STATUS`, 409 `TOO_EARLY_TO_COMPLETE` (trước giờ bắt đầu, CS09) |
+| `POST /api/v1/appointments/{id}/no-show` | DOCTOR (lịch của mình), RECEPTIONIST | — | `AppointmentResponse` (NO_SHOW, noShowAt) — CS10 | 403, 409 `INVALID_STATUS` (chỉ lịch CONFIRMED), 409 `TOO_EARLY_FOR_NO_SHOW` (trước giờ bắt đầu) |
 | `GET /api/v1/appointments/mine` | Đã đăng nhập | — | `AppointmentResponse[]` do tài khoản đặt (chỉ có mã, chưa ghép tên — web nên gọi bản ghép ở B6) | |
-| `GET /api/v1/appointments?doctorId=&date=&status=` | RECEPTIONIST, DOCTOR | — | `AppointmentResponse[]` | |
-| `GET /api/v1/appointments/{id}` | Người đặt, RECEPTIONIST, DOCTOR | — | `AppointmentResponse` | 404 |
-| **Nội bộ** `GET /internal/v1/appointments?bookedByAccountId=&doctorId=&status=&from=&to=` | Gateway, Reminder | — | `AppointmentResponse[]` (mọi tham số đều không bắt buộc; `from`, `to` dạng ngày giờ) | |
+| `GET /api/v1/appointments?doctorId=&date=&status=` | RECEPTIONIST, DOCTOR **(GW)** | — | `AppointmentResponse[]` | |
+| `GET /api/v1/appointments/{id}` | Người đặt, RECEPTIONIST, DOCTOR — **service tự kiểm** bằng `X-User-Id`, `X-User-Role` | — | `AppointmentResponse` | 404, 403 |
+| **Nội bộ** `GET /internal/v1/appointments?bookedByAccountId=&patientIds=&doctorId=&status=&from=&to=` | Gateway, Reminder | — | `AppointmentResponse[]` (mọi tham số đều không bắt buộc; `from`, `to` dạng ngày giờ; `patientIds` là danh sách mã phân tách bằng dấu phẩy). Gửi cả `bookedByAccountId` và `patientIds` thì lấy lịch **thỏa một trong hai** — dùng cho "Lịch khám của tôi" (CS15) | |
 
-`AppointmentResponse` = {id, patientId, doctorId, roomId, workScheduleId, bookedByAccountId, startTime, endTime, status, holdExpiresAt, reason, cancelReason, createdAt}.
+`AppointmentResponse` = {id, patientId, doctorId, roomId, workScheduleId, bookedByAccountId, startTime, endTime, status, holdExpiresAt, reason, cancelReason, cancelledByAccountId, confirmedAt, cancelledAt, completedAt, noShowAt, createdAt}.
+
+`status` có 6 giá trị: `HELD`, `CONFIRMED`, `COMPLETED`, `NO_SHOW`, `EXPIRED`, `CANCELLED`. Cột `no_show_at` và trạng thái `NO_SHOW` đã có sẵn trong bảng (`docs/03` mục 3.4); API `no-show` do người làm Scheduling viết.
+
+**Slot** (`GET /slots`): ngày quá `scheduling.book-ahead-days` = 30 ngày → mọi slot `available = false` (CS05); vai trò `PATIENT` thấy `available = false` với slot còn dưới `scheduling.book-before-hours` = 2 giờ (CS06).
 
 **Nhận sự kiện:** `patient.merged`, `patient.unmerged` (Phần A7).
 
@@ -234,7 +256,7 @@ Cột "Quyền": ai được gọi. `Khách` = không cần đăng nhập. Servi
 
 | Phương thức & đường dẫn | Quyền | Trả về |
 |---|---|---|
-| `GET /api/v1/reminders/logs?status=` | ADMIN, RECEPTIONIST | `ReminderLogResponse[]` — 100 dòng gần nhất |
+| `GET /api/v1/reminders/logs?status=` | ADMIN, RECEPTIONIST **(GW)** | `ReminderLogResponse[]` — 100 dòng gần nhất |
 | `POST /api/v1/reminders/run` | ADMIN **(GW)** | `RunResult` {checked, sent, skipped, failed} — quét ngay, không chờ cron |
 
 **Cron:** `reminder.cron = "0 */5 * * * *"` (mỗi 5 phút), nhắc lịch `CONFIRMED` bắt đầu trong `reminder.hours-before = 24` giờ tới. Email gửi vào Mailpit — xem ở `http://localhost:8025`.
@@ -261,6 +283,7 @@ SchedulingClient.findConfirmedBetween(now, now + 24h)
   "startTime": "2026-10-05T08:00:00",
   "endTime": "2026-10-05T08:20:00",
   "reason": "Ho kéo dài",
+  "cancelReason": null,
   "doctor": { "id": 1, "fullName": "Nguyễn Văn An", "title": "ThS.BS", "specialtyName": "Nội tổng quát" },
   "room": { "id": 1, "code": "P101", "name": "Phòng khám Nội 1" },
   "patient": { "id": 1, "fullName": "Lê Thị Hoa", "dateOfBirth": "1990-05-12" }
