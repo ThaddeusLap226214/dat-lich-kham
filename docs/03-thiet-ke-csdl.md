@@ -277,6 +277,7 @@ erDiagram
 | `reason` | VARCHAR(500) | | Lý do khám bệnh nhân nhập |
 | `cancel_reason`, `cancelled_by_account_id`, `cancelled_at` | | | Thông tin hủy |
 | `confirmed_at`, `completed_at`, `no_show_at` | DATETIME | | Lúc xác nhận, lúc đánh dấu đã khám, lúc ghi không đến |
+| `completed_by_account_id`, `no_show_by_account_id` | BIGINT | | Tài khoản (bên Auth, không khóa ngoại) đã đánh dấu đã khám / ghi không đến, lấy từ `X-User-Id` |
 | `version` | BIGINT | ✔ | Khóa lạc quan |
 | `slot_lock` | VARCHAR(50) | | **Cột tự tính, không ánh xạ trong Java** — xem mục 4.2 |
 
@@ -294,7 +295,7 @@ Ba bảng đều đã có trong `schema.sql` và có dữ liệu mẫu; người
 |---|---|
 | `appointment_id`, `patient_id` | Mã bên Scheduling / Patient (không khóa ngoại) |
 | `appointment_start` | Giờ khám (chép lại để hiển thị, khỏi gọi Scheduling) |
-| `reminder_type` | `BEFORE_APPOINTMENT` (nhắc trước 24 giờ), `CONFIRMATION` (xác nhận khi đặt), `CANCELLATION` (báo hủy) — ràng buộc `ck_reminder_logs_type`; enum Java `ReminderType` đủ 3 giá trị |
+| `reminder_type` | `BEFORE_APPOINTMENT` (nhắc trước 24 giờ), `BEFORE_APPOINTMENT_2H` (nhắc lần hai, việc mở rộng P5-7), `CONFIRMATION` (xác nhận khi đặt), `CANCELLATION` (báo hủy) — ràng buộc `ck_reminder_logs_type`; enum Java `ReminderType` đủ 4 giá trị |
 | `recipient_email` | Email đã gửi tới |
 | `status` | `SENT` (đã gửi), `FAILED` (lỗi, lần quét sau thử lại), `SKIPPED` (hồ sơ không có email) |
 | `attempt_count`, `last_error` | Số lần thử, lỗi gần nhất |
@@ -306,7 +307,7 @@ Cặp (`appointment_id`, `reminder_type`) là duy nhất → mỗi lịch chỉ 
 
 | Cột | Kiểu | Ý nghĩa |
 |---|---|---|
-| `type` | VARCHAR(30), khóa chính | `BEFORE_APPOINTMENT`, `CONFIRMATION`, `CANCELLATION` (ràng buộc `CHECK`) |
+| `type` | VARCHAR(30), khóa chính | `BEFORE_APPOINTMENT`, `BEFORE_APPOINTMENT_2H`, `CONFIRMATION`, `CANCELLATION` (ràng buộc `CHECK`). Dữ liệu mẫu có 3 mẫu; mẫu `BEFORE_APPOINTMENT_2H` do người làm P5-7 thêm bằng `INSERT IGNORE` |
 | `subject`, `body` | VARCHAR(255), TEXT | Tiêu đề, nội dung thư; chỗ điền `{patientName}`, `{startTime}`, `{appointmentId}`, `{cancelReason}` |
 | `updated_by_account_id` | BIGINT | Quản trị viên sửa lần cuối (mã bên Auth, không khóa ngoại); `NULL` = mẫu nạp sẵn |
 | `updated_at` | DATETIME | Tự điền khi sửa |

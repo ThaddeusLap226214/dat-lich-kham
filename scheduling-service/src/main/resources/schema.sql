@@ -17,8 +17,10 @@ CREATE TABLE IF NOT EXISTS appointments (
     confirmed_at            DATETIME,
     cancelled_at            DATETIME,
     completed_at            DATETIME,
+    completed_by_account_id BIGINT,
     no_show_at              DATETIME,
-    created_at             DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    no_show_by_account_id   BIGINT,
+    created_at              DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at              DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     version                 BIGINT      NOT NULL DEFAULT 0,
     -- Chống đặt trùng: lịch còn hiệu lực (HELD/CONFIRMED/COMPLETED/NO_SHOW) có khóa "bác sĩ@giờ bắt đầu";

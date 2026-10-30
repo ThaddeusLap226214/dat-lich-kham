@@ -141,8 +141,8 @@ CT03 → CT05 (tài khoản bác sĩ)
 | CT24 | — (máy lập) | như CT15, `reminder_type` = `CANCELLATION`; lý do hủy lấy từ sự kiện `appointment.cancelled` |
 | CT25 | loại thư `type` ✔ (cố định 3 loại, mỗi loại một mẫu) · tiêu đề `subject` ✔ · nội dung `body` ✔ (chỗ điền `{patientName}`, `{startTime}`, `{appointmentId}`, `{cancelReason}`) | `updated_by_account_id` ← `X-User-Id` · `updated_at` |
 | CT16 | — (máy lập) | giờ, trạng thái, lý do ← CT12 · bác sĩ ← CT03 · phòng ← CT02 · bệnh nhân (tên, ngày sinh) ← CT07 |
-| CT17 | — | `status` = `COMPLETED` · `completed_at` |
-| CT19 | — | `status` = `NO_SHOW` · `no_show_at` (**cột mới**) |
+| CT17 | — | `status` = `COMPLETED` · `completed_at` · `completed_by_account_id` ← `X-User-Id` |
+| CT19 | — | `status` = `NO_SHOW` · `no_show_at` (**cột mới**) · `no_show_by_account_id` ← `X-User-Id` |
 | CT20 | — (máy đề nghị) · quyết định: ghi chú `review_note` | `patient_id`, `candidate_patient_id`, `reason`, `score` (chỉ tham khảo) · `status` · `reviewed_by_account_id`, `reviewed_at` |
 | CT21 | hồ sơ giữ lại `keepPatientId` ✔ · ghi chú `note` | `action` = `MERGE` · `source_patient_id`, `target_patient_id`, `source_previous_status`, `duplicate_candidate_id` · `event_id` · `performed_by_account_id`, `performed_at` |
 | CT22 | — | `appointment_id`, `from_patient_id`, `to_patient_id`, `merge_event_id`, `reassigned_at`, `reverted_at` |
