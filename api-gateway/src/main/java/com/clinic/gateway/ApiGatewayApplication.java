@@ -15,8 +15,11 @@
  */
 package com.clinic.gateway;
 
+import com.clinic.gateway.web.CorrelationIdFilter;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
+import io.netty.channel.ChannelOption;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.circuitbreaker.resilience4j.ReactiveResilience4JCircuitBreakerFactory;
@@ -24,7 +27,9 @@ import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JConfigB
 import org.springframework.cloud.client.circuitbreaker.Customizer;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
 
@@ -35,11 +40,17 @@ public class ApiGatewayApplication {
         SpringApplication.run(ApiGatewayApplication.class, args);
     }
 
-    // @LoadBalanced cho phép gọi theo tên service (http://provider-service/...), Eureka trả địa chỉ thật
+    // @LoadBalanced cho phép gọi theo tên service (http://provider-service/...), Eureka trả địa chỉ thật.
+    // Chờ tối đa clinic.client-timeout và chuyển tiếp mã truy vết của request đang xử lý
     @Bean
     @LoadBalanced
-    public WebClient.Builder loadBalancedWebClientBuilder() {
-        return WebClient.builder();
+    public WebClient.Builder loadBalancedWebClientBuilder(@Value("${clinic.client-timeout}") Duration timeout) {
+        HttpClient httpClient = HttpClient.create()
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) timeout.toMillis())
+            .responseTimeout(timeout);
+        return WebClient.builder()
+            .clientConnector(new ReactorClientHttpConnector(httpClient))
+            .filter(CorrelationIdFilter.forwardToDownstream());
     }
 
     @Bean

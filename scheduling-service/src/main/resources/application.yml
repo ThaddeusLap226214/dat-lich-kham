@@ -47,3 +47,12 @@ management:
 scheduling:
   hold-minutes: 5
   cancel-before-hours: 2
+
+logging:
+  pattern:
+    # Mã truy vết request ở đầu mỗi dòng log (CorrelationIdFilter đặt vào MDC)
+    correlation: "[%X{correlationId:-}] "
+
+# Thời gian chờ tối đa khi gọi service khác (C-3, một giá trị chung cho Scheduling, Reminder, Gateway)
+clinic:
+  client-timeout: 3s

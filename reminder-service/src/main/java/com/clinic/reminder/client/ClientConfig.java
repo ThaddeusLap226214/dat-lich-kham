@@ -1,10 +1,17 @@
 package com.clinic.reminder.client;
 
+import com.clinic.reminder.common.CorrelationIdFilter;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+
+import java.net.http.HttpClient;
+import java.time.Duration;
 
 @Configuration
 public class ClientConfig {
@@ -17,10 +24,24 @@ public class ClientConfig {
         return RestClient.builder();
     }
 
-    // Bản gọi theo tên service (http://provider-service); lớp client xin đích danh bằng @LoadBalanced
+    // Bản gọi theo tên service (http://provider-service); lớp client xin đích danh bằng @LoadBalanced.
+    // Chờ tối đa clinic.client-timeout (dùng chung cả nhóm) và chuyển tiếp mã truy vết của request đang xử lý
     @Bean
     @LoadBalanced
-    public RestClient.Builder loadBalancedRestClientBuilder() {
-        return RestClient.builder();
+    public RestClient.Builder loadBalancedRestClientBuilder(@Value("${clinic.client-timeout}") Duration timeout) {
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout(timeout)
+            .build());
+        requestFactory.setReadTimeout(timeout);
+        return RestClient.builder()
+            .requestFactory(requestFactory)
+            .requestInterceptor((request, body, execution) -> {
+                String correlationId = MDC.get(CorrelationIdFilter.MDC_KEY);
+                if (correlationId != null) {
+                    request.getHeaders().set(CorrelationIdFilter.HEADER, correlationId);
+                }
+                return execution.execute(request, body);
+            });
     }
 }

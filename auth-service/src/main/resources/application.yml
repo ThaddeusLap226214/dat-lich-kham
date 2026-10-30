@@ -43,3 +43,8 @@ keycloak:
   client-id: ${KEYCLOAK_CLIENT_ID:auth-service}
   client-secret: ${KEYCLOAK_CLIENT_SECRET:doi-chuoi-nay-trong-file-env}
   timeout: 3s
+
+logging:
+  pattern:
+    # Mã truy vết request ở đầu mỗi dòng log (CorrelationIdFilter đặt vào MDC)
+    correlation: "[%X{correlationId:-}] "

@@ -55,6 +55,10 @@ eureka:
 frontend:
   origin: ${FRONTEND_ORIGIN:http://localhost:4200}
 
+# Thời gian chờ tối đa khi Gateway tự gọi service (API ghép); C-3, cùng giá trị với Scheduling, Reminder
+clinic:
+  client-timeout: 3s
+
 jwt:
   secret: ${JWT_SECRET:doi-chuoi-nay-trong-file-env-it-nhat-32-ky-tu!!}
 

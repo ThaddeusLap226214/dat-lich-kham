@@ -43,7 +43,7 @@ public class CatalogService {
     }
 
     public List<RoomResponse> findRoomsByIds(Collection<Long> ids) {
-        throw new NotImplementedYetException("lấy nhiều phòng theo danh sách mã (API nội bộ cho Gateway)");
+        return roomRepository.findByIdIn(ids).stream().map(RoomResponse::from).toList();
     }
 
     public RoomResponse createRoom(RoomRequest request) {
@@ -63,7 +63,7 @@ public class CatalogService {
     }
 
     public List<DoctorResponse> findDoctorsByIds(Collection<Long> ids) {
-        throw new NotImplementedYetException("lấy nhiều bác sĩ theo danh sách mã (API nội bộ cho Gateway)");
+        return doctorRepository.findByIdIn(ids).stream().map(DoctorResponse::from).toList();
     }
 
     public DoctorResponse createDoctor(DoctorRequest request) {

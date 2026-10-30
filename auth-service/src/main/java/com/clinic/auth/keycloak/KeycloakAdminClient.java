@@ -47,7 +47,8 @@ public class KeycloakAdminClient {
                                @Value("${keycloak.client-secret}") String clientSecret,
                                @Value("${keycloak.timeout}") Duration timeout) {
         JdkClientHttpRequestFactory requestFactory =
-            new JdkClientHttpRequestFactory(HttpClient.newBuilder().connectTimeout(timeout).build());
+            new JdkClientHttpRequestFactory(HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1).connectTimeout(timeout).build());
         requestFactory.setReadTimeout(timeout);
         this.restClient = RestClient.builder().baseUrl(baseUrl).requestFactory(requestFactory).build();
         this.realm = realm;

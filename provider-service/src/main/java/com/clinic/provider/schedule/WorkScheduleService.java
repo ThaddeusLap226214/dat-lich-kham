@@ -2,6 +2,7 @@ package com.clinic.provider.schedule;
 
 import com.clinic.provider.catalog.DoctorRepository;
 import com.clinic.provider.catalog.RoomRepository;
+import com.clinic.provider.common.BusinessException;
 import com.clinic.provider.common.NotImplementedYetException;
 import com.clinic.provider.schedule.dto.WorkScheduleRequest;
 import com.clinic.provider.schedule.dto.WorkScheduleResponse;
@@ -42,6 +43,15 @@ public class WorkScheduleService {
     }
 
     public WorkingHoursResponse getWorkingHours(Long doctorId, LocalDate date) {
-        throw new NotImplementedYetException("các ca của bác sĩ trong ngày date, dùng WorkScheduleRepository.findEffective");
+        if (!doctorRepository.existsById(doctorId)) {
+            throw BusinessException.notFound("Bác sĩ", doctorId);
+        }
+        // getDayOfWeek().getValue(): 1 = Thứ Hai ... 7 = Chủ nhật, cùng quy ước với cột day_of_week
+        List<WorkingHoursResponse.Shift> shifts = workScheduleRepository
+            .findEffective(doctorId, date.getDayOfWeek().getValue(), date).stream()
+            .map(w -> new WorkingHoursResponse.Shift(w.getId(), w.getRoom().getId(), w.getStartTime(), w.getEndTime(),
+                w.getSlotMinutes()))
+            .toList();
+        return new WorkingHoursResponse(doctorId, date, shifts);
     }
 }
