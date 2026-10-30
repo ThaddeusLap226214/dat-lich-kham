@@ -365,10 +365,12 @@ Các file `data.sql` dùng `INSERT IGNORE` với **mã cố định**, nên kh�
 |---|---|
 | `accounts` | 11 |
 | `specialties` / `rooms` / `doctors` / `work_schedules` | 5 / 6 / 6 / 25 |
-| `patients` | 10 |
-| `duplicate_candidates` / `merge_history` | 3 / 1 |
-| `appointments` / `patient_reassignments` / `processed_events` | 14 / 1 / 1 |
-| `reminder_logs` / `message_templates` / `processed_events` (Reminder) | 14 / 3 / 9 |
+| `patients` | 24 |
+| `duplicate_candidates` / `merge_history` | 10 / 10 |
+| `appointments` / `patient_reassignments` / `processed_events` | 24 / 10 / 10 |
+| `reminder_logs` / `message_templates` / `processed_events` (Reminder) | 17 / 3 / 11 |
+
+Mỗi bảng sinh ra khi thao tác có ít nhất 10 dòng; bảng danh mục giữ số dòng cũ. Các con số dùng trong *Xong khi* và kịch bản (`docs/10` mục 7) không đổi: tài khoản 5 có 4 lịch (1, 6, 7, 13), 7 lịch `CONFIRMED`, 2 cặp `PENDING`, bác sĩ 1 thứ Hai tuần tới có 21 slot (08:10, 08:30, 13:30 bận).
 
 **Tài khoản** (mật khẩu chung `123456`)
 
@@ -408,18 +410,25 @@ Các file `data.sql` dùng `INSERT IGNORE` với **mã cố định**, nên kh�
 | 8 | Nguyễn Văn Hùng (1958, ngày sinh gõ nhầm) | TEMPORARY | Tình huống 2: cùng CCCD với hồ sơ 7 nhưng lệch ngày sinh → **chờ duyệt**; vẫn có lịch hẹn |
 | 9 | Lê Văn Tâm (1990) | ACTIVE | Hồ sơ được giữ lại sau một lần gộp |
 | 10 | Le Van Tam (1990) | MERGED | Đã gộp vào hồ sơ 9 (có `merge_history`, lịch hẹn đã chuyển sang hồ sơ 9) |
+| 11 – 17 | Trần Thị Mỹ, Phan Văn Đức, Đỗ Thị Thu, Huỳnh Văn Lộc, Ngô Thị Hạnh, Võ Minh Quân, Bùi Thị Ngọc | ACTIVE | Khách lễ tân tạo tại quầy, có CCCD, không thuộc tài khoản nào; 12, 14, 17 không có email |
+| 18 – 22 | Tran Thi My, Phan Van Duc, Đỗ Thị Thu (ngày sinh gõ nhầm, cùng CCCD với 13), Huynh Van Loc, Ngô Thị Hạnh | MERGED | Hồ sơ phát sinh ở quầy, đã gộp lần lượt vào 11 – 15; lịch hẹn đã chuyển sang hồ sơ giữ lại |
+| 23, 24 | Vo Minh Quan, Bui Thi Ngoc | TEMPORARY | Đã gộp vào 16, 17 rồi **tách lại** vì là hai người khác nhau; lịch hẹn đã trả về |
 
-**Hàng chờ duyệt:** cặp 3–1 (`SAME_NAME_DOB_PHONE`, 60 điểm) và 8–7 (`SAME_ID_DIFFERENT_INFO`, 80 điểm) đang `PENDING`; cặp 10–9 đã `MERGED`.
+**Hàng chờ duyệt:** cặp 3–1 (`SAME_NAME_DOB_PHONE`, 60 điểm) và 8–7 (`SAME_ID_DIFFERENT_INFO`, 80 điểm) đang `PENDING`; cặp 10–9 và 18–11, 19–12, 20–13 (`SAME_ID_DIFFERENT_INFO`, 80 điểm), 21–14, 22–15 đã `MERGED`; cặp 23–16, 24–17 `NOT_DUPLICATE` (đã tách, CS24).
+
+**Gộp / tách:** `merge_history` 1 – 8 là 8 lần gộp, 9 – 10 là 2 lần tách (hoàn tác lần gộp 7, 8). Mỗi lần có một sự kiện bên Scheduling (`processed_events`) và các lịch được chuyển ghi ở `patient_reassignments` (2 dòng đã hoàn lại).
 
 **Lịch hẹn** — ngày tính theo **ngày chạy lần đầu** nên luôn nằm quanh hiện tại, và mọi giờ đều khớp ca làm việc + độ dài slot của bác sĩ:
 
 | Thời điểm | Lịch hẹn |
 |---|---|
+| 3 tuần trước, 2 tuần trước | 9 lịch `COMPLETED` của khách lễ tân đặt tại quầy (hồ sơ 11 – 15, 23, 24) |
 | Thứ Hai tuần trước | 5 lịch `COMPLETED`, 1 lịch `CANCELLED` |
 | Ngày làm việc gần nhất của bác sĩ nhi (ngày mai, hoặc thứ Hai nếu ngày mai là Chủ nhật) | 1 lịch `CONFIRMED` — dùng để thử nhắc lịch |
 | Thứ Hai, thứ Ba tuần tới | 6 lịch `CONFIRMED`, 1 lịch `EXPIRED` (giữ chỗ không xác nhận kịp) |
+| Thứ Tư tuần tới | 1 lịch `CANCELLED` (tài khoản `nam.tran` đặt rồi tự hủy) |
 
-**Nhật ký thông báo:** 14 dòng = 5 thư nhắc (4 `SENT`, 1 lần phải thử lại; 1 `SKIPPED` vì hồ sơ không có email) + 8 thư xác nhận (6 `SENT`, 2 `SKIPPED`) + 1 thư báo hủy. Quy tắc: dịch vụ thông báo bắt đầu gửi thư xác nhận / báo hủy từ 00:00 Chủ nhật tuần trước (`CURDATE() - INTERVAL (WEEKDAY(CURDATE()) + 8) DAY`); lịch nào xác nhận / hủy từ mốc đó trở đi có đúng một dòng nhật ký và một `processed_events` (9 dòng). **Mẫu thư:** 3 mẫu nạp sẵn.
+**Nhật ký thông báo:** 17 dòng = 6 thư nhắc (5 `SENT`, 1 lần phải thử lại; 1 `SKIPPED` vì hồ sơ không có email) + 9 thư xác nhận (7 `SENT`, 2 `SKIPPED`) + 2 thư báo hủy. Quy tắc: dịch vụ thông báo chạy từ 00:00 Chủ nhật tuần trước (`CURDATE() - INTERVAL (WEEKDAY(CURDATE()) + 8) DAY`) và áp cho **mọi** loại thư; lịch nào xác nhận / hủy từ mốc đó trở đi có đúng một thư mỗi loại và một `processed_events` (11 dòng); lịch còn hiệu lực lúc tới hạn nhắc có thư nhắc. **Mẫu thư:** 3 mẫu nạp sẵn.
 
 Ngày tính theo lúc cơ sở dữ liệu được tạo lần đầu. Sau một thời gian, chạy `docker compose down -v` rồi `docker compose up -d` để tạo lại dữ liệu quanh ngày hiện tại.
 

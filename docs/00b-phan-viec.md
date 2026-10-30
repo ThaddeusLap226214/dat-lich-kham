@@ -144,3 +144,5 @@ Quy tắc:
 **Gặp câu nghiệp vụ chưa có trong `docs/10`:** tự quyết theo cách hợp lý nhất, ghi quyết định vào mô tả PR và thêm một dòng vào `docs/10` mục 4 trong cùng PR.
 
 **Phải đổi hợp đồng** (đường dẫn, tên trường, mã lỗi, cột): sửa `docs/06` / `docs/03` trong cùng PR, nhắc các phần đang dùng vào xem và đồng ý trước khi merge.
+
+**Cấu trúc bảng đã chốt (30/10/2026).** Thêm bảng mới hoặc thêm dòng dữ liệu mẫu có mã mới thì không phải xóa dữ liệu. Sửa cột hoặc ràng buộc của bảng đã có thì phải qua PR riêng, ghi rõ trong mô tả "cần chạy `docker compose down -v`", và báo cả nhóm trước khi merge.

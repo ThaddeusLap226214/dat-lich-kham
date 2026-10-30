@@ -121,7 +121,7 @@ Trước khi sửa, trang gọi đúng `/api/v1/patients` nhưng đọc sai dạ
 | `pages/patients-page.*` | Bỏ hộp thoại xác nhận xóa. Hệ thống không xóa hồ sơ bệnh nhân; hồ sơ trùng được gộp (`docs/02` mục 4.1) |
 | `components/patient-filter-panel/*` | Không trang nào dùng; chỉ đổi sang trạng thái mới để không còn tham chiếu kiểu cũ |
 
-Kết quả khi chạy với dữ liệu mẫu (vai trò lễ tân): bảng hiện đủ 10 hồ sơ; thẻ thống kê 10 / 5 / 4; tìm "le thi hoa" ra 2 hồ sơ (Lê Thị Hoa, Le Thi Hoa); tìm "048058" ra 2 hồ sơ (7, 8); lọc *Hồ sơ tạm* ra hồ sơ 2, 3, 5, 8; sửa hồ sơ 2 thành công (200); sửa hồ sơ 10 (đã gộp) bị từ chối 409 kèm thông điệp; thêm mới báo 501 "Chưa làm: tạo hồ sơ…".
+Kết quả khi chạy với dữ liệu mẫu (vai trò lễ tân): bảng hiện đủ 10 hồ sơ; thẻ thống kê 10 / 5 / 4; tìm "le thi hoa" ra 2 hồ sơ (Lê Thị Hoa, Le Thi Hoa); tìm "048058" ra 2 hồ sơ (7, 8); lọc *Hồ sơ tạm* ra hồ sơ 2, 3, 5, 8 (đo ngày 29/09/2026 với 10 hồ sơ mẫu; từ 30/10 dữ liệu mẫu có 24 hồ sơ — 12 `ACTIVE`, 6 `TEMPORARY` thêm hồ sơ 23, 24, 6 `MERGED` — nên tổng số và thẻ thống kê đổi theo, hai phép tìm trên vẫn ra 2 hồ sơ); sửa hồ sơ 2 thành công (200); sửa hồ sơ 10 (đã gộp) bị từ chối 409 kèm thông điệp; thêm mới báo 501 "Chưa làm: tạo hồ sơ…".
 
 ## 5. Nội dung Patient Service cần triển khai tiếp
 

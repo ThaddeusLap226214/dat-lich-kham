@@ -283,7 +283,7 @@ Bảy kịch bản đưa chứng từ chạy qua API và bảng, để kiểm ch
 
 | Mục | Nội dung |
 |---|---|
-| Dữ liệu nền | Dữ liệu mẫu `docs/03` mục 5. Mỗi kịch bản chạy trên dữ liệu mẫu mới (sau `docker compose down -v` rồi `up`), nên mã mới tính từ cuối dữ liệu mẫu: tài khoản mới bắt đầu từ 12, hồ sơ từ 11, lịch hẹn từ 15, `reminder_logs` từ 15. |
+| Dữ liệu nền | Dữ liệu mẫu `docs/03` mục 5. Mỗi kịch bản chạy trên dữ liệu mẫu mới (sau `docker compose down -v` rồi `up`), nên mã mới tính từ cuối dữ liệu mẫu: tài khoản mới bắt đầu từ 12, hồ sơ từ 25, lịch hẹn từ 25, `reminder_logs` từ 18, `merge_history` và `patient_reassignments` từ 11. |
 | Mốc ngày | Dữ liệu mẫu tính theo ngày khởi tạo lần đầu. Giả định khởi tạo Chủ nhật 25/10/2026: thứ Hai tuần tới = 26/10, thứ Ba = 27/10; thứ Hai tuần trước = 19/10. Khi đó lịch mẫu 6, 7, 8, 9, 10, 12, 13 nằm ở 26/10; lịch 11 ở 27/10. Khởi tạo ngày khác thì cộng / trừ ngày tương ứng. |
 | Lịch mẫu liên quan | Lịch 6: hồ sơ 1, bác sĩ 1, 26/10 08:10, `CONFIRMED` · 7: hồ sơ 2, bác sĩ 2, 26/10 07:45, `CONFIRMED` · 8: hồ sơ 4, bác sĩ 1, 26/10 08:30, `CONFIRMED` · 9: hồ sơ 6, bác sĩ 4, 26/10 08:30, `CONFIRMED` · 10: hồ sơ 7, bác sĩ 1, 26/10 13:30, `CONFIRMED` · 11: hồ sơ 8, bác sĩ 3, 27/10 13:30, `CONFIRMED` · 12: hồ sơ 5, bác sĩ 2, 26/10 08:00, `EXPIRED` · 13: hồ sơ 2, bác sĩ 2, 26/10 09:00, `CONFIRMED` (đặt bởi tài khoản 5). |
 | Lịch làm việc | Bác sĩ 1 (lịch `work_schedules` 1–7): T2–T6 07:30–11:30, chiều T2 và T4 13:30–16:30, slot 20 phút, phòng 1 (P101) · Bác sĩ 2: T2–T7 07:30–11:30, slot 15 phút, phòng 2 (P102), ca thứ Hai là lịch 8 · Bác sĩ 6: chiều T2, T3, T5, T6 13:30–16:30, 20 phút, phòng 6 (P103), ca thứ Năm là lịch 24. Giờ hợp lệ của slot 20 phút bắt đầu ca 07:30 là 07:30, 07:50, 08:10, 08:30, 08:50, 09:10… |
@@ -317,17 +317,17 @@ Chị Mai đăng ký, khai hồ sơ cho mình và con, đặt khám nhi với b�
 |---|---|---|---|---|
 | 1 | Chị Mai (khách) | Trang `register`: `POST /auth/register` {`username` `mai.ngo`, `fullName` "Ngô Thị Mai", `email` `mai.ngo@example.com`, `phone`} | CT06 | 201; `accounts.id` = 12, `role` `PATIENT`, `enabled` true; người dùng Keycloak có `accountId` = 12 |
 | 2 | Chị Mai | Đăng nhập qua Keycloak | — | Token có `accountId` = 12, `role` = `PATIENT`; Gateway gắn `X-User-Id: 12` |
-| 3 | Chị Mai | `POST /patients` cho bản thân: Ngô Thị Mai, sinh 1992, nữ, `idType` `CCCD`, số 12 chữ số chưa ai dùng | CT07, CT08 | 201 `CREATED_ACTIVE`; `patients.id` = 11, `owner_account_id` = 12, `status` `ACTIVE`, `active_identity` = `CCCD:<số>` |
-| 4 | Chị Mai | `POST /patients` cho con: Ngô Gia Huy, sinh 2020, nam, không giấy tờ, giám hộ Ngô Thị Mai (quan hệ "Mẹ"), email của mẹ | CT07 | 201 `CREATED_TEMPORARY`; `patients.id` = 12, `owner_account_id` = 12, `duplicateQueued` = false (không trùng tên + ngày sinh + SĐT ai) |
+| 3 | Chị Mai | `POST /patients` cho bản thân: Ngô Thị Mai, sinh 1992, nữ, `idType` `CCCD`, số 12 chữ số chưa ai dùng | CT07, CT08 | 201 `CREATED_ACTIVE`; `patients.id` = 25, `owner_account_id` = 12, `status` `ACTIVE`, `active_identity` = `CCCD:<số>` |
+| 4 | Chị Mai | `POST /patients` cho con: Ngô Gia Huy, sinh 2020, nam, không giấy tờ, giám hộ Ngô Thị Mai (quan hệ "Mẹ"), email của mẹ | CT07 | 201 `CREATED_TEMPORARY`; `patients.id` = 26, `owner_account_id` = 12, `duplicateQueued` = false (không trùng tên + ngày sinh + SĐT ai) |
 | 5 | Chị Mai | Trang `doctors`: chọn chuyên khoa Nhi khoa (id 2) → bác sĩ 2 | CT01, CT03, CT04 | `GET /doctors?specialtyId=2` trả bác sĩ 2; ca T2 07:30–11:30 |
 | 6 | Chị Mai (21:00 ngày 25/10) | `GET /slots?doctorId=2&date=2026-10-26` | CT10 | 16 slot 15 phút từ 07:30; `available` = false ở 07:45 (lịch 7) và 09:00 (lịch 13); 08:00 `available` = true (lịch 12 đã `EXPIRED`) |
-| 7 | Chị Mai (21:00) | `POST /appointments/hold` {`doctorId` 2, `patientId` 12, `startTime` 2026-10-26T08:00:00, `reason` "Ho, sốt 2 ngày"} | CT11 | 201; `appointments.id` = 15, `HELD`, `end_time` 08:15, `room_id` 2, `work_schedule_id` 8, `booked_by_account_id` 12, `hold_expires_at` 2026-10-25T21:05:00, `slot_lock` = `2@2026-10-26 08:00:00` |
-| 8 | Chị Mai (21:02) | `POST /appointments/15/confirm` | CT12 | `CONFIRMED`, `confirmed_at` 21:02; Scheduling phát `appointment.confirmed` |
-| 8b | Hệ thống (Reminder, vài giây sau) | Nhận `appointment.confirmed` | CT14 | Thư xác nhận tới `mai.ngo@example.com` theo mẫu `CONFIRMATION`; `reminder_logs.id` = 15, loại `CONFIRMATION`, `SENT` |
-| 9 | Chị Mai | `GET /composite/my-appointments` | CT12 | Một `AppointmentView`: `appointmentId` 15, bác sĩ "Trần Thị Bình" BS.CKI Nhi khoa, phòng P102, bệnh nhân "Ngô Gia Huy" sinh 2020 |
-| 10 | Hệ thống (cron 21:05) | Quét lịch `CONFIRMED` trong 24 giờ tới | CT15 | Lịch 15 nằm trong 24 giờ: gửi email tới `mai.ngo@example.com` (email của hồ sơ 12); `reminder_logs.id` = 16, loại `BEFORE_APPOINTMENT`, `SENT`, `attempt_count` 1, `appointment_start` 2026-10-26T08:00. Đặt dưới 24 giờ nên nhận cả thư xác nhận (bước 8b) lẫn thư nhắc (CS35) |
-| 11 | Bác sĩ Bình (tài khoản 4) | 26/10, `GET /composite/doctor-agenda?doctorId=2&date=2026-10-26` | CT16 | Có lịch 7 (07:45), 15 (08:00, Ngô Gia Huy, lý do "Ho, sốt 2 ngày"), 13 (09:00) |
-| 12 | Bác sĩ Bình | 08:12, `POST /appointments/15/complete` | CT17 | `COMPLETED`, `completed_at` 2026-10-26T08:12 |
+| 7 | Chị Mai (21:00) | `POST /appointments/hold` {`doctorId` 2, `patientId` 26, `startTime` 2026-10-26T08:00:00, `reason` "Ho, sốt 2 ngày"} | CT11 | 201; `appointments.id` = 25, `HELD`, `end_time` 08:15, `room_id` 2, `work_schedule_id` 8, `booked_by_account_id` 12, `hold_expires_at` 2026-10-25T21:05:00, `slot_lock` = `2@2026-10-26 08:00:00` |
+| 8 | Chị Mai (21:02) | `POST /appointments/25/confirm` | CT12 | `CONFIRMED`, `confirmed_at` 21:02; Scheduling phát `appointment.confirmed` |
+| 8b | Hệ thống (Reminder, vài giây sau) | Nhận `appointment.confirmed` | CT14 | Thư xác nhận tới `mai.ngo@example.com` theo mẫu `CONFIRMATION`; `reminder_logs.id` = 18, loại `CONFIRMATION`, `SENT` |
+| 9 | Chị Mai | `GET /composite/my-appointments` | CT12 | Một `AppointmentView`: `appointmentId` 25, bác sĩ "Trần Thị Bình" BS.CKI Nhi khoa, phòng P102, bệnh nhân "Ngô Gia Huy" sinh 2020 |
+| 10 | Hệ thống (cron 21:05) | Quét lịch `CONFIRMED` trong 24 giờ tới | CT15 | Lịch 25 nằm trong 24 giờ: gửi email tới `mai.ngo@example.com` (email của hồ sơ 26); `reminder_logs.id` = 19, loại `BEFORE_APPOINTMENT`, `SENT`, `attempt_count` 1, `appointment_start` 2026-10-26T08:00. Đặt dưới 24 giờ nên nhận cả thư xác nhận (bước 8b) lẫn thư nhắc (CS35) |
+| 11 | Bác sĩ Bình (tài khoản 4) | 26/10, `GET /composite/doctor-agenda?doctorId=2&date=2026-10-26` | CT16 | Có lịch 7 (07:45), 25 (08:00, Ngô Gia Huy, lý do "Ho, sốt 2 ngày"), 13 (09:00) |
+| 12 | Bác sĩ Bình | 08:12, `POST /appointments/25/complete` | CT17 | `COMPLETED`, `completed_at` 2026-10-26T08:12 |
 
 ### KB3 — Ông cụ không email, lễ tân đặt hộ (hồ sơ Nguyễn Văn Hùng)
 
@@ -337,12 +337,12 @@ Hồ sơ 7 (Nguyễn Văn Hùng, sinh 09/09/1958, CCCD, SĐT 0935111222, không 
 |---|---|---|---|---|
 | 1 | Lễ tân (26/10, 10:00) | Trang `patients`: `GET /patients?keyword=Hùng` | CT07 | Hai dòng: hồ sơ 7 (`ACTIVE`, sinh 1958-09-09) và hồ sơ 8 (`TEMPORARY`, sinh 1958-09-19, đang chờ duyệt trùng, cặp 8–7). Lễ tân chọn hồ sơ 7 |
 | 2 | Lễ tân | `GET /slots?doctorId=1&date=2026-10-28` | CT10 | 21 slot (sáng 12, chiều 9); 09:10 `available` = true |
-| 3 | Lễ tân | `POST /appointments/hold` {`doctorId` 1, `patientId` 7, `startTime` 2026-10-28T09:10:00, `reason` "Tái khám huyết áp"} | CT11 | 201; `appointments.id` = 15, `HELD`, `end_time` 09:30, `room_id` 1, `work_schedule_id` 3, `booked_by_account_id` 2, `hold_expires_at` 10:05 |
-| 4 | Lễ tân | `POST /appointments/15/confirm` | CT12, CT14 | `CONFIRMED`; Reminder nhận `appointment.confirmed`, hồ sơ 7 không email → `reminder_logs.id` = 15, loại `CONFIRMATION`, `SKIPPED` |
-| 5 | Người nhà (nếu có tài khoản) | `GET /composite/my-appointments` | CT12 | Không thấy lịch 15: hồ sơ 7 không có `owner_account_id` nên không thuộc tài khoản nào. Nếu hồ sơ có chủ thì chủ hồ sơ thấy cả lịch lễ tân đặt hộ (CS15) |
-| 6 | Hệ thống (cron, khoảng 09:10 ngày 27/10) | Quét nhắc lịch | CT15 | `PatientClient` trả hồ sơ 7 không có email → `reminder_logs.id` = 16, loại `BEFORE_APPOINTMENT`, `status` `SKIPPED`, `recipient_email` NULL. Không có kênh nhắc khác (CS30) |
-| 7 | Bác sĩ An (tài khoản 3) | 28/10, `GET /composite/doctor-agenda?doctorId=1&date=2026-10-28` | CT16 | Lịch 15 hiện bệnh nhân "Nguyễn Văn Hùng" sinh 1958-09-09 |
-| 8 | Bác sĩ An | 09:30, `POST /appointments/15/complete` | CT17 | `COMPLETED`, `completed_at` 2026-10-28T09:30 |
+| 3 | Lễ tân | `POST /appointments/hold` {`doctorId` 1, `patientId` 7, `startTime` 2026-10-28T09:10:00, `reason` "Tái khám huyết áp"} | CT11 | 201; `appointments.id` = 25, `HELD`, `end_time` 09:30, `room_id` 1, `work_schedule_id` 3, `booked_by_account_id` 2, `hold_expires_at` 10:05 |
+| 4 | Lễ tân | `POST /appointments/25/confirm` | CT12, CT14 | `CONFIRMED`; Reminder nhận `appointment.confirmed`, hồ sơ 7 không email → `reminder_logs.id` = 18, loại `CONFIRMATION`, `SKIPPED` |
+| 5 | Người nhà (nếu có tài khoản) | `GET /composite/my-appointments` | CT12 | Không thấy lịch 25: hồ sơ 7 không có `owner_account_id` nên không thuộc tài khoản nào. Nếu hồ sơ có chủ thì chủ hồ sơ thấy cả lịch lễ tân đặt hộ (CS15) |
+| 6 | Hệ thống (cron, khoảng 09:10 ngày 27/10) | Quét nhắc lịch | CT15 | `PatientClient` trả hồ sơ 7 không có email → `reminder_logs.id` = 19, loại `BEFORE_APPOINTMENT`, `status` `SKIPPED`, `recipient_email` NULL. Không có kênh nhắc khác (CS30) |
+| 7 | Bác sĩ An (tài khoản 3) | 28/10, `GET /composite/doctor-agenda?doctorId=1&date=2026-10-28` | CT16 | Lịch 25 hiện bệnh nhân "Nguyễn Văn Hùng" sinh 1958-09-09 |
+| 8 | Bác sĩ An | 09:30, `POST /appointments/25/complete` | CT17 | `COMPLETED`, `completed_at` 2026-10-28T09:30 |
 
 ### KB4 — Hai người tranh một slot, giữ chỗ quá hạn
 
@@ -351,13 +351,13 @@ Slot: bác sĩ 1, thứ Năm 29/10/2026 08:10 (lịch 4). Bên A: tài khoản 5
 | Bước | Ai làm | Thao tác | Chứng từ | Kết quả mong đợi |
 |---|---|---|---|---|
 | 1 | A và B (20:00) | `GET /slots?doctorId=1&date=2026-10-29` | CT10 | Cả hai thấy 08:10 `available` = true |
-| 2 | A (20:00:00) | `POST /appointments/hold` {`doctorId` 1, `patientId` 1, `startTime` 2026-10-29T08:10:00} | CT11 | 201; `appointments.id` = 15, `HELD`, `hold_expires_at` 20:05, `slot_lock` = `1@2026-10-29 08:10:00` |
+| 2 | A (20:00:00) | `POST /appointments/hold` {`doctorId` 1, `patientId` 1, `startTime` 2026-10-29T08:10:00} | CT11 | 201; `appointments.id` = 25, `HELD`, `hold_expires_at` 20:05, `slot_lock` = `1@2026-10-29 08:10:00` |
 | 3 | B (20:00:01) | `POST /appointments/hold` {`doctorId` 1, `patientId` 4, cùng `startTime`} | CT11 | 409 `SLOT_ALREADY_HELD`; web tải lại slot, 08:10 `available` = false |
 | 4 | B (20:03) | Thử giữ lại | CT11 | Vẫn 409 `SLOT_ALREADY_HELD` (chưa quá 20:05) |
-| 5 | B (20:06) | Thử giữ lại | CT11 | Trước khi ghi, `expireHolds(now)` đưa lịch 15 sang `EXPIRED` (`slot_lock` NULL); lịch mới 201: `appointments.id` = 16, `HELD`, `hold_expires_at` 20:11 |
-| 6 | A (20:07) | `POST /appointments/15/confirm` | CT12 | 409 `HOLD_EXPIRED` |
-| 7 | A (20:07) | `GET /slots?doctorId=1&date=2026-10-29` | CT10 | 08:10 `available` = false (lịch 16 đang giữ) |
-| 8 | B (20:08) | `POST /appointments/16/confirm` | CT12 | `CONFIRMED`, `confirmed_at` 20:08; `slot_lock` giữ nguyên |
+| 5 | B (20:06) | Thử giữ lại | CT11 | Trước khi ghi, `expireHolds(now)` đưa lịch 25 sang `EXPIRED` (`slot_lock` NULL); lịch mới 201: `appointments.id` = 26, `HELD`, `hold_expires_at` 20:11 |
+| 6 | A (20:07) | `POST /appointments/25/confirm` | CT12 | 409 `HOLD_EXPIRED` |
+| 7 | A (20:07) | `GET /slots?doctorId=1&date=2026-10-29` | CT10 | 08:10 `available` = false (lịch 26 đang giữ) |
+| 8 | B (20:08) | `POST /appointments/26/confirm` | CT12 | `CONFIRMED`, `confirmed_at` 20:08; `slot_lock` giữ nguyên |
 
 ### KB5 — Hủy kịp và hủy quá muộn
 
@@ -367,7 +367,7 @@ Hạn hủy: bệnh nhân hủy được khi còn từ 2 giờ trở lên; lễ 
 |---|---|---|---|---|
 | 1 | Anh Nam (tài khoản 10, 25/10 20:00) | `POST /appointments/8/cancel` {`reason` "Bận việc đột xuất"} (lịch 8: hồ sơ 4, bác sĩ 1, 26/10 08:30; còn 12 giờ 30 phút) | CT13 | `CANCELLED`, `cancel_reason`, `cancelled_by_account_id` 10, `cancelled_at` 25/10 20:00; `slot_lock` NULL |
 | 2 | Chị Hoa (tài khoản 5, 20:10) | `GET /slots?doctorId=1&date=2026-10-26` | CT10 | 08:30 `available` = true |
-| 3 | Chị Hoa | `POST /appointments/hold` {`doctorId` 1, `patientId` 1, `startTime` 2026-10-26T08:30:00} | CT11 | 201; `appointments.id` = 15, `HELD`. Hồ sơ 1 đã có lịch 6 lúc 08:10–08:30, liền kề nên không tính trùng giờ (CS12) |
+| 3 | Chị Hoa | `POST /appointments/hold` {`doctorId` 1, `patientId` 1, `startTime` 2026-10-26T08:30:00} | CT11 | 201; `appointments.id` = 25, `HELD`. Hồ sơ 1 đã có lịch 6 lúc 08:10–08:30, liền kề nên không tính trùng giờ (CS12) |
 | 4 | Chị Hoa (26/10, 07:30) | `POST /appointments/13/cancel` (lịch 13: hồ sơ 2, bác sĩ 2, 09:00; còn 1 giờ 30 phút; đặt bởi tài khoản 5) | CT13 | 409 `TOO_LATE_TO_CANCEL`; lịch 13 vẫn `CONFIRMED` |
 | 5 | Lễ tân (tài khoản 2, 07:35) | `POST /appointments/13/cancel` {`reason` "Con sốt cao, gia đình báo qua điện thoại"} | CT13 | `CANCELLED`, `cancelled_by_account_id` 2 — lễ tân không bị giới hạn 2 giờ (CS07) |
 | 6 | Chị Hoa | `POST /appointments/13/cancel` lần nữa | CT13 | 409 `INVALID_STATUS` |
@@ -379,16 +379,16 @@ Dùng cặp 3–1 trong hàng chờ (`duplicate_candidates.id` = 1, `SAME_NAME_D
 
 | Bước | Ai làm | Thao tác | Chứng từ | Kết quả mong đợi |
 |---|---|---|---|---|
-| 1 | Lễ tân (26/10, 09:00) | Đặt hộ hồ sơ 3 (đang `TEMPORARY`): giữ và xác nhận bác sĩ 6, 29/10 13:30 (lịch 24) | CT11, CT12 | `appointments.id` = 15, `patient_id` 3, `doctor_id` 6, `room_id` 6, `CONFIRMED`, `booked_by_account_id` 2 |
+| 1 | Lễ tân (26/10, 09:00) | Đặt hộ hồ sơ 3 (đang `TEMPORARY`): giữ và xác nhận bác sĩ 6, 29/10 13:30 (lịch 24) | CT11, CT12 | `appointments.id` = 25, `patient_id` 3, `doctor_id` 6, `room_id` 6, `CONFIRMED`, `booked_by_account_id` 2 |
 | 2 | Lễ tân | `GET /duplicate-candidates/count?status=PENDING` | CT20 | `{"count": 2}` (cặp 3–1 và 8–7) |
 | 3 | Lễ tân | `GET /duplicate-candidates?status=PENDING`, mở cặp id 1 | CT20 | Hiện cạnh nhau hồ sơ 3 và hồ sơ 1, `reason` `SAME_NAME_DOB_PHONE`, `score` 60 |
-| 4 | Lễ tân (09:30) | `POST /duplicate-candidates/1/merge` {`keepPatientId` 1, `note` "Cùng tên, ngày sinh, SĐT"} | CT21 | `duplicate_candidates.status` `MERGED`; hồ sơ 3 `MERGED`, `merged_into_id` 1; `merge_history.id` = 2, `action` `MERGE`, `source_patient_id` 3, `target_patient_id` 1, `source_previous_status` `TEMPORARY`; phát `PATIENT_MERGED` (`eventId` mới, `mergeHistoryId` 2) |
-| 5 | Hệ thống (Scheduling) | Nhận `patient.merged` | CT22 | `processed_events` thêm `eventId`; lịch 15: `patient_id` 3 → 1; `patient_reassignments.id` = 2 (`appointment_id` 15, `from_patient_id` 3, `to_patient_id` 1, `reverted_at` NULL) |
-| 6 | Bác sĩ Giang (tài khoản 9) hoặc Lễ tân | `GET /composite/doctor-agenda?doctorId=6&date=2026-10-29` | CT16 | Lịch 15 hiện bệnh nhân "Lê Thị Hoa" sinh 1990-05-12 (hồ sơ 1) |
-| 7 | Lễ tân (11:00) | Phát hiện gộp nhầm: `POST /patients/3/unmerge` {`note` "Hai người khác nhau, chung SĐT gia đình"} | CT23 | Hồ sơ 3 về `TEMPORARY`, `merged_into_id` NULL; `merge_history.id` = 3, `action` `UNMERGE`, `related_merge_id` 2; phát `PATIENT_UNMERGED` (`relatedMergeEventId` = `eventId` bước 4) |
-| 8 | Hệ thống (Scheduling) | Nhận `patient.unmerged` | CT22 | Lịch 15: `patient_id` 1 → 3; `patient_reassignments.id` = 2 có `reverted_at` |
+| 4 | Lễ tân (09:30) | `POST /duplicate-candidates/1/merge` {`keepPatientId` 1, `note` "Cùng tên, ngày sinh, SĐT"} | CT21 | `duplicate_candidates.status` `MERGED`; hồ sơ 3 `MERGED`, `merged_into_id` 1; `merge_history.id` = 11, `action` `MERGE`, `source_patient_id` 3, `target_patient_id` 1, `source_previous_status` `TEMPORARY`; phát `PATIENT_MERGED` (`eventId` mới, `mergeHistoryId` 11) |
+| 5 | Hệ thống (Scheduling) | Nhận `patient.merged` | CT22 | `processed_events` thêm `eventId`; lịch 25: `patient_id` 3 → 1; `patient_reassignments.id` = 11 (`appointment_id` 25, `from_patient_id` 3, `to_patient_id` 1, `reverted_at` NULL) |
+| 6 | Bác sĩ Giang (tài khoản 9) hoặc Lễ tân | `GET /composite/doctor-agenda?doctorId=6&date=2026-10-29` | CT16 | Lịch 25 hiện bệnh nhân "Lê Thị Hoa" sinh 1990-05-12 (hồ sơ 1) |
+| 7 | Lễ tân (11:00) | Phát hiện gộp nhầm: `POST /patients/3/unmerge` {`note` "Hai người khác nhau, chung SĐT gia đình"} | CT23 | Hồ sơ 3 về `TEMPORARY`, `merged_into_id` NULL; `merge_history.id` = 12, `action` `UNMERGE`, `related_merge_id` 11; phát `PATIENT_UNMERGED` (`relatedMergeEventId` = `eventId` bước 4) |
+| 8 | Hệ thống (Scheduling) | Nhận `patient.unmerged` | CT22 | Lịch 25: `patient_id` 1 → 3; `patient_reassignments.id` = 11 có `reverted_at` |
 | 9 | Hệ thống | Cặp id 1 sau khi tách | CT20 | Cặp id 1 chuyển `NOT_DUPLICATE`, `review_note` = ghi chú lần tách (CS24) |
-| 10 | Hệ thống | Gửi lại cùng sự kiện lần hai (RabbitMQ giao lặp) | CT22 | Bỏ qua vì `eventId` đã có trong `processed_events`; lịch 15 không đổi |
+| 10 | Hệ thống | Gửi lại cùng sự kiện lần hai (RabbitMQ giao lặp) | CT22 | Bỏ qua vì `eventId` đã có trong `processed_events`; lịch 25 không đổi |
 
 ### KB7 — Bệnh nhân không đến
 
