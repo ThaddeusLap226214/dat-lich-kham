@@ -54,6 +54,16 @@ export const routes: Routes = [
           .then(m => m.PatientsPageComponent)
       },
       {
+        path: 'register',
+        loadComponent: () => import('./features/account/pages/register-page.component')
+          .then(m => m.RegisterPageComponent)
+      },
+      {
+        path: 'admin/accounts',
+        loadComponent: () => import('./features/account/pages/accounts-page.component')
+          .then(m => m.AccountsPageComponent)
+      },
+      {
         path: 'ui-kit',
         loadComponent: () => import('./features/ui-kit/ui-kit-page.component').then(m => m.UiKitPageComponent)
       },
