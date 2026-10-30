@@ -243,7 +243,7 @@ Các chính sách ở mục 4 làm đổi hợp đồng kỹ thuật như dướ
 | 8 | `unmerge`: cặp trong hàng chờ chuyển `NOT_DUPLICATE` | `docs/06` B3 | P1 |
 | 9 | Cấu hình mới: `scheduling.max-holds-per-account`, `scheduling.max-upcoming-per-patient`, `scheduling.book-ahead-days`, `scheduling.book-before-hours`, `patient.guardian-required-under-age` | `application.yml` của từng service | P2, P1 |
 | 10 | Sự kiện mới: exchange `appointment.events` (loại topic), routing key `appointment.confirmed`, `appointment.cancelled`; hàng đợi `reminder.appointment-events` + hàng đợi lỗi `reminder.appointment-events.dlq`; lớp `AppointmentEvent` {eventId, eventType (`APPOINTMENT_CONFIRMED` / `APPOINTMENT_CANCELLED`), occurredAt, appointmentId, patientId, doctorId, roomId, startTime, endTime, cancelReason, performedByAccountId}; Scheduling phát **sau khi** lưu thành công | `docs/06` A7, B4 | P2 (phát), P5 (nhận) |
-| 11 | `reminder_db` thêm bảng `processed_events` (như bên Scheduling) và `message_templates` {`type` khóa chính, `subject`, `body`, `updated_by_account_id`, `updated_at`}, nạp sẵn 3 mẫu; `reminder_logs.reminder_type` có 3 giá trị `BEFORE_APPOINTMENT`, `CONFIRMATION`, `CANCELLATION` | `docs/03` mục 3.5, 5 | P5 |
+| 11 | `reminder_db` thêm bảng `processed_events` (như bên Scheduling) và `message_templates` {`type` khóa chính, `subject`, `body`, `updated_by_account_id`, `updated_at`}, nạp sẵn 3 mẫu; `reminder_logs.reminder_type` có 3 giá trị `BEFORE_APPOINTMENT`, `CONFIRMATION`, `CANCELLATION` | `docs/03` mục 3.5, 5 | Làm sẵn trước khi gửi nhóm (bảng + dữ liệu mẫu); P5 viết code dùng |
 | 12 | API mới `GET /api/v1/reminders/templates`, `PUT /api/v1/reminders/templates/{type}` — ADMIN **(GW)**; `GET /reminders/logs` lọc thêm theo `type` | `docs/06` B5 | P5 |
 | 13 | Mô tả Reminder Service: "dịch vụ thông báo — nhắc lịch, xác nhận, báo hủy; nhận sự kiện từ Scheduling" | `docs/02`, sơ đồ tổng quan (thêm mũi tên Scheduling → RabbitMQ → Reminder) | — |
 
@@ -282,7 +282,7 @@ Bảy kịch bản đưa chứng từ chạy qua API và bảng, để kiểm ch
 
 | Mục | Nội dung |
 |---|---|
-| Dữ liệu nền | Dữ liệu mẫu `docs/03` mục 5. Mỗi kịch bản chạy trên dữ liệu mẫu mới (sau `docker compose down -v` rồi `up`), nên mã mới tính từ cuối dữ liệu mẫu: tài khoản mới bắt đầu từ 12, hồ sơ từ 11, lịch hẹn từ 15, `reminder_logs` từ 6. |
+| Dữ liệu nền | Dữ liệu mẫu `docs/03` mục 5. Mỗi kịch bản chạy trên dữ liệu mẫu mới (sau `docker compose down -v` rồi `up`), nên mã mới tính từ cuối dữ liệu mẫu: tài khoản mới bắt đầu từ 12, hồ sơ từ 11, lịch hẹn từ 15, `reminder_logs` từ 15. |
 | Mốc ngày | Dữ liệu mẫu tính theo ngày khởi tạo lần đầu. Giả định khởi tạo Chủ nhật 25/10/2026: thứ Hai tuần tới = 26/10, thứ Ba = 27/10; thứ Hai tuần trước = 19/10. Khi đó lịch mẫu 6, 7, 8, 9, 10, 12, 13 nằm ở 26/10; lịch 11 ở 27/10. Khởi tạo ngày khác thì cộng / trừ ngày tương ứng. |
 | Lịch mẫu liên quan | Lịch 6: hồ sơ 1, bác sĩ 1, 26/10 08:10, `CONFIRMED` · 7: hồ sơ 2, bác sĩ 2, 26/10 07:45, `CONFIRMED` · 8: hồ sơ 4, bác sĩ 1, 26/10 08:30, `CONFIRMED` · 9: hồ sơ 6, bác sĩ 4, 26/10 08:30, `CONFIRMED` · 10: hồ sơ 7, bác sĩ 1, 26/10 13:30, `CONFIRMED` · 11: hồ sơ 8, bác sĩ 3, 27/10 13:30, `CONFIRMED` · 12: hồ sơ 5, bác sĩ 2, 26/10 08:00, `EXPIRED` · 13: hồ sơ 2, bác sĩ 2, 26/10 09:00, `CONFIRMED` (đặt bởi tài khoản 5). |
 | Lịch làm việc | Bác sĩ 1 (lịch `work_schedules` 1–7): T2–T6 07:30–11:30, chiều T2 và T4 13:30–16:30, slot 20 phút, phòng 1 (P101) · Bác sĩ 2: T2–T7 07:30–11:30, slot 15 phút, phòng 2 (P102), ca thứ Hai là lịch 8 · Bác sĩ 6: chiều T2, T3, T5, T6 13:30–16:30, 20 phút, phòng 6 (P103), ca thứ Năm là lịch 24. Giờ hợp lệ của slot 20 phút bắt đầu ca 07:30 là 07:30, 07:50, 08:10, 08:30, 08:50, 09:10… |
@@ -322,9 +322,9 @@ Chị Mai đăng ký, khai hồ sơ cho mình và con, đặt khám nhi với b�
 | 6 | Chị Mai (21:00 ngày 25/10) | `GET /slots?doctorId=2&date=2026-10-26` | CT10 | 16 slot 15 phút từ 07:30; `available` = false ở 07:45 (lịch 7) và 09:00 (lịch 13); 08:00 `available` = true (lịch 12 đã `EXPIRED`) |
 | 7 | Chị Mai (21:00) | `POST /appointments/hold` {`doctorId` 2, `patientId` 12, `startTime` 2026-10-26T08:00:00, `reason` "Ho, sốt 2 ngày"} | CT11 | 201; `appointments.id` = 15, `HELD`, `end_time` 08:15, `room_id` 2, `work_schedule_id` 8, `booked_by_account_id` 12, `hold_expires_at` 2026-10-25T21:05:00, `slot_lock` = `2@2026-10-26 08:00:00` |
 | 8 | Chị Mai (21:02) | `POST /appointments/15/confirm` | CT12 | `CONFIRMED`, `confirmed_at` 21:02; Scheduling phát `appointment.confirmed` |
-| 8b | Hệ thống (Reminder, vài giây sau) | Nhận `appointment.confirmed` | CT14 | Thư xác nhận tới `mai.ngo@example.com` theo mẫu `CONFIRMATION`; `reminder_logs.id` = 6, loại `CONFIRMATION`, `SENT` |
+| 8b | Hệ thống (Reminder, vài giây sau) | Nhận `appointment.confirmed` | CT14 | Thư xác nhận tới `mai.ngo@example.com` theo mẫu `CONFIRMATION`; `reminder_logs.id` = 15, loại `CONFIRMATION`, `SENT` |
 | 9 | Chị Mai | `GET /composite/my-appointments` | CT12 | Một `AppointmentView`: `appointmentId` 15, bác sĩ "Trần Thị Bình" BS.CKI Nhi khoa, phòng P102, bệnh nhân "Ngô Gia Huy" sinh 2020 |
-| 10 | Hệ thống (cron 21:05) | Quét lịch `CONFIRMED` trong 24 giờ tới | CT15 | Lịch 15 nằm trong 24 giờ: gửi email tới `mai.ngo@example.com` (email của hồ sơ 12); `reminder_logs.id` = 7, loại `BEFORE_APPOINTMENT`, `SENT`, `attempt_count` 1, `appointment_start` 2026-10-26T08:00. Đặt dưới 24 giờ nên nhận cả thư xác nhận (bước 8b) lẫn thư nhắc (CS35) |
+| 10 | Hệ thống (cron 21:05) | Quét lịch `CONFIRMED` trong 24 giờ tới | CT15 | Lịch 15 nằm trong 24 giờ: gửi email tới `mai.ngo@example.com` (email của hồ sơ 12); `reminder_logs.id` = 16, loại `BEFORE_APPOINTMENT`, `SENT`, `attempt_count` 1, `appointment_start` 2026-10-26T08:00. Đặt dưới 24 giờ nên nhận cả thư xác nhận (bước 8b) lẫn thư nhắc (CS35) |
 | 11 | Bác sĩ Bình (tài khoản 4) | 26/10, `GET /composite/doctor-agenda?doctorId=2&date=2026-10-26` | CT16 | Có lịch 7 (07:45), 15 (08:00, Ngô Gia Huy, lý do "Ho, sốt 2 ngày"), 13 (09:00) |
 | 12 | Bác sĩ Bình | 08:12, `POST /appointments/15/complete` | CT17 | `COMPLETED`, `completed_at` 2026-10-26T08:12 |
 
@@ -337,9 +337,9 @@ Hồ sơ 7 (Nguyễn Văn Hùng, sinh 09/09/1958, CCCD, SĐT 0935111222, không 
 | 1 | Lễ tân (26/10, 10:00) | Trang `patients`: `GET /patients?keyword=Hùng` | CT07 | Hai dòng: hồ sơ 7 (`ACTIVE`, sinh 1958-09-09) và hồ sơ 8 (`TEMPORARY`, sinh 1958-09-19, đang chờ duyệt trùng, cặp 8–7). Lễ tân chọn hồ sơ 7 |
 | 2 | Lễ tân | `GET /slots?doctorId=1&date=2026-10-28` | CT10 | 21 slot (sáng 12, chiều 9); 09:10 `available` = true |
 | 3 | Lễ tân | `POST /appointments/hold` {`doctorId` 1, `patientId` 7, `startTime` 2026-10-28T09:10:00, `reason` "Tái khám huyết áp"} | CT11 | 201; `appointments.id` = 15, `HELD`, `end_time` 09:30, `room_id` 1, `work_schedule_id` 3, `booked_by_account_id` 2, `hold_expires_at` 10:05 |
-| 4 | Lễ tân | `POST /appointments/15/confirm` | CT12, CT14 | `CONFIRMED`; Reminder nhận `appointment.confirmed`, hồ sơ 7 không email → `reminder_logs.id` = 6, loại `CONFIRMATION`, `SKIPPED` |
+| 4 | Lễ tân | `POST /appointments/15/confirm` | CT12, CT14 | `CONFIRMED`; Reminder nhận `appointment.confirmed`, hồ sơ 7 không email → `reminder_logs.id` = 15, loại `CONFIRMATION`, `SKIPPED` |
 | 5 | Người nhà (nếu có tài khoản) | `GET /composite/my-appointments` | CT12 | Không thấy lịch 15: hồ sơ 7 không có `owner_account_id` nên không thuộc tài khoản nào. Nếu hồ sơ có chủ thì chủ hồ sơ thấy cả lịch lễ tân đặt hộ (CS15) |
-| 6 | Hệ thống (cron, khoảng 09:10 ngày 27/10) | Quét nhắc lịch | CT15 | `PatientClient` trả hồ sơ 7 không có email → `reminder_logs.id` = 7, loại `BEFORE_APPOINTMENT`, `status` `SKIPPED`, `recipient_email` NULL. Không có kênh nhắc khác (CS30) |
+| 6 | Hệ thống (cron, khoảng 09:10 ngày 27/10) | Quét nhắc lịch | CT15 | `PatientClient` trả hồ sơ 7 không có email → `reminder_logs.id` = 16, loại `BEFORE_APPOINTMENT`, `status` `SKIPPED`, `recipient_email` NULL. Không có kênh nhắc khác (CS30) |
 | 7 | Bác sĩ An (tài khoản 3) | 28/10, `GET /composite/doctor-agenda?doctorId=1&date=2026-10-28` | CT16 | Lịch 15 hiện bệnh nhân "Nguyễn Văn Hùng" sinh 1958-09-09 |
 | 8 | Bác sĩ An | 09:30, `POST /appointments/15/complete` | CT17 | `COMPLETED`, `completed_at` 2026-10-28T09:30 |
 

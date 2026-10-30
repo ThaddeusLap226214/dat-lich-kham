@@ -29,9 +29,10 @@ Cột "Trạng thái": ✅ đã chạy "Cách kiểm" và đạt (30/10/2026, tr
 | 8 | API nội bộ giờ làm việc (Provider) | `GET /internal/v1/doctors/{id}/working-hours?date=` | Bác sĩ 1, một ngày thứ Hai → 2 ca (07:30–11:30 và 13:30–16:30, 20 phút); Chủ nhật → `shifts` rỗng. Gọi từ trong mạng Docker: `docker exec scheduling-service curl -s "http://provider-service:8082/internal/v1/doctors/1/working-hours?date=2026-11-02"` | ✅ |
 | 9 | API nội bộ bác sĩ, phòng theo mã (Provider) | `GET /internal/v1/doctors?ids=`, `GET /internal/v1/rooms?ids=` | `?ids=1,2` trả đúng 2 bác sĩ kèm tên chuyên khoa (gọi như dòng 8) | ✅ |
 | 10 | Chế độ thử | Web cho chọn vai trò thay đăng nhập và tự gắn header `X-User-*` | Ô chọn vai trò ở đầu trang; chọn `letan` → menu lễ tân | ✅ có từ trước |
-| 11 | Dữ liệu mẫu | 11 tài khoản, 10 hồ sơ (đủ tình huống trùng, 1 vụ gộp), 14 lịch hẹn tính theo ngày chạy, 5 dòng nhắc lịch | [`docs/03` mục 5](03-thiet-ke-csdl.md) | ✅ có từ trước |
+| 11 | Dữ liệu mẫu | 11 tài khoản, 10 hồ sơ (đủ tình huống trùng, 1 vụ gộp), 14 lịch hẹn tính theo ngày chạy, 14 dòng nhật ký thông báo, 3 mẫu thư | [`docs/03` mục 5](03-thiet-ke-csdl.md) | ✅ có từ trước; phần Reminder thêm 30/10 |
 | 12 | Tài liệu thiết kế đã chốt | Xem mục 3 | Mở các file trong `docs/` | ✅ Đủ file, mọi liên kết giữa các file trỏ đúng |
 | 13 | Dữ liệu cho trạng thái "không đến" | Bảng `appointments` có trạng thái `NO_SHOW`, cột `no_show_at`; lịch `NO_SHOW` vẫn giữ khóa slot (`docs/10` CS10). API ghi nhận là việc P2-10 | Trên `scheduling_db`: `UPDATE appointments SET status='NO_SHOW', no_show_at=NOW() WHERE id=6` chạy được | ✅ Lịch 6 thành `NO_SHOW`, vẫn giữ `slot_lock` |
+| 14 | Bảng mới của Reminder | `message_templates` (3 mẫu nạp sẵn), `processed_events`; `reminder_logs` nhận 3 loại thư. Code dùng các bảng là việc của Hiếu | Trên `reminder_db`: `SELECT COUNT(*) FROM message_templates` → 3; `SELECT COUNT(*) FROM processed_events` → 9 | ✅ 3 mẫu, 9 sự kiện, 14 dòng nhật ký; đối chiếu chéo với lịch hẹn, hồ sơ không lệch dòng nào |
 
 ## 3. Tài liệu — đọc theo thứ tự này
 

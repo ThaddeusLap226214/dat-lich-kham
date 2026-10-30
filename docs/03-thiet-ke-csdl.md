@@ -12,7 +12,7 @@ Tài liệu mô tả **toàn bộ bảng dữ liệu** của 5 service, căn c�
 | P3 | Provider Service | [`provider_db`](#32-provider_db--provider-service) | `specialties`, `rooms`, `doctors`, `work_schedules` | Danh mục chuyên khoa, phòng, bác sĩ và ca làm việc — nguồn để Scheduling tính slot |
 | P1 | Patient Service (MPI) | [`patient_db`](#33-patient_db--patient-service-mpi) | `patients`, `duplicate_candidates`, `merge_history` | Hồ sơ bệnh nhân, hàng chờ duyệt hồ sơ nghi trùng, lịch sử gộp / tách |
 | P2 | Scheduling Service | [`scheduling_db`](#34-scheduling_db--scheduling-service) | `appointments`, `patient_reassignments`, `processed_events` | Lịch hẹn và chống đặt trùng slot, lịch hẹn đã chuyển khi gộp hồ sơ, sự kiện đã xử lý |
-| P5 | Reminder Service | [`reminder_db`](#35-reminder_db--reminder-service) | `reminder_logs` | Nhật ký gửi nhắc lịch, chống nhắc lặp |
+| P5 | Reminder Service | [`reminder_db`](#35-reminder_db--reminder-service) | `reminder_logs`, `message_templates`, `processed_events` | Nhật ký thông báo (nhắc, xác nhận, báo hủy), chống gửi lặp, mẫu thư, sự kiện lịch hẹn đã xử lý |
 
 API Gateway (P4) không có database. Các mục chung: [Nguyên tắc chung](#1-nguyên-tắc-chung) · [Sơ đồ quan hệ giữa các database](#2-tổng-quan-ai-giữ-bảng-nào-ai-nhắc-tới-ai) · [Ràng buộc nghiệp vụ](#4-các-ràng-buộc-giải-quyết-bài-toán-nghiệp-vụ) · [Dữ liệu mẫu](#5-dữ-liệu-mẫu-nạp-tự-động-khi-khởi-động) · [Sửa cấu trúc bảng](#6-sửa-cấu-trúc-bảng-thế-nào).
 
@@ -54,6 +54,8 @@ flowchart LR
     end
     subgraph reminder_db
         reminder_logs
+        message_templates
+        reminder_events[processed_events]
     end
 
     accounts -. doctor_id .-> doctors
@@ -284,33 +286,32 @@ erDiagram
 
 ### 3.5. `reminder_db` — Reminder Service
 
-**`reminder_logs`** (nhật ký gửi nhắc)
+Ba bảng đều đã có trong `schema.sql` và có dữ liệu mẫu; người làm Reminder chỉ viết code dùng.
+
+**`reminder_logs`** (nhật ký thông báo: nhắc lịch, xác nhận, báo hủy)
 
 | Cột | Ý nghĩa |
 |---|---|
 | `appointment_id`, `patient_id` | Mã bên Scheduling / Patient (không khóa ngoại) |
 | `appointment_start` | Giờ khám (chép lại để hiển thị, khỏi gọi Scheduling) |
-| `reminder_type` | `BEFORE_APPOINTMENT` (nhắc trước 24 giờ), `CONFIRMATION` (xác nhận khi đặt), `CANCELLATION` (báo hủy). `schema.sql` hiện chỉ có giá trị đầu, hai giá trị sau thêm trong P5-8 |
+| `reminder_type` | `BEFORE_APPOINTMENT` (nhắc trước 24 giờ), `CONFIRMATION` (xác nhận khi đặt), `CANCELLATION` (báo hủy) — ràng buộc `ck_reminder_logs_type`; enum Java `ReminderType` đủ 3 giá trị |
 | `recipient_email` | Email đã gửi tới |
 | `status` | `SENT` (đã gửi), `FAILED` (lỗi, lần quét sau thử lại), `SKIPPED` (hồ sơ không có email) |
 | `attempt_count`, `last_error` | Số lần thử, lỗi gần nhất |
 | `sent_at` | Lúc gửi thành công |
 
-Cặp (`appointment_id`, `reminder_type`) là duy nhất → mỗi lịch chỉ được nhắc một lần dù cron chạy bao nhiêu lần.
+Cặp (`appointment_id`, `reminder_type`) là duy nhất → mỗi lịch chỉ có một thư mỗi loại dù cron chạy hay sự kiện tới bao nhiêu lần.
 
-Hai bảng dưới thuộc thiết kế Reminder thành dịch vụ thông báo theo sự kiện (`docs/10` mục 5, dòng 10–13). **Chưa có trong `schema.sql`**: Reminder tạo trong P5-8 (`processed_events`) và P5-11 (`message_templates`).
+**`message_templates`** (mẫu thư, CT25)
 
-**`processed_events`** (sự kiện lịch hẹn đã xử lý): giống bảng cùng tên của Scheduling — `event_id` khóa chính, `event_type`, `processed_at`. Nhận lại cùng `eventId` từ `appointment.events` thì bỏ qua.
+| Cột | Kiểu | Ý nghĩa |
+|---|---|---|
+| `type` | VARCHAR(30), khóa chính | `BEFORE_APPOINTMENT`, `CONFIRMATION`, `CANCELLATION` (ràng buộc `CHECK`) |
+| `subject`, `body` | VARCHAR(255), TEXT | Tiêu đề, nội dung thư; chỗ điền `{patientName}`, `{startTime}`, `{appointmentId}`, `{cancelReason}` |
+| `updated_by_account_id` | BIGINT | Quản trị viên sửa lần cuối (mã bên Auth, không khóa ngoại); `NULL` = mẫu nạp sẵn |
+| `updated_at` | DATETIME | Tự điền khi sửa |
 
-**`message_templates`** (mẫu thư)
-
-| Cột | Ý nghĩa |
-|---|---|
-| `type` | Khóa chính: `BEFORE_APPOINTMENT`, `CONFIRMATION`, `CANCELLATION` |
-| `subject`, `body` | Tiêu đề, nội dung thư (có chỗ điền tên bệnh nhân, giờ khám, mã lịch) |
-| `updated_by_account_id`, `updated_at` | Quản trị viên sửa lần cuối, lúc sửa |
-
-Nạp sẵn 3 mẫu khi khởi động.
+**`processed_events`** (sự kiện lịch hẹn đã xử lý): cấu trúc giống hệt bảng cùng tên của Scheduling — `event_id` khóa chính, `event_type` (`APPOINTMENT_CONFIRMED` / `APPOINTMENT_CANCELLED`), `processed_at`. Nhận lại cùng `eventId` từ `appointment.events` thì bỏ qua.
 
 ---
 
@@ -366,7 +367,7 @@ Các file `data.sql` dùng `INSERT IGNORE` với **mã cố định**, nên kh�
 | `patients` | 10 |
 | `duplicate_candidates` / `merge_history` | 3 / 1 |
 | `appointments` / `patient_reassignments` / `processed_events` | 14 / 1 / 1 |
-| `reminder_logs` | 5 |
+| `reminder_logs` / `message_templates` / `processed_events` (Reminder) | 14 / 3 / 9 |
 
 **Tài khoản** (mật khẩu chung `123456`)
 
@@ -417,7 +418,7 @@ Các file `data.sql` dùng `INSERT IGNORE` với **mã cố định**, nên kh�
 | Ngày làm việc gần nhất của bác sĩ nhi (ngày mai, hoặc thứ Hai nếu ngày mai là Chủ nhật) | 1 lịch `CONFIRMED` — dùng để thử nhắc lịch |
 | Thứ Hai, thứ Ba tuần tới | 6 lịch `CONFIRMED`, 1 lịch `EXPIRED` (giữ chỗ không xác nhận kịp) |
 
-**Nhật ký nhắc lịch:** 4 lần `SENT` (1 lần phải thử lại), 1 lần `SKIPPED` vì hồ sơ không có email.
+**Nhật ký thông báo:** 14 dòng = 5 thư nhắc (4 `SENT`, 1 lần phải thử lại; 1 `SKIPPED` vì hồ sơ không có email) + 8 thư xác nhận (6 `SENT`, 2 `SKIPPED`) + 1 thư báo hủy. Quy tắc: dịch vụ thông báo bắt đầu gửi thư xác nhận / báo hủy từ 00:00 Chủ nhật tuần trước (`CURDATE() - INTERVAL (WEEKDAY(CURDATE()) + 8) DAY`); lịch nào xác nhận / hủy từ mốc đó trở đi có đúng một dòng nhật ký và một `processed_events` (9 dòng). **Mẫu thư:** 3 mẫu nạp sẵn.
 
 Ngày tính theo lúc cơ sở dữ liệu được tạo lần đầu. Sau một thời gian, chạy `docker compose down -v` rồi `docker compose up -d` để tạo lại dữ liệu quanh ngày hiện tại.
 
