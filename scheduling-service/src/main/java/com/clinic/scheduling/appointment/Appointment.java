@@ -77,6 +77,9 @@ public class Appointment {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
+    @Column(name = "no_show_at")
+    private LocalDateTime noShowAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

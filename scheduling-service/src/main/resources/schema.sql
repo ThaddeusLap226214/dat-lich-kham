@@ -17,16 +17,17 @@ CREATE TABLE IF NOT EXISTS appointments (
     confirmed_at            DATETIME,
     cancelled_at            DATETIME,
     completed_at            DATETIME,
-    created_at              DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    no_show_at              DATETIME,
+    created_at             DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at              DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     version                 BIGINT      NOT NULL DEFAULT 0,
-    -- Chống đặt trùng: lịch còn hiệu lực (HELD/CONFIRMED/COMPLETED) có khóa "bác sĩ@giờ bắt đầu";
+    -- Chống đặt trùng: lịch còn hiệu lực (HELD/CONFIRMED/COMPLETED/NO_SHOW) có khóa "bác sĩ@giờ bắt đầu";
     -- ràng buộc UNIQUE bảo đảm hai người cùng giữ một slot thì chỉ một lệnh INSERT thành công.
     -- Lịch EXPIRED/CANCELLED có khóa NULL nên slot được nhả ra cho người khác.
     slot_lock               VARCHAR(50) GENERATED ALWAYS AS (
-        IF(status IN ('HELD', 'CONFIRMED', 'COMPLETED'), CONCAT(doctor_id, '@', start_time), NULL)) STORED,
+        IF(status IN ('HELD', 'CONFIRMED', 'COMPLETED', 'NO_SHOW'), CONCAT(doctor_id, '@', start_time), NULL)) STORED,
     CONSTRAINT uk_appointments_slot_lock UNIQUE (slot_lock),
-    CONSTRAINT ck_appointments_status CHECK (status IN ('HELD', 'CONFIRMED', 'COMPLETED', 'EXPIRED', 'CANCELLED')),
+    CONSTRAINT ck_appointments_status CHECK (status IN ('HELD', 'CONFIRMED', 'COMPLETED', 'NO_SHOW', 'EXPIRED', 'CANCELLED')),
     CONSTRAINT ck_appointments_time CHECK (start_time < end_time),
     INDEX idx_appointments_patient (patient_id, start_time),
     INDEX idx_appointments_doctor (doctor_id, start_time),

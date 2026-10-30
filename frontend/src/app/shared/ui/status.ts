@@ -11,6 +11,7 @@ export const STATUS_STYLES = {
     HELD: { label: 'Đang giữ chỗ', tone: 'warning' },
     CONFIRMED: { label: 'Đã xác nhận', tone: 'success' },
     COMPLETED: { label: 'Đã khám', tone: 'neutral' },
+    NO_SHOW: { label: 'Không đến', tone: 'neutral' },
     EXPIRED: { label: 'Hết hạn giữ chỗ', tone: 'neutral' },
     CANCELLED: { label: 'Đã hủy', tone: 'danger' }
   },

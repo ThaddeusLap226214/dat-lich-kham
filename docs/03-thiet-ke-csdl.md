@@ -80,7 +80,7 @@ erDiagram
     accounts {
         BIGINT id PK
         VARCHAR username UK
-        VARCHAR password_hash
+        VARCHAR keycloak_user_id UK "mã người dùng bên Keycloak"
         VARCHAR full_name
         VARCHAR email UK
         VARCHAR phone
@@ -90,19 +90,19 @@ erDiagram
     }
 ```
 
-**`accounts`** (tài khoản đăng nhập)
+**`accounts`** (tài khoản đăng nhập). Mật khẩu, phiên đăng nhập nằm ở Keycloak (`keycloak_db`); bảng này giữ mã số tài khoản và thông tin nghiệp vụ.
 
 | Cột | Kiểu | Bắt buộc | Ý nghĩa |
 |---|---|---|---|
-| `id` | BIGINT | ✔ | Mã tài khoản; chính là `sub` trong JWT và header `X-User-Id` |
-| `username` | VARCHAR(50) | ✔ | Tên đăng nhập, duy nhất |
-| `password_hash` | VARCHAR(100) | ✔ | Mật khẩu đã băm BCrypt (không bao giờ lưu mật khẩu gốc) |
+| `id` | BIGINT | ✔ | Mã tài khoản; Keycloak lưu thành thuộc tính `accountId`, đưa vào claim `accountId` của token; Gateway gắn thành header `X-User-Id` |
+| `username` | VARCHAR(50) | ✔ | Tên đăng nhập, duy nhất, chữ thường (Keycloak tự đổi về chữ thường) |
+| `keycloak_user_id` | VARCHAR(36) | | Mã (UUID) người dùng bên Keycloak, duy nhất; dùng để khóa / mở tài khoản qua Admin API |
 | `full_name` | VARCHAR(255) | ✔ | Họ tên hiển thị |
 | `email` | VARCHAR(255) | | Duy nhất nếu có |
 | `phone` | VARCHAR(20) | | |
 | `role` | VARCHAR(20) | ✔ | `PATIENT`, `RECEPTIONIST`, `DOCTOR`, `ADMIN` |
-| `doctor_id` | BIGINT | | Chỉ với `DOCTOR`: mã bác sĩ bên Provider Service → đưa vào JWT để bác sĩ xem đúng lịch của mình |
-| `enabled` | BOOLEAN | ✔ | `false` = khóa tài khoản |
+| `doctor_id` | BIGINT | | Chỉ với `DOCTOR`: mã bác sĩ bên Provider Service → thuộc tính `doctorId` trong Keycloak, đưa vào token để bác sĩ xem đúng lịch của mình |
+| `enabled` | BOOLEAN | ✔ | `false` = khóa tài khoản; khóa / mở thì Auth Service đổi cả người dùng bên Keycloak |
 | `created_at`, `updated_at` | DATETIME | ✔ | Tự điền |
 
 ### 3.2. `provider_db` — Provider Service
@@ -270,11 +270,11 @@ erDiagram
 | `room_id`, `work_schedule_id` | BIGINT | | Chép từ ca làm việc lúc giữ chỗ, để không phải hỏi lại Provider |
 | `booked_by_account_id` | BIGINT | ✔ | Tài khoản đã đặt (bên Auth) — "lịch của tôi" lọc theo cột này |
 | `start_time`, `end_time` | DATETIME | ✔ | Giờ bắt đầu / kết thúc slot |
-| `status` | VARCHAR(12) | ✔ | `HELD` → `CONFIRMED` → `COMPLETED`; `HELD` → `EXPIRED`; `CONFIRMED` → `CANCELLED` |
+| `status` | VARCHAR(12) | ✔ | `HELD` → `CONFIRMED` → `COMPLETED`; `CONFIRMED` → `NO_SHOW` (không đến, CS10); `HELD` → `EXPIRED`; `CONFIRMED` → `CANCELLED` |
 | `hold_expires_at` | DATETIME | | Hạn giữ chỗ = lúc giữ + `scheduling.hold-minutes` (mặc định 5 phút) |
 | `reason` | VARCHAR(500) | | Lý do khám bệnh nhân nhập |
 | `cancel_reason`, `cancelled_by_account_id`, `cancelled_at` | | | Thông tin hủy |
-| `confirmed_at`, `completed_at` | DATETIME | | |
+| `confirmed_at`, `completed_at`, `no_show_at` | DATETIME | | Lúc xác nhận, lúc đánh dấu đã khám, lúc ghi không đến |
 | `version` | BIGINT | ✔ | Khóa lạc quan |
 | `slot_lock` | VARCHAR(50) | | **Cột tự tính, không ánh xạ trong Java** — xem mục 4.2 |
 
@@ -317,9 +317,11 @@ CONSTRAINT uk_patients_active_identity UNIQUE (active_identity)
 
 ```sql
 slot_lock VARCHAR(50) GENERATED ALWAYS AS (
-    IF(status IN ('HELD', 'CONFIRMED', 'COMPLETED'), CONCAT(doctor_id, '@', start_time), NULL)) STORED,
+    IF(status IN ('HELD', 'CONFIRMED', 'COMPLETED', 'NO_SHOW'), CONCAT(doctor_id, '@', start_time), NULL)) STORED,
 CONSTRAINT uk_appointments_slot_lock UNIQUE (slot_lock)
 ```
+
+`NO_SHOW` vẫn giữ khóa như `COMPLETED`: giờ khám đã qua, slot không mở lại cho người khác.
 
 Hai người cùng bấm giữ slot 08:00 của bác sĩ 1 **cùng lúc**:
 
