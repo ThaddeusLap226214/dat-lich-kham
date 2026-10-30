@@ -1,5 +1,5 @@
 #!/bin/bash
-# Chạy một lần khi volume MySQL còn trống: tạo 5 database, mỗi service một tài khoản chỉ có quyền trên database của mình
+# Chạy một lần khi volume MySQL còn trống: tạo 6 database (5 service + Keycloak), mỗi bên một tài khoản chỉ có quyền trên database của mình
 set -euo pipefail
 
 create_db() {
@@ -16,3 +16,4 @@ create_db provider_db provider_user "${PROVIDER_DB_PASSWORD}"
 create_db patient_db patient_user "${PATIENT_DB_PASSWORD}"
 create_db scheduling_db scheduling_user "${SCHEDULING_DB_PASSWORD}"
 create_db reminder_db reminder_user "${REMINDER_DB_PASSWORD}"
+create_db keycloak_db keycloak_user "${KEYCLOAK_DB_PASSWORD}"

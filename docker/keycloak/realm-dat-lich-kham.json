@@ -1,0 +1,243 @@
+{
+  "realm": "dat-lich-kham",
+  "displayName": "Đặt lịch khám",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "accessTokenLifespan": 1800,
+  "ssoSessionIdleTimeout": 28800,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["vi", "en"],
+  "defaultLocale": "vi",
+  "roles": {
+    "realm": [
+      { "name": "PATIENT", "description": "Bệnh nhân" },
+      { "name": "RECEPTIONIST", "description": "Lễ tân" },
+      { "name": "DOCTOR", "description": "Bác sĩ" },
+      { "name": "ADMIN", "description": "Quản trị viên" }
+    ]
+  },
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"firstName\",\"validations\":{\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"lastName\",\"validations\":{\"length\":{\"max\":255}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}],\"unmanagedAttributePolicy\":\"ADMIN_EDIT\"}"
+          ]
+        }
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "web",
+      "name": "Web đặt lịch khám",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:4200",
+      "redirectUris": ["http://localhost:4200/*", "https://oauth.pstmn.io/v1/callback"],
+      "webOrigins": ["http://localhost:4200"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:4200/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "accountId",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "accountId",
+            "claim.name": "accountId",
+            "jsonType.label": "long",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "role",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "role",
+            "claim.name": "role",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "doctorId",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "doctorId",
+            "claim.name": "doctorId",
+            "jsonType.label": "long",
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "auth-service",
+      "name": "Auth Service gọi Admin API",
+      "enabled": true,
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${AUTH_SERVICE_CLIENT_SECRET:doi-chuoi-nay-trong-file-env}",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@datlichkham.local",
+      "emailVerified": true,
+      "firstName": "Quản trị viên",
+      "attributes": { "accountId": ["1"], "role": ["ADMIN"] },
+      "realmRoles": ["ADMIN"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "username": "letan",
+      "enabled": true,
+      "email": "letan@datlichkham.local",
+      "emailVerified": true,
+      "firstName": "Nguyễn Thị Lễ Tân",
+      "attributes": { "accountId": ["2"], "role": ["RECEPTIONIST"] },
+      "realmRoles": ["RECEPTIONIST"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "username": "bs.an",
+      "enabled": true,
+      "email": "bs.an@datlichkham.local",
+      "emailVerified": true,
+      "firstName": "Nguyễn Văn An",
+      "attributes": { "accountId": ["3"], "role": ["DOCTOR"], "doctorId": ["1"] },
+      "realmRoles": ["DOCTOR"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "username": "bs.binh",
+      "enabled": true,
+      "email": "bs.binh@datlichkham.local",
+      "emailVerified": true,
+      "firstName": "Trần Thị Bình",
+      "attributes": { "accountId": ["4"], "role": ["DOCTOR"], "doctorId": ["2"] },
+      "realmRoles": ["DOCTOR"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "username": "benhnhan",
+      "enabled": true,
+      "email": "hoa.le@example.com",
+      "emailVerified": true,
+      "firstName": "Lê Thị Hoa",
+      "attributes": { "accountId": ["5"], "role": ["PATIENT"] },
+      "realmRoles": ["PATIENT"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000006",
+      "username": "bs.cuong",
+      "enabled": true,
+      "email": "bs.cuong@datlichkham.local",
+      "emailVerified": true,
+      "firstName": "Lê Minh Cường",
+      "attributes": { "accountId": ["6"], "role": ["DOCTOR"], "doctorId": ["3"] },
+      "realmRoles": ["DOCTOR"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000007",
+      "username": "bs.dung",
+      "enabled": true,
+      "email": "bs.dung@datlichkham.local",
+      "emailVerified": true,
+      "firstName": "Phạm Thu Dung",
+      "attributes": { "accountId": ["7"], "role": ["DOCTOR"], "doctorId": ["4"] },
+      "realmRoles": ["DOCTOR"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000008",
+      "username": "bs.em",
+      "enabled": true,
+      "email": "bs.em@datlichkham.local",
+      "emailVerified": true,
+      "firstName": "Hoàng Văn Em",
+      "attributes": { "accountId": ["8"], "role": ["DOCTOR"], "doctorId": ["5"] },
+      "realmRoles": ["DOCTOR"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000009",
+      "username": "bs.giang",
+      "enabled": true,
+      "email": "bs.giang@datlichkham.local",
+      "emailVerified": true,
+      "firstName": "Võ Thị Giang",
+      "attributes": { "accountId": ["9"], "role": ["DOCTOR"], "doctorId": ["6"] },
+      "realmRoles": ["DOCTOR"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000010",
+      "username": "nam.tran",
+      "enabled": true,
+      "email": "nam.tran@example.com",
+      "emailVerified": true,
+      "firstName": "Trần Văn Nam",
+      "attributes": { "accountId": ["10"], "role": ["PATIENT"] },
+      "realmRoles": ["PATIENT"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000011",
+      "username": "lan.pham",
+      "enabled": true,
+      "email": "lan.pham@example.com",
+      "emailVerified": true,
+      "firstName": "Phạm Thị Lan",
+      "attributes": { "accountId": ["11"], "role": ["PATIENT"] },
+      "realmRoles": ["PATIENT"],
+      "credentials": [{ "type": "password", "value": "123456", "temporary": false }]
+    },
+    {
+      "username": "service-account-auth-service",
+      "enabled": true,
+      "serviceAccountClientId": "auth-service",
+      "clientRoles": {
+        "realm-management": ["manage-users", "view-users", "query-users", "view-realm"]
+      }
+    }
+  ]
+}
