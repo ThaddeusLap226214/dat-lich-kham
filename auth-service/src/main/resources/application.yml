@@ -36,6 +36,10 @@ management:
       exposure:
         include: health,info
 
-jwt:
-  secret: ${JWT_SECRET:doi-chuoi-nay-trong-file-env-it-nhat-32-ky-tu!!}
-  expiration-minutes: 480
+# Auth Service là bên duy nhất gọi Keycloak Admin API (R23); client và mật khẩu khai trong realm, mật khẩu lấy từ .env
+keycloak:
+  base-url: ${KEYCLOAK_URL:http://localhost:8180}
+  realm: ${KEYCLOAK_REALM:dat-lich-kham}
+  client-id: ${KEYCLOAK_CLIENT_ID:auth-service}
+  client-secret: ${KEYCLOAK_CLIENT_SECRET:doi-chuoi-nay-trong-file-env}
+  timeout: 3s

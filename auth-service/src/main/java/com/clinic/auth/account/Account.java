@@ -30,8 +30,9 @@ public class Account {
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(name = "password_hash", nullable = false, length = 100)
-    private String passwordHash;
+    // Liên kết sang người dùng Keycloak; mật khẩu chỉ nằm ở Keycloak
+    @Column(name = "keycloak_user_id", unique = true, length = 36)
+    private String keycloakUserId;
 
     @Column(name = "full_name", nullable = false)
     private String fullName;
