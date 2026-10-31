@@ -1,6 +1,6 @@
 # Frontend (Angular 18)
 
-Web của hệ thống đặt lịch khám, dựng trên nền giao diện của repo MPI (commit `6362a13`, `docs/05` mục 4).
+Web của hệ thống đặt lịch khám, dựng trên nền giao diện của repo MPI (commit `6362a13`).
 
 ## Cấu trúc
 
@@ -44,5 +44,5 @@ npm start          # http://localhost:4200
 ## Quy ước
 
 - Web chỉ gọi API qua Gateway: `environment.apiUrl = http://localhost:8080/api/v1`.
-- Backend trả thẳng dữ liệu, không bọc `{statusCode, message, data}`; lỗi có dạng `ApiError` với trường `error` là mã lỗi (`docs/06` mục A3–A4).
-- Việc cần làm của từng trang: `docs/04`.
+- Backend trả thẳng dữ liệu, không bọc `{statusCode, message, data}`; lỗi có dạng `ApiError` với trường `error` là mã lỗi (`docs/03-hop-dong-api.md` mục A3–A4).
+- Việc cần làm của từng trang: `docs/04-viec-cua-tung-nguoi.md`.

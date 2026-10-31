@@ -5,7 +5,7 @@ export interface StatusStyle {
   tone: Tone;
 }
 
-// Một nơi duy nhất quy định chữ và màu của mọi trạng thái; giá trị khớp enum của backend (docs/03)
+// Một nơi duy nhất quy định chữ và màu của mọi trạng thái; giá trị khớp enum của backend (docs/02-co-so-du-lieu.md)
 export const STATUS_STYLES = {
   appointment: {
     HELD: { label: 'Đang giữ chỗ', tone: 'warning' },

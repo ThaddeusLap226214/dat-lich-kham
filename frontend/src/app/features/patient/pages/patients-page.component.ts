@@ -4,7 +4,7 @@ import { PatientListComponent } from '../components/patient-list/patient-list.co
 import { PatientFormComponent } from '../components/patient-form/patient-form.component';
 import { Patient } from '../models/patient.model';
 
-// Không có nút xóa: hệ thống không xóa hồ sơ bệnh nhân, hồ sơ trùng được gộp (docs/02 mục 4.1)
+// Không có nút xóa: hệ thống không xóa hồ sơ bệnh nhân, hồ sơ trùng được gộp (docs/01-nghiep-vu-va-dac-ta-chuc-nang.md mục 4)
 @Component({
   selector: 'app-patients-page',
   standalone: true,

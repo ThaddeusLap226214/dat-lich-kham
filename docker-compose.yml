@@ -1,6 +1,6 @@
 # Bật toàn bộ hệ thống: docker compose up -d --build   → web ở http://localhost:4200
 # Web gọi API qua Gateway (8080); các cổng khác mở ra chỉ để quan sát khi demo.
-# Khi phát triển muốn gọi thẳng từng service thì thêm file docker-compose.dev.yml (xem docs/01).
+# Khi phát triển muốn gọi thẳng từng service thì thêm file docker-compose.dev.yml (xem docs/00-bat-dau-tu-day.md mục 6.3).
 name: dat-lich-kham
 
 services:

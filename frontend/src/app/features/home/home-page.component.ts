@@ -30,7 +30,7 @@ const CHECKS: ServiceCheck[] = [
       <h1>Nền tảng đặt lịch khám đa khoa</h1>
       <p class="lead">
         Bản khung của hệ thống microservices: Gateway, 5 service, database, RabbitMQ và web đã chạy và nối với nhau.
-        Mỗi trang và mỗi API đã có chỗ; phần xử lý bên trong do nhóm viết tiếp theo <code>docs/04</code>.
+        Mỗi trang và mỗi API đã có chỗ; phần xử lý bên trong do nhóm viết tiếp theo <code>docs/04-viec-cua-tung-nguoi.md</code>.
       </p>
 
       <div class="section-head">

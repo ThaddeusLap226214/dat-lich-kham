@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { ToastService } from '../components/toast/toast.service';
 
-// Dạng lỗi chung của mọi service (docs/06 mục A4)
+// Dạng lỗi chung của mọi service (docs/03-hop-dong-api.md mục A4)
 export interface ApiError {
   timestamp?: string;
   status: number;

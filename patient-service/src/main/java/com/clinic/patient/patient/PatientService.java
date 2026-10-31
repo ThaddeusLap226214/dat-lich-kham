@@ -32,7 +32,7 @@ public class PatientService {
     }
 
     public CreatePatientResponse create(PatientRequest request, Long accountId, String role) {
-        throw new NotImplementedYetException("tạo hồ sơ theo bảng tình huống 1-3 (docs/02 mục 4.1); không bao giờ tự gộp");
+        throw new NotImplementedYetException("tạo hồ sơ theo bảng tình huống 1-3 (docs/01-nghiep-vu-va-dac-ta-chuc-nang.md mục 4); không bao giờ tự gộp");
     }
 
     public List<PatientResponse> listMine(Long accountId) {

@@ -1,4 +1,4 @@
-// Khớp DTO của Auth Service (docs/06 B1)
+// Khớp DTO của Auth Service (docs/03-hop-dong-api.md B1)
 export type AccountRole = 'PATIENT' | 'RECEPTIONIST' | 'DOCTOR' | 'ADMIN';
 
 export interface Account {

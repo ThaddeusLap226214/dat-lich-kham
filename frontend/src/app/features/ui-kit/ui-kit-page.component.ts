@@ -36,7 +36,7 @@ const SECTIONS: KitSection[] = [
   { id: 'existing', title: 'Thành phần Angular có sẵn' }
 ];
 
-// Trang nào cần thành phần nào (kiểm kê từ docs/04 và PROMPT-STITCH); thêm trang mới thì thêm dòng ở đây
+// Trang nào cần thành phần nào (kiểm kê từ docs/04-viec-cua-tung-nguoi.md); thêm trang mới thì thêm dòng ở đây
 const COVERAGE: Record<string, string[]> = {
   'login': ['auth', 'form', 'buttons', 'feedback', 'api-error'],
   'register': ['auth', 'form', 'buttons', 'feedback', 'api-error'],

@@ -1,8 +1,8 @@
-# 06. Danh sách API — hợp đồng giữa các service cần tuân thủ
+# 03. Hợp đồng API
 
-Tài liệu là **hợp đồng dịch vụ** (Service Contract — giáo trình trang 21–24) giữa các service: đường dẫn, dữ liệu gửi/nhận, mã lỗi. Mọi API trong danh sách đã có sẵn trong code (controller + DTO). Phần xử lý bên trong đang trả **501 Not Implemented** kèm dòng "Chưa làm: …" mô tả việc cần viết. Người phụ trách service thay phần đó bằng code thật, **không đổi đường dẫn, tên trường hay mã lỗi** khi chưa thống nhất — service khác và web đang dựa vào chúng.
+Đây là **hợp đồng dịch vụ** (Service Contract — giáo trình trang 21–24) giữa các service: đường dẫn, dữ liệu gửi / nhận, mã lỗi, sự kiện. Mọi API trong danh sách đã có sẵn trong code (controller + DTO); phần xử lý chưa viết trả **501 Not Implemented** kèm dòng "Chưa làm: …". Người phụ trách thay phần đó bằng code thật, **không đổi đường dẫn, tên trường hay mã lỗi** khi chưa thống nhất (cách đổi: [`04-viec-cua-tung-nguoi.md`](04-viec-cua-tung-nguoi.md) mục 4) — service khác và web đang dựa vào chúng.
 
-Xem nhanh bằng Swagger (trang tài liệu API tự sinh): chạy hệ thống theo chế độ phát triển (`docs/01` mục 7.1) rồi mở `http://localhost:<cổng>/swagger-ui.html` — cổng 8081 → 8085 ứng với Auth → Reminder.
+Xem nhanh bằng Swagger (trang tài liệu API tự sinh): chạy chế độ phát triển ([`00-bat-dau-tu-day.md`](00-bat-dau-tu-day.md) mục 6.3.1) rồi mở `http://localhost:<cổng>/swagger-ui.html` — cổng 8081 → 8085 ứng với Auth → Reminder.
 
 ## Tổng quan API theo phần việc
 
@@ -112,7 +112,7 @@ Web ──(Authorization: Bearer <token>)──► Gateway ──(X-User-Id, X-U
 4. Service **không tự đọc token**, chỉ tin 3 header trên. Service vẫn phải **tự kiểm tra quyền trên từng bản ghi** (ví dụ bệnh nhân chỉ xem được hồ sơ của mình) — thiếu bước này là lỗi bảo mật phổ biến nhất (giáo trình trang 43, mục 1.14.1). Gateway phải **xóa** các header `X-User-*` / `X-Doctor-Id` mà client tự gửi lên, tránh giả danh.
 5. Không cần đăng nhập: `POST /api/v1/auth/register`, `GET /api/v1/specialties`, `GET /api/v1/doctors/**`.
 
-**Token:** phải chứa `accountId` (số), `role`, `doctorId` (có thể không có) và `exp` — đây là phần bắt buộc của hợp đồng. Keycloak đưa ba trường đầu vào token bằng protocol mapper (bộ ánh xạ thuộc tính người dùng vào token) của client `web`; thuộc tính người dùng do Auth Service ghi khi tạo tài khoản (R23). Token sống 30 phút. Cấu hình realm: `docker/keycloak/realm-dat-lich-kham.json`.
+**Token:** phải chứa `accountId` (số), `role`, `doctorId` (có thể không có) và `exp` — đây là phần bắt buộc của hợp đồng. Keycloak đưa ba trường đầu vào token bằng protocol mapper (bộ ánh xạ thuộc tính người dùng vào token) của client `web`; thuộc tính người dùng do Auth Service ghi khi tạo tài khoản (chỉ Auth Service gọi Keycloak Admin API; web không bao giờ giữ tài khoản quản trị Keycloak). Token sống 30 phút. Gateway tự so chữ ký bằng khóa công khai lấy từ `http://keycloak:8080/realms/dat-lich-kham/protocol/openid-connect/certs`, không gọi Keycloak cho từng request; trường `iss` mang địa chỉ trình duyệt thấy (`localhost:8180`) nên phải cấu hình hostname của Keycloak cho khớp. Cấu hình realm: `docker/keycloak/realm-dat-lich-kham.json`.
 
 **Khi Gateway chưa có bộ lọc token (P4-4):** web đang ở "Chế độ thử", tự gửi 3 header; khi thử API bằng Swagger hoặc Postman cũng tự gửi bằng tay: `X-User-Id: 5`, `X-User-Role: PATIENT`. Gateway hiện chuyển nguyên header xuống service.
 
@@ -148,7 +148,7 @@ Web ──(Authorization: Bearer <token>)──► Gateway ──(X-User-Id, X-U
 }
 ```
 
-- `PATIENT_MERGED`: hồ sơ `sourcePatientId` (B) đã gộp vào `targetPatientId` (A) → Scheduling chuyển **mọi** lịch của B (mọi trạng thái, kể cả đã khám, đã hủy — CS14 trong `docs/10`) sang A, ghi từng lịch vào `patient_reassignments`.
+- `PATIENT_MERGED`: hồ sơ `sourcePatientId` (B) đã gộp vào `targetPatientId` (A) → Scheduling chuyển **mọi** lịch của B (mọi trạng thái, kể cả đã khám, đã hủy — CS14 trong `01-nghiep-vu-va-dac-ta-chuc-nang.md` mục 7) sang A, ghi từng lịch vào `patient_reassignments`.
 - `PATIENT_UNMERGED`: tách lại; `relatedMergeEventId` = `eventId` của lần gộp bị hoàn tác → Scheduling trả các lịch đã chuyển về B.
 - Tên sự kiện là một việc **đã xảy ra**, đặt ở dạng quá khứ; bên phát không biết và không chờ bên nhận (Pub/Sub — giáo trình trang 103–104).
 - Bên nhận **phải bỏ qua** sự kiện có `eventId` đã xử lý (bảng `processed_events`).
@@ -191,8 +191,6 @@ Cột "Quyền": ai được gọi. `Khách` = không cần đăng nhập. Servi
 
 ### B1. Auth Service — `auth-service:8081`
 
-| Phương thức & đường dẫn | Quyền | Gửi lên | Trả về | Lỗi riêng |
-|---|---|---|---|---|
 **Đã làm xong** (trước khi nhóm bắt đầu). Đăng nhập không có API ở đây: web chuyển sang trang Keycloak ([A5](#a5-đăng-nhập-và-danh-tính)).
 
 | Phương thức & đường dẫn | Quyền | Gửi lên | Trả về | Lỗi riêng |
@@ -248,15 +246,7 @@ Cột "Quyền": ai được gọi. `Khách` = không cần đăng nhập. Servi
 | `POST /api/v1/duplicate-candidates/{id}/reject` | RECEPTIONIST **(GW)** | `ReviewNoteRequest` {note} | `DuplicateCandidateResponse` (status = NOT_DUPLICATE) | 409 `CANDIDATE_ALREADY_REVIEWED` |
 | **Nội bộ** `GET /internal/v1/patients?ids=1,2` | Gateway, Reminder | — | `PatientSummary[]` {id, fullName, dateOfBirth, gender, phone, email, guardianPhone, status, mergedIntoId} | |
 
-**Quy tắc tạo hồ sơ** (`POST /api/v1/patients`) — theo bảng tình huống trong `docs/02` mục 4.1:
-
-| Có giấy tờ? | Tìm thấy hồ sơ ACTIVE cùng giấy tờ? | Tên (chuẩn hóa) + ngày sinh khớp? | Kết quả |
-|---|---|---|---|
-| Có | Có | Có | `REUSED_EXISTING` — trả hồ sơ cũ (tình huống 1) |
-| Có | Có | Không | `CREATED_TEMPORARY` + cặp `SAME_ID_DIFFERENT_INFO` vào hàng chờ (tình huống 2) |
-| Có | Không | — | `CREATED_ACTIVE` |
-| Không | — | Trùng tên + ngày sinh + SĐT với hồ sơ có sẵn | `CREATED_TEMPORARY` + cặp `SAME_NAME_DOB_PHONE` vào hàng chờ (tình huống 3) |
-| Không | — | Không trùng | `CREATED_TEMPORARY` |
+**Quy tắc tạo hồ sơ** (`POST /api/v1/patients`): `outcome` trả về theo từng tình huống ở `01-nghiep-vu-va-dac-ta-chuc-nang.md` mục 4.
 
 ### B4. Scheduling Service — `scheduling-service:8084`
 
@@ -275,7 +265,7 @@ Cột "Quyền": ai được gọi. `Khách` = không cần đăng nhập. Servi
 
 `AppointmentResponse` = {id, patientId, doctorId, roomId, workScheduleId, bookedByAccountId, startTime, endTime, status, holdExpiresAt, reason, cancelReason, cancelledByAccountId, confirmedAt, cancelledAt, completedAt, noShowAt, createdAt}.
 
-`status` có 6 giá trị: `HELD`, `CONFIRMED`, `COMPLETED`, `NO_SHOW`, `EXPIRED`, `CANCELLED`. Cột `no_show_at` và trạng thái `NO_SHOW` đã có sẵn trong bảng (`docs/03` mục 3.4); API `no-show` do người làm Scheduling viết.
+`status` có 6 giá trị: `HELD`, `CONFIRMED`, `COMPLETED`, `NO_SHOW`, `EXPIRED`, `CANCELLED`. Cột `no_show_at` và trạng thái `NO_SHOW` đã có sẵn trong bảng (`02-co-so-du-lieu.md` mục 3.4); API `no-show` do người làm Scheduling viết.
 
 **Slot** (`GET /slots`): ngày quá `scheduling.book-ahead-days` = 30 ngày → mọi slot `available = false` (CS05); vai trò `PATIENT` thấy `available = false` với slot còn dưới `scheduling.book-before-hours` = 2 giờ (CS06).
 
@@ -327,15 +317,17 @@ SchedulingClient.findConfirmedBetween(now, now + 24h)
 **Luồng ghép** (`my-appointments`) — đây là trọng tâm chấm điểm của Hướng 4:
 
 ```
-① SchedulingClient.findByAccount(X-User-Id)        → danh sách lịch (chỉ có mã)
-② gom các doctorId, roomId, patientId khác nhau
-③ gọi song song:
+① Patient: GET /api/v1/patients/mine (chuyển tiếp X-User-Id) → mã các hồ sơ tài khoản quản lý
+② Scheduling: GET /internal/v1/appointments?bookedByAccountId=<X-User-Id>&patientIds=<①>
+                                                    → lịch do tài khoản đặt hoặc của hồ sơ mình (CS15), chỉ có mã
+③ gom các doctorId, roomId, patientId khác nhau
+④ gọi song song:
      ProviderClient.findDoctors(doctorIds)
      ProviderClient.findRooms(roomIds)
      PatientClient.findPatients(patientIds)
-④ ghép theo mã → AppointmentView
+⑤ ghép theo mã → AppointmentView
 ```
 
 - Gọi song song bằng `Mono.zip(...)`, mỗi lời gọi bọc Circuit Breaker như `ApiGatewayController` của Petclinic.
 - Provider hoặc Patient không phản hồi → **vẫn trả danh sách lịch**, phần thiếu để `null` (web hiện "Không rõ"). Scheduling không phản hồi → 503.
-- Các lớp `SchedulingClient`, `ProviderClient`, `PatientClient` đã viết sẵn lời gọi; chỉ còn phần ghép trong `CompositeController`.
+- Các lớp `SchedulingClient`, `ProviderClient`, `PatientClient` đã có lời gọi lấy lịch theo người đặt (`findByAccount`), theo bác sĩ và ngày (`findByDoctorAndDate`), bác sĩ / phòng / hồ sơ theo mã. P4-6 thêm bước ① và tham số `patientIds` ở bước ②, rồi viết phần ghép trong `CompositeController`.

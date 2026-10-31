@@ -224,7 +224,7 @@
     <h2 class="ui-section-title">Lỗi API</h2>
     <p class="kit-meta">Dùng ở: {{ usedBy('api-error') }}</p>
     <ul class="kit-rule">
-      <li>Backend trả lỗi dạng <code>status, error, message</code> (docs/06 mục A4). <code>message</code> đã là tiếng Việt nên hiện thẳng.</li>
+      <li>Backend trả lỗi dạng <code>status, error, message</code> (docs/03-hop-dong-api.md mục A4). <code>message</code> đã là tiếng Việt nên hiện thẳng.</li>
       <li>Mã lỗi nghiệp vụ trang biết cách xử lý (ví dụ <code>SLOT_ALREADY_HELD</code> → tải lại slot) thì kiểm bằng <code>apiError.is(err, 'MÃ')</code>.</li>
       <li>501 = phần backend chưa làm, hiện màu thông tin chứ không phải lỗi đỏ.</li>
     </ul>
