@@ -186,7 +186,7 @@ Chưa cần đọc khi mới bắt đầu: `01-nghiep-vu-va-dac-ta-chuc-nang.md`
 
 ## 5. Phần chung đã sẵn sàng
 
-Cột "Trạng thái": ✅ đã chạy "Cách kiểm" và đạt (30/10/2026, trên máy sạch: 12 container dựng từ volume trống) · ⬜ chưa kiểm được hết, lý do ghi trong ô.
+Cột "Trạng thái": ✅ đã chạy "Cách kiểm" và đạt (31/10/2026, trên máy sạch: 12 container dựng từ volume trống) · ⬜ chưa kiểm được hết, lý do ghi trong ô.
 
 | # | Thành phần | Đã có gì | Cách kiểm | Trạng thái |
 |---|---|---|---|---|
@@ -200,10 +200,10 @@ Cột "Trạng thái": ✅ đã chạy "Cách kiểm" và đạt (30/10/2026, tr
 | 8 | API nội bộ giờ làm việc (Provider) | `GET /internal/v1/doctors/{id}/working-hours?date=` | Bác sĩ 1, một ngày thứ Hai → 2 ca (07:30–11:30 và 13:30–16:30, 20 phút); Chủ nhật → `shifts` rỗng. Gọi từ trong mạng Docker: `docker exec scheduling-service curl -s "http://provider-service:8082/internal/v1/doctors/1/working-hours?date=2026-11-02"` | ✅ |
 | 9 | API nội bộ bác sĩ, phòng theo mã (Provider) | `GET /internal/v1/doctors?ids=`, `GET /internal/v1/rooms?ids=` | `?ids=1,2` trả đúng 2 bác sĩ kèm tên chuyên khoa (gọi như dòng 8) | ✅ |
 | 10 | Chế độ thử | Web cho chọn vai trò thay đăng nhập và tự gắn header `X-User-*` | Ô chọn vai trò ở đầu trang; chọn `letan` → menu lễ tân | ✅ có từ trước |
-| 11 | Dữ liệu mẫu | 11 tài khoản, 24 hồ sơ (đủ tình huống trùng, 8 lần gộp, 2 lần tách), 24 lịch hẹn tính theo ngày chạy, 17 dòng nhật ký thông báo, 3 mẫu thư; mọi bảng sinh ra khi thao tác có ít nhất 10 dòng | [`02-co-so-du-lieu.md`](02-co-so-du-lieu.md) mục 5 | ⬜ Bổ sung 30/10, chờ kiểm trên volume trống |
+| 11 | Dữ liệu mẫu | 11 tài khoản, 24 hồ sơ (đủ tình huống trùng, 8 lần gộp, 2 lần tách), 24 lịch hẹn tính theo ngày chạy, 17 dòng nhật ký thông báo, 3 mẫu thư; mọi bảng sinh ra khi thao tác có ít nhất 10 dòng | [`02-co-so-du-lieu.md`](02-co-so-du-lieu.md) mục 5 | ✅ Kiểm 31/10/2026 trên volume trống: đủ số dòng mọi bảng; tài khoản 5 có lịch 1, 6, 7, 13; 7 lịch `CONFIRMED`; 2 cặp `PENDING`; hồ sơ đã gộp không còn lịch; lịch chuyển / trả lại đúng hồ sơ; mỗi lần gộp / tách có sự kiện bên Scheduling |
 | 12 | Tài liệu | 5 file trong `docs/` (bảng "Bộ tài liệu" ở đầu file này) | Mở từng file trên GitHub, bấm thử các liên kết | ✅ Đủ 5 file, mọi liên kết giữa các file trỏ đúng |
 | 13 | Dữ liệu cho trạng thái "không đến" | Bảng `appointments` có trạng thái `NO_SHOW`, cột `no_show_at`; lịch `NO_SHOW` vẫn giữ khóa slot (CS10, `01-nghiep-vu-va-dac-ta-chuc-nang.md` mục 7). API ghi nhận là việc P2-10 | Trên `scheduling_db`: `UPDATE appointments SET status='NO_SHOW', no_show_at=NOW() WHERE id=6` chạy được | ✅ Lịch 6 thành `NO_SHOW`, vẫn giữ `slot_lock` |
-| 14 | Bảng của Reminder | `message_templates` (3 mẫu nạp sẵn), `processed_events`; `reminder_logs` nhận 3 loại thư. Code dùng các bảng là việc của Hiếu | Trên `reminder_db`: `SELECT COUNT(*) FROM message_templates` → 3; `SELECT COUNT(*) FROM processed_events` → 11 | ⬜ Lần kiểm trước (9 sự kiện, 14 nhật ký) đạt; dữ liệu bổ sung 30/10 chờ kiểm lại |
+| 14 | Bảng của Reminder | `message_templates` (3 mẫu nạp sẵn), `processed_events`; `reminder_logs` nhận 3 loại thư. Code dùng các bảng là việc của Hiếu | Trên `reminder_db`: `SELECT COUNT(*) FROM message_templates` → 3; `SELECT COUNT(*) FROM processed_events` → 11 | ✅ Kiểm 31/10/2026: 3 mẫu thư, 11 sự kiện, 17 nhật ký (6 nhắc, 9 xác nhận, 2 báo hủy), nhật ký nào cũng trỏ tới lịch có thật |
 
 **Có thể tin vào đâu:**
 
