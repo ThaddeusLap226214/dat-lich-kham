@@ -1,13 +1,14 @@
 import { Role } from './identity.service';
 
-export type Part = 'P1' | 'P2' | 'P3' | 'P4' | 'P5';
+export type Part = 'P1' | 'P2' | 'P3' | 'P4' | 'P5' | 'P6';
 
 export const PARTS: Record<Part, string> = {
   P1: 'Patient Service (MPI)',
   P2: 'Scheduling Service',
   P3: 'Provider Service',
   P4: 'Auth Service + API Gateway',
-  P5: 'Reminder Service'
+  P5: 'Reminder Service',
+  P6: 'Auth Service'
 };
 
 export interface ApiCall {
@@ -45,10 +46,9 @@ export const APP_PAGES: AppPage[] = [
     api: { method: 'POST', path: '/auth/login', body: { username: 'benhnhan', password: '123456' } }
   },
   {
-    path: 'register', title: 'Đăng ký', icon: 'person_add', roles: ['GUEST'], part: 'P4',
-    summary: 'Tạo tài khoản bệnh nhân mới.',
-    tasks: ['Form đăng ký gọi POST /api/v1/auth/register', 'Hiện lỗi USERNAME_TAKEN, VALIDATION_FAILED'],
-    api: { method: 'POST', path: '/auth/register', body: { username: 'thu.nghiem', password: '123456', fullName: 'Thử Nghiệm' } }
+    path: 'register', title: 'Đăng ký', icon: 'person_add', roles: ['GUEST'], part: 'P6',
+    summary: 'Tạo tài khoản bệnh nhân mới; Auth Service cấp mã tài khoản rồi tạo người dùng trong Keycloak.',
+    tasks: [], api: { method: 'POST', path: '/auth/register' }, implemented: true
   },
   {
     path: 'doctors', title: 'Chuyên khoa & bác sĩ', icon: 'stethoscope', roles: ALL, part: 'P3',
@@ -115,10 +115,9 @@ export const APP_PAGES: AppPage[] = [
     api: { method: 'GET', path: '/doctors/1/work-schedules' }
   },
   {
-    path: 'admin/accounts', title: 'Tài khoản', icon: 'manage_accounts', roles: ['ADMIN'], part: 'P4',
-    summary: 'Quản trị viên tạo tài khoản lễ tân, bác sĩ, quản trị.',
-    tasks: ['Danh sách tài khoản (GET /api/v1/accounts)', 'Tạo tài khoản (POST /api/v1/accounts), tài khoản bác sĩ phải chọn doctorId'],
-    api: { method: 'GET', path: '/accounts' }
+    path: 'admin/accounts', title: 'Tài khoản', icon: 'manage_accounts', roles: ['ADMIN'], part: 'P6',
+    summary: 'Quản trị viên tạo tài khoản lễ tân, bác sĩ, quản trị kèm mật khẩu ban đầu; khóa / mở tài khoản.',
+    tasks: [], api: { method: 'GET', path: '/accounts' }, implemented: true
   },
   {
     path: 'admin/reminders', title: 'Nhật ký nhắc lịch', icon: 'notifications_active', roles: ['ADMIN'], part: 'P5',

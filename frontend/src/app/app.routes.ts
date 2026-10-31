@@ -10,7 +10,7 @@ const skeletonRoutes: Routes = APP_PAGES
     data: { page: p }
   }));
 
-// Trang MPI cũ ngoài phạm vi đề tài: giữ route để xem lại, không đưa vào menu (docs/05)
+// Trang MPI cũ ngoài phạm vi đề tài: giữ route để xem lại, không đưa vào menu
 const legacyMpiRoutes: Routes = [
   {
     path: 'patient-import',
@@ -52,6 +52,20 @@ export const routes: Routes = [
         path: 'patients',
         loadComponent: () => import('./features/patient/pages/patients-page.component')
           .then(m => m.PatientsPageComponent)
+      },
+      {
+        path: 'register',
+        loadComponent: () => import('./features/account/pages/register-page.component')
+          .then(m => m.RegisterPageComponent)
+      },
+      {
+        path: 'admin/accounts',
+        loadComponent: () => import('./features/account/pages/accounts-page.component')
+          .then(m => m.AccountsPageComponent)
+      },
+      {
+        path: 'ui-kit',
+        loadComponent: () => import('./features/ui-kit/ui-kit-page.component').then(m => m.UiKitPageComponent)
       },
       ...skeletonRoutes,
       ...legacyMpiRoutes,

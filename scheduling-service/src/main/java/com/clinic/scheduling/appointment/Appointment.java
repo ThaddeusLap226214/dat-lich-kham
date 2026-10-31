@@ -77,6 +77,16 @@ public class Appointment {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
+    // Mã tài khoản bên Auth (bác sĩ hoặc lễ tân) đã đánh dấu đã khám / không đến; không có khóa ngoại
+    @Column(name = "completed_by_account_id")
+    private Long completedByAccountId;
+
+    @Column(name = "no_show_at")
+    private LocalDateTime noShowAt;
+
+    @Column(name = "no_show_by_account_id")
+    private Long noShowByAccountId;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

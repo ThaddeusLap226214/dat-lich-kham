@@ -11,9 +11,9 @@ interface ServiceCheck {
   call: ApiCall;
 }
 
-// Mỗi thành phần một API GET không cần header danh tính, để biết thành phần đó có đang chạy và nhận request qua Gateway không
+// Mỗi thành phần một API GET để biết thành phần đó có đang chạy và nhận request qua Gateway không
 const CHECKS: ServiceCheck[] = [
-  { part: 'P4', name: 'Auth Service', call: { method: 'GET', path: '/accounts' } },
+  { part: 'P6', name: 'Auth Service', call: { method: 'GET', path: '/accounts' } },
   { part: 'P3', name: 'Provider Service', call: { method: 'GET', path: '/specialties' } },
   { part: 'P1', name: 'Patient Service', call: { method: 'GET', path: '/patients?size=1' } },
   { part: 'P2', name: 'Scheduling Service', call: { method: 'GET', path: '/slots?doctorId=1&date={today}' } },
@@ -30,7 +30,7 @@ const CHECKS: ServiceCheck[] = [
       <h1>Nền tảng đặt lịch khám đa khoa</h1>
       <p class="lead">
         Bản khung của hệ thống microservices: Gateway, 5 service, database, RabbitMQ và web đã chạy và nối với nhau.
-        Mỗi trang và mỗi API đã có chỗ; phần xử lý bên trong do nhóm viết tiếp theo <code>docs/04</code>.
+        Mỗi trang và mỗi API đã có chỗ; phần xử lý bên trong do nhóm viết tiếp theo <code>docs/04-viec-cua-tung-nguoi.md</code>.
       </p>
 
       <div class="section-head">
@@ -54,6 +54,7 @@ const CHECKS: ServiceCheck[] = [
       </table>
       <p class="legend">
         <span class="ok">200</span> đã làm xong ·
+        <span class="ok">4xx</span> service chạy, vai trò đang chọn chưa đủ quyền gọi API thử ·
         <span class="todo">501</span> service chạy, đường đi đúng, phần xử lý chưa viết ·
         <span class="down">503 / lỗi</span> service chưa bật hoặc đang khởi động
       </p>
@@ -123,6 +124,7 @@ export class HomePageComponent implements OnInit {
   tone(r: ProbeResult | null): string {
     if (!r) return '';
     if (r.status >= 200 && r.status < 300) return 'ok';
+    if (this.answeredButDenied(r)) return 'ok';
     if (r.status === 501) return 'todo';
     return 'down';
   }
@@ -130,7 +132,13 @@ export class HomePageComponent implements OnInit {
   label(r: ProbeResult | null): string {
     if (!r) return 'đang kiểm tra…';
     if (r.status >= 200 && r.status < 300) return r.status + ' — đã chạy';
+    if (this.answeredButDenied(r)) return r.status + ' — đã chạy (cần đăng nhập / quyền)';
     if (r.status === 501) return '501 — chưa làm';
     return (r.status || 'không kết nối') + ' — không phản hồi';
+  }
+
+  // 404 vẫn tính là lỗi: đường dẫn sai hoặc Gateway chưa có route
+  private answeredButDenied(r: ProbeResult): boolean {
+    return r.status >= 400 && r.status < 500 && r.status !== 404;
   }
 }

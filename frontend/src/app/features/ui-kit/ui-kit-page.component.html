@@ -1,0 +1,484 @@
+<section class="ui-page">
+  <header class="ui-page-header">
+    <div>
+      <h1 class="ui-page-title">Mẫu giao diện chung</h1>
+      <p class="ui-page-subtitle">
+        Quy tắc để mọi trang trông như một hệ thống. CSS ở <code>src/styles/ui.css</code>, nhãn trạng thái và lỗi API ở <code>src/app/shared/ui/</code>.
+      </p>
+    </div>
+  </header>
+
+  <div class="ui-alert ui-tone-info">
+    <span class="material-symbols-outlined">rule</span>
+    <div>
+      <div class="ui-alert-title">Ba quy tắc chung</div>
+      <ol class="kit-rule">
+        <li>Dùng lớp <code>ui-*</code> trước; chỉ viết CSS riêng cho phần đặc thù của trang, và lấy màu từ biến <code>var(--…)</code>, không ghi mã màu.</li>
+        <li>Trạng thái luôn hiện bằng <code>app-status-badge</code>: cùng một trạng thái ở mọi trang có cùng chữ, cùng màu.</li>
+        <li>Lỗi API luôn qua <code>ApiErrorService</code>: trang chỉ tự xử lý mã lỗi nghiệp vụ của mình, còn lại gọi <code>show()</code>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <nav class="kit-toc">
+    <button type="button" (click)="goTo('coverage')">Bảng phủ theo trang</button>
+    @for (s of sections; track s.id) {
+      <button type="button" (click)="goTo(s.id)">{{ s.title }}</button>
+    }
+  </nav>
+
+  <section class="kit-section" id="coverage">
+    <h2 class="ui-section-title">Bảng phủ: trang nào dùng thành phần nào</h2>
+    @if (uncovered().length || unknownIds.length) {
+      <div class="ui-alert ui-tone-danger">
+        <span class="material-symbols-outlined">error</span>
+        <div>Thiếu kiểm kê: {{ uncovered().join(', ') }} {{ unknownIds.join(', ') }}</div>
+      </div>
+    } @else {
+      <div class="ui-alert ui-tone-success">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div>Đủ {{ coverage.length }} / {{ coverage.length }} trang trong menu đều đã có thành phần tương ứng.</div>
+      </div>
+    }
+    <div class="ui-table-wrap">
+      <table class="ui-table">
+        <thead><tr><th>Trang</th><th>Phần</th><th>Thành phần dùng</th></tr></thead>
+        <tbody>
+          @for (c of coverage; track c.path) {
+            <tr>
+              <td class="ui-nowrap"><strong>{{ c.title }}</strong><div class="ui-muted">/{{ c.path }}</div></td>
+              <td><span class="ui-badge ui-tone-info ui-badge-plain">{{ c.part }}</span></td>
+              <td>{{ c.sections.join(' · ') }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="kit-section" id="page">
+    <h2 class="ui-section-title">Đầu trang</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('page') }}</p>
+    <p class="kit-rule">Mọi trang bọc trong <code>ui-page</code>; tiêu đề trùng tên trang trong menu; nút chính của trang đặt ở góc phải.</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <header class="ui-page-header">
+          <div>
+            <h1 class="ui-page-title">Lịch hẹn theo bác sĩ</h1>
+            <p class="ui-page-subtitle">Xem và hủy lịch hẹn của từng bác sĩ trong ngày</p>
+          </div>
+          <div class="ui-page-actions"><button class="ui-btn ui-btn-primary"><span class="material-symbols-outlined">add</span> Đặt lịch</button></div>
+        </header>
+      </div>
+      <pre class="kit-code">{{ snippets['page'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="buttons">
+    <h2 class="ui-section-title">Nút</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('buttons') }}</p>
+    <ul class="kit-rule">
+      <li><strong>primary</strong>: mỗi vùng chỉ một nút chính (Lưu, Xác nhận đặt lịch).</li>
+      <li><strong>secondary</strong>: hành động phụ, Hủy bỏ trong form. <strong>ghost</strong>: thao tác trong bảng.</li>
+      <li><strong>danger</strong>: hành động không quay lại được (Hủy lịch, Tách hồ sơ) — luôn hỏi lại trước.</li>
+    </ul>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="kit-row">
+          <button class="ui-btn ui-btn-primary"><span class="material-symbols-outlined">add</span> Thêm hồ sơ</button>
+          <button class="ui-btn ui-btn-secondary">Hủy bỏ</button>
+          <button class="ui-btn ui-btn-danger">Hủy lịch</button>
+          <button class="ui-btn ui-btn-ghost ui-btn-sm">Chi tiết</button>
+          <button class="ui-btn ui-btn-ghost ui-btn-icon" title="Sửa"><span class="material-symbols-outlined">edit</span></button>
+          <button class="ui-btn ui-btn-primary" disabled>Đang lưu…</button>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['buttons'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="status">
+    <h2 class="ui-section-title">Nhãn trạng thái</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('status') }}</p>
+    <p class="kit-rule">
+      Màu theo nghĩa: <strong>xanh lá</strong> = xong / hợp lệ, <strong>cam</strong> = đang chờ / tạm, <strong>đỏ</strong> = lỗi / hủy,
+      <strong>xám</strong> = đã qua / không còn tác dụng, <strong>xanh dương</strong> = thông tin. Chữ và màu khai báo một lần ở <code>shared/ui/status.ts</code>.
+    </p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        @for (k of statusKinds; track k) {
+          <div class="kit-row">
+            <code>{{ k }}</code>
+            @for (v of statusValues(k); track v) {
+              <app-status-badge [kind]="k" [value]="v" />
+            }
+          </div>
+        }
+        <div class="kit-row">
+          <span class="ui-badge ui-tone-info ui-badge-plain">Nội tổng quát</span>
+          Hàng chờ <span class="ui-count">3</span>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['status'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="cards">
+    <h2 class="ui-section-title">Thẻ, thẻ thống kê</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('cards') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-stats">
+          <div class="ui-stat"><div class="ui-stat-label">Tổng lượt</div><div class="ui-stat-value">12</div></div>
+          <div class="ui-stat"><div class="ui-stat-label">Đã khám</div><div class="ui-stat-value">5</div></div>
+        </div>
+        <div class="ui-card-grid">
+          <article class="ui-card">
+            <div class="ui-card-header">
+              <h3 class="ui-card-title">Lê Thị Hoa</h3>
+              <app-status-badge kind="patient" value="ACTIVE" />
+            </div>
+            <dl class="ui-summary"><dt>Ngày sinh</dt><dd>12/05/1990</dd><dt>CCCD</dt><dd>048190001234</dd></dl>
+          </article>
+          <article class="ui-card">
+            <div class="ui-card-header">
+              <h3 class="ui-card-title">Lê Minh Khôi</h3>
+              <app-status-badge kind="patient" value="TEMPORARY" />
+            </div>
+            <dl class="ui-summary"><dt>Ngày sinh</dt><dd>20/03/2018</dd><dt>Giám hộ</dt><dd>Lê Thị Hoa – Mẹ</dd></dl>
+          </article>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['cards'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="form">
+    <h2 class="ui-section-title">Thanh lọc, form</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('form') }}</p>
+    <ul class="kit-rule">
+      <li>Mọi ô nhập có nhãn phía trên; trường bắt buộc thêm <code>is-required</code>.</li>
+      <li>Lỗi từng ô hiện ngay dưới ô (<code>ui-field-error</code>); lỗi từ API (409, 400) hiện bằng toast hoặc <code>ui-alert</code> trên nút Lưu.</li>
+    </ul>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-toolbar">
+          <div class="ui-field ui-toolbar-grow"><label class="ui-label">Tìm kiếm</label><input class="ui-input" placeholder="Họ tên, số giấy tờ, số điện thoại"></div>
+          <div class="ui-field"><label class="ui-label">Trạng thái</label><select class="ui-select"><option>Tất cả</option><option>Đã xác minh</option></select></div>
+        </div>
+        <div class="ui-form-grid">
+          <div class="ui-field"><label class="ui-label is-required">Họ tên</label><input class="ui-input is-invalid"><span class="ui-field-error">Vui lòng nhập họ tên</span></div>
+          <div class="ui-field"><label class="ui-label">Ngày sinh</label><input class="ui-input" type="date"></div>
+          <div class="ui-field ui-field-full">
+            <label class="ui-label">Giới tính</label>
+            <div class="ui-radio-row"><label><input type="radio" name="g" checked> Nam</label><label><input type="radio" name="g"> Nữ</label></div>
+          </div>
+          <div class="ui-field ui-field-full"><label class="ui-label">Lý do khám</label><textarea class="ui-textarea"></textarea><span class="ui-hint">Không bắt buộc</span></div>
+        </div>
+        <div class="ui-form-actions"><button class="ui-btn ui-btn-secondary">Hủy bỏ</button><button class="ui-btn ui-btn-primary">Lưu</button></div>
+      </div>
+      <pre class="kit-code">{{ snippets['form'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="table">
+    <h2 class="ui-section-title">Bảng</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('table') }}</p>
+    <p class="kit-rule">Số điện thoại, ngày giờ, mã giấy tờ thêm <code>ui-nowrap</code>. Cột thao tác ở cuối, dùng nút <code>ui-btn-ghost ui-btn-icon</code> có <code>title</code>.</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-table-wrap">
+          <table class="ui-table">
+            <thead><tr><th>Họ tên</th><th>Điện thoại</th><th>Trạng thái</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>Lê Thị Hoa</td><td class="ui-nowrap">0905 123 456</td><td><app-status-badge kind="patient" value="ACTIVE" /></td>
+                <td><div class="ui-actions"><button class="ui-btn ui-btn-ghost ui-btn-icon" title="Sửa"><span class="material-symbols-outlined">edit</span></button></div></td></tr>
+              <tr class="is-highlight"><td>Lê Minh Khôi</td><td class="ui-nowrap">—</td><td><app-status-badge kind="patient" value="TEMPORARY" /></td>
+                <td><div class="ui-actions"><button class="ui-btn ui-btn-ghost ui-btn-sm">Bổ sung giấy tờ</button></div></td></tr>
+              <tr class="is-muted"><td>Le Thi Hoa</td><td class="ui-nowrap">0905 123 456</td><td><app-status-badge kind="patient" value="MERGED" /></td><td></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['table'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="feedback">
+    <h2 class="ui-section-title">Thông báo, trống, đang tải</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('feedback') }}</p>
+    <p class="kit-rule">Mỗi danh sách có đủ 3 trạng thái: đang tải, trống (nói rõ chưa có gì), có dữ liệu. <code>ui-alert</code> nằm cố định trong trang; toast thì tự tắt.</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-alert ui-tone-warning"><span class="material-symbols-outlined">warning</span><div><div class="ui-alert-title">Chỉ hủy được trước giờ khám ít nhất 2 giờ</div>Sau thời điểm đó vui lòng liên hệ lễ tân.</div></div>
+        <div class="ui-alert ui-tone-success"><span class="material-symbols-outlined">check_circle</span><div>Đã tạo hồ sơ mới</div></div>
+        <div class="ui-alert ui-tone-danger"><span class="material-symbols-outlined">error</span><div>Ca này trùng giờ với ca đã có</div></div>
+        <div class="ui-empty"><span class="material-symbols-outlined">event_busy</span>Chưa có lịch hẹn nào</div>
+        <div class="ui-loading"><span class="ui-spinner"></span> Đang tải…</div>
+      </div>
+      <pre class="kit-code">{{ snippets['feedback'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="api-error">
+    <h2 class="ui-section-title">Lỗi API</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('api-error') }}</p>
+    <ul class="kit-rule">
+      <li>Backend trả lỗi dạng <code>status, error, message</code> (docs/03-hop-dong-api.md mục A4). <code>message</code> đã là tiếng Việt nên hiện thẳng.</li>
+      <li>Mã lỗi nghiệp vụ trang biết cách xử lý (ví dụ <code>SLOT_ALREADY_HELD</code> → tải lại slot) thì kiểm bằng <code>apiError.is(err, 'MÃ')</code>.</li>
+      <li>501 = phần backend chưa làm, hiện màu thông tin chứ không phải lỗi đỏ.</li>
+    </ul>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="kit-row">
+          <button class="ui-btn ui-btn-secondary" (click)="callNotImplemented()" [disabled]="calling()">Gọi API thật đang 501</button>
+          <button class="ui-btn ui-btn-secondary" (click)="simulate(409)">Giả lập 409</button>
+          <button class="ui-btn ui-btn-secondary" (click)="simulate(403)">Giả lập 403</button>
+          <button class="ui-btn ui-btn-secondary" (click)="simulate(0)">Giả lập mất kết nối</button>
+        </div>
+        <p class="kit-meta">Toast hiện ở góc màn hình.</p>
+      </div>
+      <pre class="kit-code">{{ snippets['api-error'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="tabs">
+    <h2 class="ui-section-title">Tab</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('tabs') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-tabs">
+          <button class="ui-tab" [class.is-active]="tab() === 'a'" (click)="tab.set('a')">Hàng chờ <span class="ui-count">3</span></button>
+          <button class="ui-tab" [class.is-active]="tab() === 'b'" (click)="tab.set('b')">Lịch sử gộp</button>
+        </div>
+        <p class="kit-meta">Đang mở tab: {{ tab() === 'a' ? 'Hàng chờ' : 'Lịch sử gộp' }}</p>
+      </div>
+      <pre class="kit-code">{{ snippets['tabs'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="modal">
+    <h2 class="ui-section-title">Hộp thoại</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('modal') }}</p>
+    <p class="kit-rule">Form thêm / sửa và form cần nhập lý do dùng <code>ui-modal</code>. Chỉ hỏi Có / Không thì dùng <code>app-confirm-dialog</code> có sẵn.</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <button class="ui-btn ui-btn-danger" (click)="modalOpen.set(true)">Mở hộp thoại hủy lịch</button>
+        @if (modalOpen()) {
+          <div class="ui-modal-backdrop" (click)="modalOpen.set(false)">
+            <div class="ui-modal" (click)="$event.stopPropagation()">
+              <div class="ui-modal-header">
+                <h2 class="ui-modal-title">Hủy lịch hẹn</h2>
+                <button class="ui-btn ui-btn-ghost ui-btn-icon" (click)="modalOpen.set(false)"><span class="material-symbols-outlined">close</span></button>
+              </div>
+              <div class="ui-modal-body">
+                <div class="ui-field"><label class="ui-label is-required">Lý do hủy</label><textarea class="ui-textarea"></textarea></div>
+              </div>
+              <div class="ui-modal-footer">
+                <button class="ui-btn ui-btn-secondary" (click)="modalOpen.set(false)">Đóng</button>
+                <button class="ui-btn ui-btn-danger" (click)="modalOpen.set(false)">Hủy lịch</button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+      <pre class="kit-code">{{ snippets['modal'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="split">
+    <h2 class="ui-section-title">Hai cột: danh sách + chi tiết</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('split') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-split">
+          <div class="ui-list">
+            <button class="ui-list-item is-selected"><strong>Lê Thị Hoa ↔ Le Thi Hoa</strong><span class="ui-muted">Cùng giấy tờ nhưng khác thông tin · 92%</span></button>
+            <button class="ui-list-item"><strong>Trần Văn Bình ↔ Tran Van Binh</strong><span class="ui-muted">Trùng họ tên, ngày sinh, điện thoại · 88%</span></button>
+          </div>
+          <div class="ui-card">Chi tiết của mục đang chọn</div>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['split'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="summary">
+    <h2 class="ui-section-title">Tóm tắt nhãn – giá trị</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('summary') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <dl class="ui-summary">
+          <dt>Chuyên khoa</dt><dd>Nội tổng quát</dd>
+          <dt>Bác sĩ</dt><dd>ThS.BS Nguyễn Văn An</dd>
+          <dt>Thời gian</dt><dd>08:30, Thứ Hai 12/10</dd>
+          <dt>Phòng</dt><dd>P101 – Phòng khám Nội 1, Tầng 1</dd>
+        </dl>
+      </div>
+      <pre class="kit-code">{{ snippets['summary'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="steps">
+    <h2 class="ui-section-title">Các bước</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('steps') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <ol class="ui-steps">
+          <li class="ui-step is-done">Chuyên khoa</li>
+          <li class="ui-step is-done">Bác sĩ</li>
+          <li class="ui-step is-done">Ngày</li>
+          <li class="ui-step is-current">Chọn giờ</li>
+          <li class="ui-step">Hồ sơ</li>
+          <li class="ui-step">Giữ chỗ</li>
+        </ol>
+      </div>
+      <pre class="kit-code">{{ snippets['steps'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="choice">
+    <h2 class="ui-section-title">Thẻ lựa chọn</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('choice') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-choice-grid">
+          <button class="ui-choice is-selected"><span class="ui-choice-title">ThS.BS Nguyễn Văn An</span><span class="ui-muted">Nội tổng quát</span></button>
+          <button class="ui-choice"><span class="ui-choice-title">BS Võ Thị Giang</span><span class="ui-muted">Nội tổng quát</span></button>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['choice'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="chips">
+    <h2 class="ui-section-title">Chip, dải ngày</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('chips') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-chip-row">
+          <button class="ui-chip is-selected">T2<small>12/10</small></button>
+          <button class="ui-chip">T3<small>13/10</small></button>
+          <button class="ui-chip">T4<small>14/10</small></button>
+          <button class="ui-chip" disabled>CN<small>18/10</small></button>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['chips'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="slots">
+    <h2 class="ui-section-title">Lưới khung giờ</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('slots') }}</p>
+    <p class="kit-rule">Bốn trạng thái: trống · đang chọn (<code>is-selected</code>) · đã có người hoặc đã qua (<code>disabled</code>) · vừa bị người khác giữ khi nhận 409 (<code>is-locked</code>).</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-slot-grid">
+          <button class="ui-slot">07:30</button>
+          <button class="ui-slot is-selected">07:50</button>
+          <button class="ui-slot" disabled>08:10</button>
+          <button class="ui-slot is-locked" disabled>08:30</button>
+          <button class="ui-slot">08:50</button>
+          <button class="ui-slot">09:10</button>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['slots'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="countdown">
+    <h2 class="ui-section-title">Đếm ngược giữ chỗ</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('countdown') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="kit-row">
+          <div class="ui-countdown"><span class="material-symbols-outlined">timer</span> Giữ chỗ còn <strong>04:59</strong></div>
+          <div class="ui-countdown is-urgent"><span class="material-symbols-outlined">timer</span> Giữ chỗ còn <strong>00:42</strong></div>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['countdown'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="timeline">
+    <h2 class="ui-section-title">Dòng thời gian trong ngày</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('timeline') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-timeline">
+          <div class="ui-timeline-row"><span class="ui-timeline-time">07:50</span><div><strong>Trần Văn Bình</strong> <span class="ui-muted">· Tái khám</span></div><app-status-badge kind="appointment" value="COMPLETED" /></div>
+          <div class="ui-timeline-row is-now"><span class="ui-timeline-time">08:10</span><div><strong>Lê Thị Hoa</strong> <span class="ui-muted">· Đau đầu</span></div><button class="ui-btn ui-btn-primary ui-btn-sm">Đã khám</button></div>
+          <div class="ui-timeline-row is-empty"><span class="ui-timeline-time">08:30</span><div>Trống</div><span></span></div>
+          <div class="ui-timeline-row"><span class="ui-timeline-time">08:50</span><div><strong>Lê Minh Khôi</strong> <span class="ui-muted">· Sốt</span></div><app-status-badge kind="appointment" value="HELD" /></div>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['timeline'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="compare">
+    <h2 class="ui-section-title">So sánh hai hồ sơ</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('compare') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <table class="ui-compare">
+          <thead><tr><th></th><th>Hồ sơ #1</th><th>Hồ sơ #3</th></tr></thead>
+          <tbody>
+            <tr class="is-diff"><th>Họ tên</th><td>Lê Thị Hoa</td><td>Le Thi Hoa</td></tr>
+            <tr class="is-same"><th>Ngày sinh</th><td>12/05/1990</td><td>12/05/1990</td></tr>
+            <tr class="is-same"><th>Điện thoại</th><td>0905 123 456</td><td>0905 123 456</td></tr>
+            <tr class="is-diff"><th>Giấy tờ</th><td>CCCD 048190001234</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre class="kit-code">{{ snippets['compare'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="week">
+    <h2 class="ui-section-title">Lưới tuần</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('week') }}</p>
+    <p class="kit-rule">Ca đã ngừng vẫn hiện, gạch ngang (<code>is-inactive</code>) — hệ thống không xóa ca.</p>
+    <div class="kit-body kit-wide">
+      <div class="kit-preview">
+        <div class="ui-week">
+          @for (d of ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN']; track d; let i = $index) {
+            <div class="ui-week-day">
+              <div class="ui-week-day-name">{{ d }}</div>
+              @if (i < 5) {
+                <div class="ui-week-shift">07:30–11:30<br><span class="ui-muted">P101 · 20 phút</span></div>
+                <div class="ui-week-shift" [class.is-inactive]="i === 4">13:30–16:30</div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['week'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="auth">
+    <h2 class="ui-section-title">Đăng nhập, đăng ký</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('auth') }}</p>
+    <div class="kit-body">
+      <div class="kit-preview">
+        <div class="ui-auth">
+          <form class="ui-auth-card" (submit)="$event.preventDefault()">
+            <h1 class="ui-page-title">Đăng nhập</h1>
+            <div class="ui-field"><label class="ui-label">Tên đăng nhập</label><input class="ui-input" value="benhnhan"></div>
+            <div class="ui-field"><label class="ui-label">Mật khẩu</label><input class="ui-input" type="password"></div>
+            <div class="ui-alert ui-tone-danger"><span class="material-symbols-outlined">error</span><div>Sai tên đăng nhập hoặc mật khẩu</div></div>
+            <button class="ui-btn ui-btn-primary">Đăng nhập</button>
+          </form>
+        </div>
+      </div>
+      <pre class="kit-code">{{ snippets['auth'] }}</pre>
+    </div>
+  </section>
+
+  <section class="kit-section" id="existing">
+    <h2 class="ui-section-title">Thành phần Angular có sẵn</h2>
+    <p class="kit-meta">Dùng ở: {{ usedBy('existing') }}</p>
+    <pre class="kit-code">{{ snippets['existing'] }}</pre>
+  </section>
+</section>

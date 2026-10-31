@@ -29,7 +29,7 @@ public class CompositeController {
     @GetMapping("/my-appointments")
     public Mono<List<AppointmentView>> myAppointments(@RequestHeader("X-User-Id") Long accountId) {
         return Mono.error(new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
-            "Chưa làm: ghép Scheduling + Provider + Patient (docs/06, mục B6)"));
+            "Chưa làm: ghép Scheduling + Provider + Patient (docs/03-hop-dong-api.md, mục B6)"));
     }
 
     @GetMapping("/doctor-agenda")

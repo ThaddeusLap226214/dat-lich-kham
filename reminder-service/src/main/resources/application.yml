@@ -42,3 +42,12 @@ reminder:
   cron: "0 */5 * * * *"
   hours-before: 24
   from-address: no-reply@datlichkham.local
+
+logging:
+  pattern:
+    # Mã truy vết request ở đầu mỗi dòng log (CorrelationIdFilter đặt vào MDC)
+    correlation: "[%X{correlationId:-}] "
+
+# Thời gian chờ tối đa khi gọi service khác (C-3, một giá trị chung cho Scheduling, Reminder, Gateway)
+clinic:
+  client-timeout: 3s

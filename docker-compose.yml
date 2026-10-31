@@ -1,6 +1,6 @@
 # Bật toàn bộ hệ thống: docker compose up -d --build   → web ở http://localhost:4200
 # Web gọi API qua Gateway (8080); các cổng khác mở ra chỉ để quan sát khi demo.
-# Khi phát triển muốn gọi thẳng từng service thì thêm file docker-compose.dev.yml (xem docs/01).
+# Khi phát triển muốn gọi thẳng từng service thì thêm file docker-compose.dev.yml (xem docs/00-bat-dau-tu-day.md mục 6.3).
 name: dat-lich-kham
 
 services:
@@ -17,6 +17,7 @@ services:
       PATIENT_DB_PASSWORD: ${PATIENT_DB_PASSWORD:-patient_user_pw}
       SCHEDULING_DB_PASSWORD: ${SCHEDULING_DB_PASSWORD:-scheduling_user_pw}
       REMINDER_DB_PASSWORD: ${REMINDER_DB_PASSWORD:-reminder_user_pw}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_user_pw}
       TZ: Asia/Ho_Chi_Minh
     ports:
       - "3307:3306"
@@ -54,6 +55,43 @@ services:
     mem_limit: 64m
     ports:
       - "8025:8025"
+
+  # Nơi cấp danh tính: giữ mật khẩu, vai trò, cấp token. Realm nạp từ docker/keycloak/*.json ở lần chạy đầu
+  # (đã có realm thì bỏ qua). Quản trị: http://localhost:8180/admin
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.0
+    container_name: keycloak
+    restart: unless-stopped
+    mem_limit: 1024m
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_DB: mysql
+      KC_DB_URL: jdbc:mysql://mysql:3306/keycloak_db
+      KC_DB_USERNAME: keycloak_user
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD:-keycloak_user_pw}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin_pw}
+      # Trình duyệt thấy localhost:8180, container khác gọi keycloak:8080; cố định địa chỉ ngoài để trường iss
+      # trong token luôn là http://localhost:8180/realms/dat-lich-kham dù token lấy từ đường nào
+      KC_HOSTNAME: http://localhost:8180
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+      KC_HEALTH_ENABLED: "true"
+      AUTH_SERVICE_CLIENT_SECRET: ${AUTH_SERVICE_CLIENT_SECRET:-doi-chuoi-nay-trong-file-env}
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./docker/keycloak:/opt/keycloak/data/import:ro
+    healthcheck:
+      # Ảnh Keycloak không có curl; hỏi cổng quản lý 9000 bằng bash
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   discovery-server:
     build:
@@ -111,7 +149,9 @@ services:
       DB_HOST: mysql
       DB_USERNAME: auth_user
       DB_PASSWORD: ${AUTH_DB_PASSWORD:-auth_user_pw}
-      JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-trong-file-env-it-nhat-32-ky-tu!!}
+      # Không chờ Keycloak lúc khởi động: Keycloak tắt thì Auth vẫn chạy, chỉ báo lỗi khi cần tạo / khóa tài khoản
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_CLIENT_SECRET: ${AUTH_SERVICE_CLIENT_SECRET:-doi-chuoi-nay-trong-file-env}
     healthcheck:
       test: ["CMD", "curl", "-fs", "http://localhost:8081/actuator/health"]
       interval: 10s

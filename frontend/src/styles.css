@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import './styles/ui.css';
 
 :root {
   --on-error: #ffffff;
@@ -48,6 +49,18 @@
   --secondary-fixed-dim: #89ceff;
   --on-tertiary-fixed: #141d21;
   --on-background: #0b1c30;
+
+  /* Màu trạng thái dùng chung: xanh lá = thành công, cam = đang chờ / tạm, đỏ = lỗi / hủy, xám = đã qua */
+  --success: #2e7d32;
+  --success-container: #e3f4e4;
+  --on-success-container: #1b5e20;
+  --warning: #ed8b00;
+  --warning-container: #fff4e0;
+  --on-warning-container: #7a4a00;
+  --neutral-container: #eceff3;
+  --on-neutral-container: #4a5560;
+  --info-container: var(--primary-fixed);
+  --on-info-container: var(--on-primary-fixed-variant);
 
   --font-family-manrope: 'Manrope', sans-serif;
   --font-family-inter: 'Inter', sans-serif;
