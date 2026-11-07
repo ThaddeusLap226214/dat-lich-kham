@@ -1,0 +1,215 @@
+<section class="ui-page">
+  <header class="ui-page-header">
+    <div>
+      <h1 class="ui-page-title">Đặt lịch khám</h1>
+      <p class="ui-page-subtitle">Chọn chuyên khoa, bác sĩ, khung giờ và xác nhận lịch hẹn trực tuyến</p>
+    </div>
+    @if (heldAppointment) {
+      <div class="ui-page-actions">
+        <span class="ui-badge ui-tone-warning timer-badge">
+          <span class="material-symbols-outlined">timer</span>
+          Giữ chỗ: <strong>{{ countdownDisplay }}</strong>
+        </span>
+      </div>
+    }
+  </header>
+
+  <!-- MÀN HÌNH THÀNH CÔNG -->
+  @if (confirmedAppointment) {
+    <div class="ui-alert ui-tone-success success-card">
+      <span class="material-symbols-outlined success-icon">check_circle</span>
+      <div class="success-content">
+        <h2 class="ui-section-title">Đặt lịch khám thành công!</h2>
+        <p>Lịch khám của bạn đã được lưu vào hệ thống và xác nhận thành công.</p>
+        
+        <dl class="ui-summary booking-summary-list">
+          <dt>Mã lịch hẹn:</dt>
+          <dd><strong>#{{ confirmedAppointment.id }}</strong></dd>
+          
+          <dt>Bác sĩ:</dt>
+          <dd>{{ getSelectedDoctorName() }}</dd>
+          
+          <dt>Thời gian khám:</dt>
+          <dd><strong>{{ formatTime(confirmedAppointment.startTime) }} - {{ formatTime(confirmedAppointment.endTime) }}</strong> (ngày {{ selectedDate }})</dd>
+          
+          <dt>Phòng khám:</dt>
+          <dd>Phòng {{ confirmedAppointment.roomId }}</dd>
+
+          <dt>Trạng thái:</dt>
+          <dd><app-status-badge kind="appointment" [value]="confirmedAppointment.status" /></dd>
+        </dl>
+
+        <div class="success-actions">
+          <button class="ui-btn ui-btn-primary" (click)="resetBooking()">
+            <span class="material-symbols-outlined">add</span> Đặt lịch mới
+          </button>
+          <a routerLink="/appointments" class="ui-btn ui-btn-secondary">
+            <span class="material-symbols-outlined">list_alt</span> Xem lịch hẹn
+          </a>
+        </div>
+      </div>
+    </div>
+  } @else {
+
+    <!-- CẢNH BÁO ĐANG GIỮ CHỖ -->
+    @if (heldAppointment) {
+      <div class="ui-alert ui-tone-warning hold-alert">
+        <span class="material-symbols-outlined">lock_clock</span>
+        <div class="hold-alert-content">
+          <div class="ui-alert-title">
+            Bạn đang giữ chỗ khung giờ <strong>{{ formatTime(heldAppointment.startTime) }} - {{ formatTime(heldAppointment.endTime) }}</strong>
+          </div>
+          <p>
+            Vui lòng bấm nút <strong>"Xác nhận đặt lịch"</strong> trước khi thời gian đếm ngược kết thúc (còn <strong>{{ countdownDisplay }}</strong>).
+            Sau thời gian này, slot sẽ tự động được giải phóng cho người khác.
+          </p>
+          <div class="hold-actions">
+            <button class="ui-btn ui-btn-primary" (click)="onConfirm()" [disabled]="submittingConfirm">
+              <span class="material-symbols-outlined">verified</span>
+              {{ submittingConfirm ? 'Đang xác nhận…' : 'Xác nhận đặt lịch ngay' }}
+            </button>
+            <button class="ui-btn ui-btn-secondary" (click)="resetBooking()" [disabled]="submittingConfirm">
+              Hủy bỏ & chọn lại
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- FORM ĐẶT LỊCH -->
+    <div class="booking-container">
+      
+      <!-- BƯỚC 1: CHỌN BÁC SĨ & NGÀY KHÁM -->
+      <article class="ui-card">
+        <div class="ui-card-header">
+          <h2 class="ui-card-title">1. Chọn Chuyên khoa & Bác sĩ</h2>
+        </div>
+        <div class="ui-form-grid">
+          <div class="ui-field">
+            <label class="ui-label">Chuyên khoa</label>
+            <select class="ui-select" [(ngModel)]="selectedSpecialtyId" (change)="onSpecialtyChange()" [disabled]="!!heldAppointment">
+              <option [ngValue]="null">-- Tất cả chuyên khoa --</option>
+              @for (spec of specialties; track spec.id) {
+                <option [ngValue]="spec.id">{{ spec.name }} ({{ spec.code }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-label is-required">Bác sĩ khám</label>
+            <select class="ui-select" [(ngModel)]="selectedDoctorId" (change)="onDoctorChange()" [disabled]="!!heldAppointment">
+              @for (doc of doctors; track doc.id) {
+                <option [ngValue]="doc.id">{{ doc.name }} ({{ doc.title || 'Bác sĩ' }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-label is-required">Ngày khám</label>
+            <input type="date" class="ui-input" [(ngModel)]="selectedDate" (change)="onDateChange()" [disabled]="!!heldAppointment" />
+            <span class="ui-hint">Đặt trước tối đa 30 ngày (theo CS05)</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- BƯỚC 2: CHỌN KHUNG GIỜ (SLOTS) -->
+      <article class="ui-card">
+        <div class="ui-card-header">
+          <h2 class="ui-card-title">2. Chọn Khung giờ khám</h2>
+          @if (loadingSlots) {
+            <span class="ui-muted">Đang tải slot…</span>
+          }
+        </div>
+
+        @if (loadingSlots) {
+          <div class="slots-loading">
+            <span class="material-symbols-outlined spin">sync</span> Đang kiểm tra slot trống...
+          </div>
+        } @else if (!selectedDoctorId) {
+          <p class="ui-muted">Vui lòng chọn bác sĩ để xem danh sách slot khám.</p>
+        } @else if (slots.length === 0) {
+          <div class="ui-alert ui-tone-info">
+            <span class="material-symbols-outlined">info</span>
+            <div>Bác sĩ không có ca khám hoặc không còn slot nào trong ngày này. Vui lòng chọn ngày khác.</div>
+          </div>
+        } @else {
+          <div class="slots-legend">
+            <span class="legend-item"><span class="legend-box is-available"></span> Còn trống</span>
+            <span class="legend-item"><span class="legend-box is-selected"></span> Đang chọn</span>
+            <span class="legend-item"><span class="legend-box is-occupied"></span> Đã kín / Không khả dụng</span>
+          </div>
+
+          <div class="slots-grid">
+            @for (slot of slots; track slot.startTime) {
+              <button
+                type="button"
+                class="slot-btn"
+                [class.is-available]="slot.available"
+                [class.is-occupied]="!slot.available"
+                [class.is-selected]="selectedSlot?.startTime === slot.startTime"
+                [disabled]="!slot.available || !!heldAppointment"
+                (click)="selectSlot(slot)"
+              >
+                <div class="slot-time">{{ formatTime(slot.startTime) }} - {{ formatTime(slot.endTime) }}</div>
+                <div class="slot-status">
+                  @if (selectedSlot?.startTime === slot.startTime) {
+                    ✓ Đã chọn
+                  } @else if (slot.available) {
+                    Phòng {{ slot.roomId }}
+                  } @else {
+                    Đã kín
+                  }
+                </div>
+              </button>
+            }
+          </div>
+        }
+      </article>
+
+      <!-- BƯỚC 3: HỒ SƠ BỆNH NHÂN & LÝ DO KHÁM -->
+      <article class="ui-card">
+        <div class="ui-card-header">
+          <h2 class="ui-card-title">3. Thông tin người khám</h2>
+        </div>
+
+        <div class="ui-form-grid">
+          @if (currentIdentity().role === 'PATIENT') {
+            <div class="ui-field ui-field-full">
+              <label class="ui-label is-required">Chọn hồ sơ bệnh nhân</label>
+              <select class="ui-select" [(ngModel)]="selectedPatientId" [disabled]="!!heldAppointment">
+                @for (p of myPatients; track p.id) {
+                  <option [ngValue]="p.id">{{ p.fullName }} (Mã #{{ p.id }} - {{ p.phone || 'Không có SĐT' }})</option>
+                }
+              </select>
+              <span class="ui-hint">Chọn hồ sơ của bạn hoặc người nhà mà bạn quản lý</span>
+            </div>
+          } @else {
+            <div class="ui-field">
+              <label class="ui-label is-required">Mã hồ sơ bệnh nhân (patientId)</label>
+              <input type="number" class="ui-input" [(ngModel)]="selectedPatientId" placeholder="Nhập mã hồ sơ (ví dụ: 1, 2, 3)" [disabled]="!!heldAppointment" />
+            </div>
+          }
+
+          <div class="ui-field ui-field-full">
+            <label class="ui-label">Lý do khám / Triệu chứng</label>
+            <textarea class="ui-textarea" [(ngModel)]="reason" placeholder="Mô tả triệu chứng hoặc lý do đến khám (không bắt buộc)" rows="3" [disabled]="!!heldAppointment"></textarea>
+          </div>
+        </div>
+
+        @if (!heldAppointment) {
+          <div class="ui-form-actions">
+            <button
+              class="ui-btn ui-btn-primary"
+              [disabled]="!selectedSlot || !selectedPatientId || submittingHold"
+              (click)="onHold()"
+            >
+              <span class="material-symbols-outlined">lock</span>
+              {{ submittingHold ? 'Đang kiểm tra và giữ chỗ…' : 'Giữ chỗ này (5 phút)' }}
+            </button>
+          </div>
+        }
+      </article>
+
+    </div>
+  }
+</section>

@@ -65,7 +65,8 @@ export const APP_PAGES: AppPage[] = [
       'Nhận 409 SLOT_ALREADY_HELD → báo "vừa có người giữ" và tải lại slot',
       'Xác nhận (POST /api/v1/appointments/{id}/confirm)'
     ],
-    api: { method: 'GET', path: '/slots?doctorId=1&date={today}' }
+    api: { method: 'GET', path: '/slots?doctorId=1&date={today}' },
+    implemented: true
   },
   {
     path: 'my-appointments', title: 'Lịch khám của tôi', icon: 'calendar_month', roles: ['PATIENT'], part: 'P4',
@@ -94,7 +95,8 @@ export const APP_PAGES: AppPage[] = [
     path: 'appointments', title: 'Lịch hẹn theo bác sĩ', icon: 'event_note', roles: ['RECEPTIONIST'], part: 'P2',
     summary: 'Lễ tân xem lịch hẹn của từng bác sĩ trong ngày, hủy giúp bệnh nhân.',
     tasks: ['Chọn bác sĩ + ngày (GET /api/v1/appointments?doctorId=&date=)', 'Hủy lịch thay bệnh nhân'],
-    api: { method: 'GET', path: '/appointments?doctorId=1&date={today}' }
+    api: { method: 'GET', path: '/appointments?doctorId=1&date={today}' },
+    implemented: true
   },
   {
     path: 'doctor-agenda', title: 'Lịch khám trong ngày', icon: 'today', roles: ['DOCTOR'], part: 'P3',

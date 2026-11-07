@@ -1,0 +1,180 @@
+<section class="ui-page">
+  <header class="ui-page-header">
+    <div>
+      <h1 class="ui-page-title">Lịch hẹn theo bác sĩ</h1>
+      <p class="ui-page-subtitle">Xem danh sách lịch hẹn của từng bác sĩ trong ngày, hỗ trợ hủy lịch, hoàn thành hoặc ghi nhận không đến</p>
+    </div>
+    <div class="ui-page-actions">
+      <a routerLink="/booking" class="ui-btn ui-btn-primary">
+        <span class="material-symbols-outlined">add</span> Đặt lịch khám
+      </a>
+    </div>
+  </header>
+
+  <!-- THANH LỌC BÁC SĨ & NGÀY -->
+  <div class="ui-toolbar">
+    <div class="ui-field ui-toolbar-grow">
+      <label class="ui-label">Bác sĩ</label>
+      <select class="ui-select" [(ngModel)]="selectedDoctorId" (change)="onDoctorChange()" [disabled]="!!currentIdentity().doctorId">
+        @for (doc of doctors; track doc.id) {
+          <option [ngValue]="doc.id">{{ doc.name }} ({{ doc.title || 'Bác sĩ' }})</option>
+        }
+      </select>
+    </div>
+
+    <div class="ui-field">
+      <label class="ui-label">Ngày khám</label>
+      <input type="date" class="ui-input" [(ngModel)]="selectedDate" (change)="onDateChange()" />
+    </div>
+
+    <div class="ui-field align-self-end">
+      <button class="ui-btn ui-btn-secondary" (click)="loadAppointments()" [disabled]="loading">
+        <span class="material-symbols-outlined">refresh</span> Tải lại
+      </button>
+    </div>
+  </div>
+
+  <!-- THỐNG KÊ NHANH -->
+  <div class="ui-stats">
+    <div class="ui-stat">
+      <div class="ui-stat-label">Tổng lượt</div>
+      <div class="ui-stat-value">{{ totalCount }}</div>
+    </div>
+    <div class="ui-stat">
+      <div class="ui-stat-label">Đã xác nhận</div>
+      <div class="ui-stat-value text-primary">{{ confirmedCount }}</div>
+    </div>
+    <div class="ui-stat">
+      <div class="ui-stat-label">Đã khám</div>
+      <div class="ui-stat-value text-success">{{ completedCount }}</div>
+    </div>
+    <div class="ui-stat">
+      <div class="ui-stat-label">Không đến</div>
+      <div class="ui-stat-value text-muted">{{ noShowCount }}</div>
+    </div>
+    <div class="ui-stat">
+      <div class="ui-stat-label">Đã hủy</div>
+      <div class="ui-stat-value text-danger">{{ cancelledCount }}</div>
+    </div>
+  </div>
+
+  <!-- BẢNG DANH SÁCH LỊCH HẸN -->
+  @if (loading) {
+    <div class="loading-state">
+      <span class="material-symbols-outlined spin">sync</span> Đang tải danh sách lịch hẹn…
+    </div>
+  } @else if (appointments.length === 0) {
+    <div class="ui-alert ui-tone-info">
+      <span class="material-symbols-outlined">event_busy</span>
+      <div>Không có lịch hẹn nào của bác sĩ trong ngày {{ selectedDate }}.</div>
+    </div>
+  } @else {
+    <div class="ui-table-wrap">
+      <table class="ui-table">
+        <thead>
+          <tr>
+            <th>Mã</th>
+            <th>Giờ khám</th>
+            <th>Bệnh nhân</th>
+            <th>Phòng khám</th>
+            <th>Lý do khám / Ghi chú</th>
+            <th>Trạng thái</th>
+            <th class="ui-text-right">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of appointments; track item.appointmentId) {
+            <tr [class.is-muted]="item.status === 'CANCELLED' || item.status === 'EXPIRED'" [class.is-highlight]="item.status === 'CONFIRMED'">
+              <td class="ui-nowrap">#{{ item.appointmentId }}</td>
+              <td class="ui-nowrap font-medium">
+                {{ formatTime(item.startTime) }} - {{ formatTime(item.endTime) }}
+              </td>
+              <td>
+                <div class="font-medium">{{ item.patient?.fullName || ('Hồ sơ #' + item.appointmentId) }}</div>
+                @if (item.patient?.phone) {
+                  <div class="ui-muted small">{{ item.patient?.phone }}</div>
+                }
+              </td>
+              <td class="ui-nowrap">
+                {{ item.room?.name || ('Phòng ' + (item.room?.id || '—')) }}
+              </td>
+              <td>
+                <div>{{ item.reason || '—' }}</div>
+                @if (item.cancelReason) {
+                  <div class="cancel-reason-tag">Lý do hủy: {{ item.cancelReason }}</div>
+                }
+              </td>
+              <td>
+                <app-status-badge kind="appointment" [value]="item.status" />
+              </td>
+              <td class="ui-text-right ui-nowrap">
+                <div class="action-buttons">
+                  @if (item.status === 'CONFIRMED') {
+                    <!-- Nút Đã khám: chỉ khi đã tới hoặc qua giờ khám (CS09) -->
+                    <button
+                      class="ui-btn ui-btn-sm ui-btn-primary"
+                      title="Đánh dấu đã khám"
+                      [disabled]="processingAction || !isPastStartTime(item.startTime)"
+                      (click)="onComplete(item.appointmentId)"
+                    >
+                      <span class="material-symbols-outlined">check</span> Đã khám
+                    </button>
+
+                    <!-- Nút Không đến: chỉ khi đã qua giờ khám (CS10) -->
+                    <button
+                      class="ui-btn ui-btn-sm ui-btn-secondary"
+                      title="Ghi nhận bệnh nhân không đến"
+                      [disabled]="processingAction || !isPastStartTime(item.startTime)"
+                      (click)="onNoShow(item.appointmentId)"
+                    >
+                      <span class="material-symbols-outlined">person_off</span> Không đến
+                    </button>
+
+                    <!-- Nút Hủy lịch: Lễ tân hoặc người đặt (CS07, CS08) -->
+                    <button
+                      class="ui-btn ui-btn-sm ui-btn-danger"
+                      title="Hủy lịch hẹn"
+                      [disabled]="processingAction"
+                      (click)="openCancelModal(item.appointmentId)"
+                    >
+                      <span class="material-symbols-outlined">cancel</span> Hủy
+                    </button>
+                  } @else {
+                    <span class="ui-muted small">Không khả dụng</span>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- MODAL XÁC NHẬN HỦY LỊCH -->
+  @if (cancelModalOpen) {
+    <div class="modal-backdrop">
+      <div class="modal-card">
+        <h3 class="modal-title">Xác nhận hủy lịch hẹn #{{ cancellingAppointmentId }}</h3>
+        <p class="ui-muted">
+          Bạn có chắc chắn muốn hủy lịch hẹn này? Khi hủy, khung giờ sẽ được giải phóng cho người khác và email báo hủy sẽ được gửi đi.
+        </p>
+        
+        <div class="ui-field">
+          <label class="ui-label is-required">Lý do hủy lịch</label>
+          <textarea class="ui-textarea" [(ngModel)]="cancelReason" placeholder="Nhập lý do hủy lịch..." rows="3"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="ui-btn ui-btn-secondary" (click)="closeCancelModal()" [disabled]="processingAction">
+            Đóng
+          </button>
+          <button class="ui-btn ui-btn-danger" (click)="submitCancel()" [disabled]="processingAction || !cancelReason.trim()">
+            <span class="material-symbols-outlined">delete</span>
+            {{ processingAction ? 'Đang hủy…' : 'Xác nhận hủy' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

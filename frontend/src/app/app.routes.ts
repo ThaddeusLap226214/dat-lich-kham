@@ -64,6 +64,16 @@ export const routes: Routes = [
           .then(m => m.AccountsPageComponent)
       },
       {
+        path: 'booking',
+        loadComponent: () => import('./features/booking/pages/booking-page.component')
+          .then(m => m.BookingPageComponent)
+      },
+      {
+        path: 'appointments',
+        loadComponent: () => import('./features/appointments/pages/appointments-page.component')
+          .then(m => m.AppointmentsPageComponent)
+      },
+      {
         path: 'ui-kit',
         loadComponent: () => import('./features/ui-kit/ui-kit-page.component').then(m => m.UiKitPageComponent)
       },
