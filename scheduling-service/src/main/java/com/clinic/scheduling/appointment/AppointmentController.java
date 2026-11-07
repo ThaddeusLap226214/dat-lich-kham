@@ -32,8 +32,9 @@ public class AppointmentController {
     @PostMapping("/hold")
     @ResponseStatus(HttpStatus.CREATED)
     public AppointmentResponse hold(@Valid @RequestBody HoldRequest request,
-                                    @RequestHeader("X-User-Id") Long accountId) {
-        return appointmentService.hold(request, accountId);
+                                    @RequestHeader("X-User-Id") Long accountId,
+                                    @RequestHeader("X-User-Role") String role) {
+        return appointmentService.hold(request, accountId, role);
     }
 
     @PostMapping("/{id}/confirm")
@@ -50,9 +51,18 @@ public class AppointmentController {
 
     @PostMapping("/{id}/complete")
     public AppointmentResponse complete(@PathVariable Long id,
+                                        @RequestHeader("X-User-Id") Long accountId,
                                         @RequestHeader(value = "X-Doctor-Id", required = false) Long doctorId,
                                         @RequestHeader("X-User-Role") String role) {
-        return appointmentService.complete(id, doctorId, role);
+        return appointmentService.complete(id, accountId, doctorId, role);
+    }
+
+    @PostMapping("/{id}/no-show")
+    public AppointmentResponse noShow(@PathVariable Long id,
+                                      @RequestHeader("X-User-Id") Long accountId,
+                                      @RequestHeader(value = "X-Doctor-Id", required = false) Long doctorId,
+                                      @RequestHeader("X-User-Role") String role) {
+        return appointmentService.noShow(id, accountId, doctorId, role);
     }
 
     @GetMapping("/mine")
@@ -68,7 +78,10 @@ public class AppointmentController {
     }
 
     @GetMapping("/{id}")
-    public AppointmentResponse get(@PathVariable Long id) {
-        return appointmentService.get(id);
+    public AppointmentResponse get(@PathVariable Long id,
+                                   @RequestHeader("X-User-Id") Long accountId,
+                                   @RequestHeader("X-User-Role") String role,
+                                   @RequestHeader(value = "X-Doctor-Id", required = false) Long doctorId) {
+        return appointmentService.get(id, accountId, role, doctorId);
     }
 }

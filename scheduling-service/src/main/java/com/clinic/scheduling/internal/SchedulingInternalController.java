@@ -26,10 +26,11 @@ public class SchedulingInternalController {
     @GetMapping("/appointments")
     public List<AppointmentResponse> search(
         @RequestParam(required = false) Long bookedByAccountId,
+        @RequestParam(required = false) List<Long> patientIds,
         @RequestParam(required = false) Long doctorId,
         @RequestParam(required = false) AppointmentStatus status,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
-        return appointmentService.search(bookedByAccountId, doctorId, status, from, to);
+        return appointmentService.search(bookedByAccountId, patientIds, doctorId, status, from, to);
     }
 }

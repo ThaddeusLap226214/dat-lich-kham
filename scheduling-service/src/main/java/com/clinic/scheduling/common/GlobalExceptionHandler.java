@@ -30,6 +30,14 @@ public class GlobalExceptionHandler {
         return build(ex.getStatus(), ex.getCode(), ex.getMessage(), req);
     }
 
+    @ExceptionHandler(org.springframework.web.client.RestClientException.class)
+    public ResponseEntity<ApiError> handleRestClientException(org.springframework.web.client.RestClientException ex,
+                                                               HttpServletRequest req) {
+        log.error("Lỗi khi gọi service khác từ {}: {}", req.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.SERVICE_UNAVAILABLE, "SERVICE_UNAVAILABLE",
+            "Dịch vụ liên quan hiện không khả dụng, vui lòng thử lại sau", req);
+    }
+
     @ExceptionHandler(NotImplementedYetException.class)
     public ResponseEntity<ApiError> handleNotImplemented(NotImplementedYetException ex, HttpServletRequest req) {
         return build(HttpStatus.NOT_IMPLEMENTED, "NOT_IMPLEMENTED", ex.getMessage(), req);

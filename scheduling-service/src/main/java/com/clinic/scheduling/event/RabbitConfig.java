@@ -23,6 +23,11 @@ public class RabbitConfig {
         return new TopicExchange(Messaging.DEAD_LETTER_EXCHANGE, true, false);
     }
 
+    @Bean
+    public TopicExchange appointmentExchange() {
+        return new TopicExchange(Messaging.APPOINTMENT_EXCHANGE, true, false);
+    }
+
     // Tin nhắn xử lý lỗi bị chuyển sang DLQ để xem lại, không mất và không lặp vô hạn
     @Bean
     public Queue patientEventsQueue() {

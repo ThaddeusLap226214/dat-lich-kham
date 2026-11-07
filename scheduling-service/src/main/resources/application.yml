@@ -47,6 +47,10 @@ management:
 scheduling:
   hold-minutes: 5
   cancel-before-hours: 2
+  max-holds-per-account: 3
+  max-upcoming-per-patient: 5
+  book-ahead-days: 30
+  book-before-hours: 2
 
 logging:
   pattern:
