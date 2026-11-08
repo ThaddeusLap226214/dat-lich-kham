@@ -14,33 +14,54 @@ spring:
     gateway:
       server:
         webflux:
-          default-filters:
-            - name: CircuitBreaker
-              args:
-                name: defaultCircuitBreaker
-                fallbackUri: forward:/fallback
+          # Mỗi route một Circuit Breaker riêng (N5): service này hỏng không làm cầu dao của route khác mở theo
           # Đường dẫn /internal/** không có route nào → client bên ngoài không gọi được API nội bộ
           routes:
             - id: auth-service
               uri: lb://auth-service
               predicates:
                 - Path=/api/v1/auth/**,/api/v1/accounts/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: auth-service
+                    fallbackUri: forward:/fallback
             - id: provider-service
               uri: lb://provider-service
               predicates:
                 - Path=/api/v1/specialties/**,/api/v1/doctors/**,/api/v1/rooms/**,/api/v1/work-schedules/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: provider-service
+                    fallbackUri: forward:/fallback
             - id: patient-service
               uri: lb://patient-service
               predicates:
                 - Path=/api/v1/patients/**,/api/v1/duplicate-candidates/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: patient-service
+                    fallbackUri: forward:/fallback
             - id: scheduling-service
               uri: lb://scheduling-service
               predicates:
                 - Path=/api/v1/slots/**,/api/v1/appointments/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: scheduling-service
+                    fallbackUri: forward:/fallback
             - id: reminder-service
               uri: lb://reminder-service
               predicates:
                 - Path=/api/v1/reminders/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: reminder-service
+                    fallbackUri: forward:/fallback
 
 eureka:
   client:

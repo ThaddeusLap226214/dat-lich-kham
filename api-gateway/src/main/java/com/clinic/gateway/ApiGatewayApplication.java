@@ -56,7 +56,10 @@ public class ApiGatewayApplication {
     @Bean
     public Customizer<ReactiveResilience4JCircuitBreakerFactory> defaultCustomizer() {
         return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
-            .circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
+            .circuitBreakerConfig(CircuitBreakerConfig.custom()
+                // Cửa sổ nhỏ để cầu dao mở sau vài lần lỗi liên tiếp (mặc định phải đủ 100 lần gọi)
+                .slidingWindowSize(10).minimumNumberOfCalls(5)
+                .waitDurationInOpenState(Duration.ofSeconds(10)).build())
             .timeLimiterConfig(TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(5)).build())
             .build());
     }
