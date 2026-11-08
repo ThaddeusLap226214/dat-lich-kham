@@ -308,6 +308,7 @@ SchedulingClient.findConfirmedBetween(now, now + 24h)
   "endTime": "2026-10-05T08:20:00",
   "reason": "Ho kéo dài",
   "cancelReason": null,
+  "bookedByAccountId": 5,
   "doctor": { "id": 1, "fullName": "Nguyễn Văn An", "title": "ThS.BS", "specialtyName": "Nội tổng quát" },
   "room": { "id": 1, "code": "P101", "name": "Phòng khám Nội 1" },
   "patient": { "id": 1, "fullName": "Lê Thị Hoa", "dateOfBirth": "1990-05-12" }

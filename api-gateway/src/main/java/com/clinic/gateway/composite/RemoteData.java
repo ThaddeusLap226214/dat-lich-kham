@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 // Dữ liệu đọc từ API nội bộ của các service; chỉ khai báo trường cần dùng, trường thừa bị bỏ qua khi đọc JSON
 public final class RemoteData {
 
-    public record Appointment(Long id, Long patientId, Long doctorId, Long roomId, LocalDateTime startTime,
+    public record Appointment(Long id, Long patientId, Long doctorId, Long roomId, Long bookedByAccountId, LocalDateTime startTime,
                               LocalDateTime endTime, String status, String reason, String cancelReason) {
     }
 

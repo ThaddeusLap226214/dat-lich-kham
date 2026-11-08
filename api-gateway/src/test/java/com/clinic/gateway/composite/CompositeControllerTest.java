@@ -61,7 +61,11 @@ class CompositeControllerTest {
     }
 
     private static RemoteData.Appointment appointment(long id, long patientId, String reason, String cancelReason) {
-        return new RemoteData.Appointment(id, patientId, 1L, 1L, START.plusHours(id), START.plusHours(id).plusMinutes(20),
+        return appointment(id, patientId, 5L, reason, cancelReason);
+    }
+
+    private static RemoteData.Appointment appointment(long id, long patientId, long bookedBy, String reason, String cancelReason) {
+        return new RemoteData.Appointment(id, patientId, 1L, 1L, bookedBy, START.plusHours(id), START.plusHours(id).plusMinutes(20),
             cancelReason == null ? "CONFIRMED" : "CANCELLED", reason, cancelReason);
     }
 
@@ -81,7 +85,7 @@ class CompositeControllerTest {
             new RemoteData.Patient(2L, "Lê Văn Bình", null)));
         // Lịch 12 do tài khoản đặt; lịch 13 thuộc hồ sơ 2 nhưng do người khác (lễ tân) đặt, Scheduling trả cả hai
         when(scheduling.findByAccount(eq(5L), eq(List.of(1L, 2L)))).thenReturn(Flux.just(
-            appointment(12, 1, "Ho kéo dài", null), appointment(13, 2, "Khám định kỳ", "Bận việc")));
+            appointment(12, 1, "Ho kéo dài", null), appointment(13, 2, 2L, "Khám định kỳ", "Bận việc")));
         stubProviderAndPatientOk();
 
         StepVerifier.create(controller.myAppointments(5L)).assertNext(views -> {
@@ -91,6 +95,7 @@ class CompositeControllerTest {
             assertThat(first.status()).isEqualTo("CONFIRMED");
             assertThat(first.reason()).isEqualTo("Ho kéo dài");
             assertThat(first.cancelReason()).isNull();
+            assertThat(first.bookedByAccountId()).isEqualTo(5L);
             assertThat(first.doctor()).isEqualTo(new AppointmentView.DoctorView(1L, "Nguyễn Văn An", "ThS.BS", "Nội tổng quát"));
             assertThat(first.room()).isEqualTo(new AppointmentView.RoomView(1L, "P101", "Phòng khám Nội 1"));
             assertThat(first.patient()).isEqualTo(new AppointmentView.PatientView(1L, "Lê Thị Hoa", "1990-05-12"));
@@ -98,6 +103,7 @@ class CompositeControllerTest {
             assertThat(second.patient().fullName()).isEqualTo("Lê Văn Bình");
             assertThat(second.status()).isEqualTo("CANCELLED");
             assertThat(second.cancelReason()).isEqualTo("Bận việc");
+            assertThat(second.bookedByAccountId()).isEqualTo(2L);
         }).verifyComplete();
     }
 

@@ -96,7 +96,7 @@ public class CompositeController {
 
     private static AppointmentView toView(RemoteData.Appointment a, RemoteData.Doctor doctor, RemoteData.Room room,
                                           RemoteData.Patient patient) {
-        return new AppointmentView(a.id(), a.status(), a.startTime(), a.endTime(), a.reason(), a.cancelReason(),
+        return new AppointmentView(a.id(), a.status(), a.startTime(), a.endTime(), a.reason(), a.cancelReason(), a.bookedByAccountId(),
             doctor == null ? null : new AppointmentView.DoctorView(doctor.id(), doctor.fullName(), doctor.title(),
                 doctor.specialtyName()),
             room == null ? null : new AppointmentView.RoomView(room.id(), room.code(), room.name()),
