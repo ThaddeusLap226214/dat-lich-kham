@@ -1,12 +1,16 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from './layout/layout.component';
 import { APP_PAGES } from './core/app-pages';
+import { roleGuard } from './core/role.guard';
+
+const pageOf = (path: string) => APP_PAGES.find(p => p.path === path);
 
 const skeletonRoutes: Routes = APP_PAGES
   .filter(p => !p.implemented)
   .map(p => ({
     path: p.path,
     loadComponent: () => import('./features/skeleton/skeleton-page.component').then(m => m.SkeletonPageComponent),
+    canActivate: [roleGuard],
     data: { page: p }
   }));
 
@@ -50,16 +54,22 @@ export const routes: Routes = [
       },
       {
         path: 'patients',
+        canActivate: [roleGuard],
+        data: { page: pageOf('patients') },
         loadComponent: () => import('./features/patient/pages/patients-page.component')
           .then(m => m.PatientsPageComponent)
       },
       {
         path: 'register',
+        canActivate: [roleGuard],
+        data: { page: pageOf('register') },
         loadComponent: () => import('./features/account/pages/register-page.component')
           .then(m => m.RegisterPageComponent)
       },
       {
         path: 'admin/accounts',
+        canActivate: [roleGuard],
+        data: { page: pageOf('admin/accounts') },
         loadComponent: () => import('./features/account/pages/accounts-page.component')
           .then(m => m.AccountsPageComponent)
       },

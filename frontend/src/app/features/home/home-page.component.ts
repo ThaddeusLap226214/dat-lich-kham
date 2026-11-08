@@ -54,13 +54,13 @@ const CHECKS: ServiceCheck[] = [
       </table>
       <p class="legend">
         <span class="ok">200</span> đã làm xong ·
-        <span class="ok">4xx</span> service chạy, vai trò đang chọn chưa đủ quyền gọi API thử ·
+        <span class="ok">4xx</span> service chạy, tài khoản đang đăng nhập (hoặc khách) chưa đủ quyền gọi API thử ·
         <span class="todo">501</span> service chạy, đường đi đúng, phần xử lý chưa viết ·
         <span class="down">503 / lỗi</span> service chưa bật hoặc đang khởi động
       </p>
 
-      <h2>Trang dành cho vai trò đang chọn: {{ identity.identity().label }}</h2>
-      <p class="hint">Đổi vai trò ở ô "Chế độ thử" trên thanh đầu trang.</p>
+      <h2>Trang dành cho {{ identity.identity().label }}</h2>
+      <p class="hint">Đăng nhập hoặc đăng xuất ở góc phải thanh đầu trang để đổi tài khoản.</p>
       <div class="cards">
         @for (p of pages(); track p.path) {
           <a class="card" [routerLink]="'/' + p.path">

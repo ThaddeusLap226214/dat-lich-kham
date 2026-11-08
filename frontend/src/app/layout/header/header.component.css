@@ -140,25 +140,38 @@
   font-size: 1.25rem;
 }
 
-.demo-switch {
+.user-box {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
-.demo-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #7a4a00;
-  background: #fff4e0;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.5rem;
+.user-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
-.demo-switch select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--outline-variant);
-  border-radius: 0.5rem;
-  background: var(--surface-container-lowest);
+.user-label {
   font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.user-role-label {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+}
+
+.auth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  background: var(--primary);
+  color: var(--on-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
 }

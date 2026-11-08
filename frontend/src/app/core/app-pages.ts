@@ -6,7 +6,7 @@ export const PARTS: Record<Part, string> = {
   P1: 'Patient Service (MPI)',
   P2: 'Scheduling Service',
   P3: 'Provider Service',
-  P4: 'Auth Service + API Gateway',
+  P4: 'API Gateway',
   P5: 'Reminder Service',
   P6: 'Auth Service'
 };
@@ -36,16 +36,6 @@ const ALL: Role[] = ['GUEST', 'PATIENT', 'RECEPTIONIST', 'DOCTOR', 'ADMIN'];
 // Danh sách trang của hệ thống, mỗi trang thuộc một phần việc. Sidebar và router cùng đọc danh sách này.
 export const APP_PAGES: AppPage[] = [
   {
-    path: 'login', title: 'Đăng nhập', icon: 'login', roles: ['GUEST'], part: 'P4',
-    summary: 'Đăng nhập bằng tên đăng nhập và mật khẩu, nhận JWT, lưu lại để gửi kèm mọi request.',
-    tasks: [
-      'Form đăng nhập gọi POST /api/v1/auth/login',
-      'Lưu accessToken, gắn header Authorization: Bearer cho mọi request (thay cho chế độ thử)',
-      'Token hết hạn hoặc API trả 401 → quay về trang đăng nhập'
-    ],
-    api: { method: 'POST', path: '/auth/login', body: { username: 'benhnhan', password: '123456' } }
-  },
-  {
     path: 'register', title: 'Đăng ký', icon: 'person_add', roles: ['GUEST'], part: 'P6',
     summary: 'Tạo tài khoản bệnh nhân mới; Auth Service cấp mã tài khoản rồi tạo người dùng trong Keycloak.',
     tasks: [], api: { method: 'POST', path: '/auth/register' }, implemented: true
@@ -68,8 +58,8 @@ export const APP_PAGES: AppPage[] = [
     api: { method: 'GET', path: '/slots?doctorId=1&date={today}' }
   },
   {
-    path: 'my-appointments', title: 'Lịch khám của tôi', icon: 'calendar_month', roles: ['PATIENT'], part: 'P4',
-    summary: 'Danh sách lịch hẹn kèm tên bác sĩ, phòng, bệnh nhân — dữ liệu do Gateway ghép từ 3 service (API Composition).',
+    path: 'my-appointments', title: 'Lịch khám của tôi', icon: 'calendar_month', roles: ['PATIENT'], part: 'P3',
+    summary: 'Danh sách lịch hẹn kèm tên bác sĩ, phòng, bệnh nhân. Trang thuộc P3, API ghép thuộc P4 (Gateway ghép từ 3 service).',
     tasks: ['Gateway ghép Scheduling + Provider + Patient (GET /api/v1/composite/my-appointments)', 'Nút hủy lịch (POST /api/v1/appointments/{id}/cancel)'],
     api: { method: 'GET', path: '/composite/my-appointments' }
   },
@@ -120,10 +110,16 @@ export const APP_PAGES: AppPage[] = [
     tasks: [], api: { method: 'GET', path: '/accounts' }, implemented: true
   },
   {
-    path: 'admin/reminders', title: 'Nhật ký nhắc lịch', icon: 'notifications_active', roles: ['ADMIN'], part: 'P5',
-    summary: 'Các email nhắc lịch đã gửi / lỗi / bỏ qua; nút chạy quét ngay khi demo.',
-    tasks: ['Bảng nhật ký (GET /api/v1/reminders/logs)', 'Nút "Quét ngay" (POST /api/v1/reminders/run)', 'Liên kết sang Mailpit http://localhost:8025 để xem thư'],
+    path: 'admin/reminders', title: 'Nhật ký thông báo', icon: 'notifications_active', roles: ['ADMIN', 'RECEPTIONIST'], part: 'P5',
+    summary: 'Các thư nhắc lịch, xác nhận, báo hủy đã gửi / lỗi / bỏ qua; quản trị viên có nút quét ngay khi demo.',
+    tasks: ['Bảng nhật ký (GET /api/v1/reminders/logs), lọc theo trạng thái và loại thư', 'Nút "Quét ngay" (POST /api/v1/reminders/run) — chỉ quản trị viên', 'Liên kết sang Mailpit http://localhost:8025 để xem thư'],
     api: { method: 'GET', path: '/reminders/logs' }
+  },
+  {
+    path: 'admin/message-templates', title: 'Mẫu thư', icon: 'mail', roles: ['ADMIN'], part: 'P5',
+    summary: 'Quản trị viên sửa tiêu đề và nội dung của 3 loại thư: nhắc lịch, xác nhận, báo hủy.',
+    tasks: ['Xem 3 mẫu (GET /api/v1/reminders/templates)', 'Sửa tiêu đề, nội dung một mẫu (PUT /api/v1/reminders/templates/{type})'],
+    api: { method: 'GET', path: '/reminders/templates' }
   }
 ];
 
