@@ -91,7 +91,7 @@ Cách đọc bảng:
 
 ### 2.4. Lập — API Gateway
 
-**Đang ở đâu:** định tuyến 5 service, Circuit Breaker + Fallback trả `ApiError`, CORS, Correlation ID đã chạy; 3 lớp client (`SchedulingClient`, `ProviderClient`, `PatientClient`) đã có lời gọi lấy lịch theo người đặt, theo bác sĩ, và bác sĩ / phòng / hồ sơ theo mã. Còn: bộ lọc token, chặn vai trò, API ghép, đăng nhập Keycloak trên web.
+**Đang ở đâu:** định tuyến 5 service, Circuit Breaker + Fallback trả `ApiError`, CORS, Correlation ID đã chạy; 3 lớp client (`SchedulingClient`, `ProviderClient`, `PatientClient`) đã có lời gọi lấy lịch theo người đặt, theo bác sĩ, và bác sĩ / phòng / hồ sơ theo mã. Mỗi route một Circuit Breaker, bộ lọc token, chặn vai trò và đăng nhập Keycloak trên web đã làm xong ở nhánh `feature/gateway-bao-mat` (chờ merge). Còn: API ghép (P4-6, nhánh `feature/gateway-api-ghep`).
 
 | Mã | Việc | Đặc tả | Xong khi | Chờ ai khi kiểm thử |
 |---|---|---|---|---|
