@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public final class RemoteData {
 
     public record Appointment(Long id, Long patientId, Long doctorId, Long roomId, LocalDateTime startTime,
-                              LocalDateTime endTime, String status, String reason) {
+                              LocalDateTime endTime, String status, String reason, String cancelReason) {
     }
 
     public record Doctor(Long id, String fullName, String title, String specialtyName) {

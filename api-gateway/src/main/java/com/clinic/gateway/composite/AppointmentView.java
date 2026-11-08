@@ -8,6 +8,7 @@ public record AppointmentView(
     LocalDateTime startTime,
     LocalDateTime endTime,
     String reason,
+    String cancelReason,
     DoctorView doctor,
     RoomView room,
     PatientView patient) {
