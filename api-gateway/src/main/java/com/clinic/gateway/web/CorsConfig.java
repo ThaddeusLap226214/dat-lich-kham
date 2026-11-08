@@ -3,6 +3,8 @@ package com.clinic.gateway.web;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -12,7 +14,9 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 @Configuration
 public class CorsConfig {
 
+    // Sau CorrelationIdFilter, trước TokenAuthFilter: lỗi 401 / 403 của bộ lọc token vẫn kèm header CORS
     @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
     public CorsWebFilter corsWebFilter(@Value("${frontend.origin}") String frontendOrigin) {
         CorsConfiguration config = new CorsConfiguration();
         config.addAllowedOrigin(frontendOrigin);

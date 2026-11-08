@@ -15,6 +15,7 @@
  */
 package com.clinic.gateway;
 
+import com.clinic.gateway.security.TokenAuthFilter;
 import com.clinic.gateway.web.CorrelationIdFilter;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
@@ -41,7 +42,7 @@ public class ApiGatewayApplication {
     }
 
     // @LoadBalanced cho phép gọi theo tên service (http://provider-service/...), Eureka trả địa chỉ thật.
-    // Chờ tối đa clinic.client-timeout và chuyển tiếp mã truy vết của request đang xử lý
+    // Chờ tối đa clinic.client-timeout; chuyển tiếp mã truy vết và danh tính (X-User-*) của request đang xử lý
     @Bean
     @LoadBalanced
     public WebClient.Builder loadBalancedWebClientBuilder(@Value("${clinic.client-timeout}") Duration timeout) {
@@ -50,7 +51,8 @@ public class ApiGatewayApplication {
             .responseTimeout(timeout);
         return WebClient.builder()
             .clientConnector(new ReactorClientHttpConnector(httpClient))
-            .filter(CorrelationIdFilter.forwardToDownstream());
+            .filter(CorrelationIdFilter.forwardToDownstream())
+            .filter(TokenAuthFilter.forwardToDownstream());
     }
 
     @Bean

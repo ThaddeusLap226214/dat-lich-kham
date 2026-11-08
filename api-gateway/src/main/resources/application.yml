@@ -83,6 +83,11 @@ clinic:
 jwt:
   secret: ${JWT_SECRET:doi-chuoi-nay-trong-file-env-it-nhat-32-ky-tu!!}
 
+# Xác minh token Keycloak (docs/03-hop-dong-api.md, mục A5). iss là địa chỉ trình duyệt thấy; JWKS lấy qua địa chỉ nội bộ
+auth:
+  issuer: ${KEYCLOAK_ISSUER:http://localhost:8180/realms/dat-lich-kham}
+  jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/dat-lich-kham/protocol/openid-connect/certs}
+
 management:
   endpoints:
     web:
