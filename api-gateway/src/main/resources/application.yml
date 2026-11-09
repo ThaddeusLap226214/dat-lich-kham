@@ -79,6 +79,11 @@ frontend:
 # Thời gian chờ tối đa khi Gateway tự gọi service (API ghép); C-3, cùng giá trị với Scheduling, Reminder
 clinic:
   client-timeout: 3s
+  # P4-8: mỗi tài khoản (chưa đăng nhập thì mỗi IP) được dồn tối đa capacity request, hồi lại refill-per-second
+  # request mỗi giây; vượt thì 429. capacity = 0 thì tắt giới hạn
+  rate-limit:
+    capacity: ${RATE_LIMIT_CAPACITY:100}
+    refill-per-second: ${RATE_LIMIT_REFILL_PER_SECOND:50}
 
 jwt:
   secret: ${JWT_SECRET:doi-chuoi-nay-trong-file-env-it-nhat-32-ky-tu!!}

@@ -85,6 +85,7 @@ Mọi service trả lỗi cùng một dạng (lớp `ApiError`, bắt tại `Glo
 | 405 | Đường dẫn có nhưng sai phương thức | `METHOD_NOT_ALLOWED` (tự động) |
 | 415 | Gửi body không phải `application/json` | `UNSUPPORTED_MEDIA_TYPE` (tự động) |
 | 409 | Xung đột nghiệp vụ (trùng, sai trạng thái, hết hạn) | mã riêng, xem từng API |
+| 429 | Một tài khoản (chưa đăng nhập thì một IP) gửi quá nhiều request trong thời gian ngắn — **Gateway trả**, kèm header `Retry-After` (số giây phải chờ) | `TOO_MANY_REQUESTS` |
 | 501 | Phần khung chưa viết | `NOT_IMPLEMENTED` |
 | 503 | Service phía sau không phản hồi — **Gateway trả** | `SERVICE_UNAVAILABLE` |
 

@@ -71,6 +71,7 @@ public class ApiErrorWebExceptionHandler implements WebExceptionHandler {
             case FORBIDDEN -> "FORBIDDEN";
             case NOT_FOUND -> "NOT_FOUND";
             case METHOD_NOT_ALLOWED -> "METHOD_NOT_ALLOWED";
+            case TOO_MANY_REQUESTS -> "TOO_MANY_REQUESTS";
             case NOT_IMPLEMENTED -> "NOT_IMPLEMENTED";
             case SERVICE_UNAVAILABLE, GATEWAY_TIMEOUT -> "SERVICE_UNAVAILABLE";
             default -> "INTERNAL_ERROR";
