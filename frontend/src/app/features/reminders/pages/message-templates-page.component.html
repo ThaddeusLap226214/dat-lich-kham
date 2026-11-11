@@ -1,0 +1,129 @@
+<section class="ui-page">
+  <header class="ui-page-header">
+    <div>
+      <h1 class="ui-page-title">Quản lý mẫu thư thông báo</h1>
+      <p class="ui-page-subtitle">Soạn thảo tiêu đề và nội dung cho các email nhắc lịch, xác nhận và báo hủy gửi tới bệnh nhân</p>
+    </div>
+    <div class="ui-page-actions">
+      <button class="ui-btn ui-btn-secondary" (click)="loadTemplates()" [disabled]="loading">
+        <span class="material-symbols-outlined" [class.spin]="loading">refresh</span> Làm mới
+      </button>
+    </div>
+  </header>
+
+  @if (successMessage) {
+    <div class="ui-alert ui-alert-success">
+      <span class="material-symbols-outlined">check_circle</span>
+      <div class="ui-alert-content">{{ successMessage }}</div>
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="ui-alert ui-alert-danger">
+      <span class="material-symbols-outlined">error</span>
+      <div class="ui-alert-content">{{ errorMessage }}</div>
+    </div>
+  }
+
+  @if (loading) {
+    <div class="ui-loading">Đang tải danh sách mẫu thư...</div>
+  } @else {
+    <!-- DANH SÁCH MẪU THƯ DẠNG CARDS -->
+    <div class="template-grid">
+      @for (tmpl of templates; track tmpl.type) {
+        <div class="ui-card template-card">
+          <div class="template-card-header">
+            <div class="template-icon">
+              <span class="material-symbols-outlined">{{ getTypeIcon(tmpl.type) }}</span>
+            </div>
+            <div>
+              <h3 class="template-title">{{ getTypeLabel(tmpl.type) }}</h3>
+              <span class="template-type-code"><code>{{ tmpl.type }}</code></span>
+            </div>
+          </div>
+
+          <div class="template-field">
+            <label class="ui-label">Tiêu đề email:</label>
+            <div class="template-subject">{{ tmpl.subject }}</div>
+          </div>
+
+          <div class="template-field">
+            <label class="ui-label">Nội dung mẫu:</label>
+            <pre class="template-body">{{ tmpl.body }}</pre>
+          </div>
+
+          <div class="template-footer">
+            <span class="template-updated text-muted small">
+              Cập nhật: {{ tmpl.updatedAt | date:'HH:mm dd/MM/yyyy' }}
+              @if (tmpl.updatedByAccountId) {
+                (bởi Tài khoản #{{ tmpl.updatedByAccountId }})
+              } @else {
+                (Mẫu mặc định)
+              }
+            </span>
+
+            <button class="ui-btn ui-btn-primary ui-btn-sm" (click)="openEdit(tmpl)">
+              <span class="material-symbols-outlined">edit</span> Chỉnh sửa
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- MODAL / FORM CHỈNH SỬA MẪU THƯ -->
+  @if (editingTemplate) {
+    <div class="modal-backdrop" (click)="cancelEdit()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            <span class="material-symbols-outlined">edit_note</span>
+            Chỉnh sửa mẫu: {{ getTypeLabel(editingTemplate.type) }}
+          </h2>
+          <button class="modal-close" (click)="cancelEdit()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="ui-field">
+            <label class="ui-label">Tiêu đề email <span class="text-danger">*</span></label>
+            <input type="text" class="ui-input" [(ngModel)]="editSubject" placeholder="Nhập tiêu đề email..." />
+          </div>
+
+          <div class="ui-field">
+            <label class="ui-label">Nội dung email <span class="text-danger">*</span></label>
+            <textarea rows="7" class="ui-input" [(ngModel)]="editBody" placeholder="Nhập nội dung thư..."></textarea>
+          </div>
+
+          <!-- GỢI Ý PLACEHOLDER -->
+          <div class="placeholder-box">
+            <span class="placeholder-title">Biến thay thế có thể chèn vào nội dung:</span>
+            <div class="placeholder-tags">
+              <button type="button" class="tag-btn" (click)="insertPlaceholder('{patientName}')" title="Tên bệnh nhân">
+                <code>&#123;patientName&#125;</code> (Tên bệnh nhân)
+              </button>
+              <button type="button" class="tag-btn" (click)="insertPlaceholder('{startTime}')" title="Thời gian khám">
+                <code>&#123;startTime&#125;</code> (Giờ khám)
+              </button>
+              <button type="button" class="tag-btn" (click)="insertPlaceholder('{appointmentId}')" title="Mã lịch hẹn">
+                <code>&#123;appointmentId&#125;</code> (Mã lịch)
+              </button>
+              @if (editingTemplate.type === 'CANCELLATION') {
+                <button type="button" class="tag-btn" (click)="insertPlaceholder('{cancelReason}')" title="Lý do hủy">
+                  <code>&#123;cancelReason&#125;</code> (Lý do hủy)
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="ui-btn ui-btn-outline" (click)="cancelEdit()" [disabled]="saving">Hủy</button>
+          <button class="ui-btn ui-btn-primary" (click)="saveEdit()" [disabled]="saving">
+            <span class="material-symbols-outlined" [class.spin]="saving">save</span>
+            {{ saving ? 'Đang lưu...' : 'Lưu thay đổi' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

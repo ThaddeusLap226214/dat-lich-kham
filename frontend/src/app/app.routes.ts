@@ -74,6 +74,20 @@ export const routes: Routes = [
           .then(m => m.AccountsPageComponent)
       },
       {
+        path: 'admin/reminders',
+        canActivate: [roleGuard],
+        data: { page: pageOf('admin/reminders') },
+        loadComponent: () => import('./features/reminders/pages/reminder-logs-page.component')
+          .then(m => m.ReminderLogsPageComponent)
+      },
+      {
+        path: 'admin/message-templates',
+        canActivate: [roleGuard],
+        data: { page: pageOf('admin/message-templates') },
+        loadComponent: () => import('./features/reminders/pages/message-templates-page.component')
+          .then(m => m.MessageTemplatesPageComponent)
+      },
+      {
         path: 'booking',
         loadComponent: () => import('./features/booking/pages/booking-page.component')
           .then(m => m.BookingPageComponent)

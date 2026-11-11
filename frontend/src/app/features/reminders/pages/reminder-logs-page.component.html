@@ -1,0 +1,160 @@
+<section class="ui-page">
+  <header class="ui-page-header">
+    <div>
+      <h1 class="ui-page-title">Nhật ký thông báo</h1>
+      <p class="ui-page-subtitle">Theo dõi các email nhắc lịch trước giờ khám, email xác nhận và báo hủy gửi tới bệnh nhân</p>
+    </div>
+    <div class="ui-page-actions">
+      <button class="ui-btn ui-btn-outline" (click)="openMailpit()">
+        <span class="material-symbols-outlined">mail</span> Mở Mailpit (8025)
+      </button>
+
+      @if (isAdmin()) {
+        <button class="ui-btn ui-btn-primary" (click)="runNow()" [disabled]="running">
+          <span class="material-symbols-outlined" [class.spin]="running">sync</span>
+          {{ running ? 'Đang quét...' : 'Quét ngay' }}
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- KẾT QUẢ QUÉT GẦN NHẤT -->
+  @if (lastRunResult) {
+    <div class="ui-alert ui-alert-success">
+      <span class="material-symbols-outlined">check_circle</span>
+      <div class="ui-alert-content">
+        <strong>Quét hoàn tất:</strong>
+        Đã kiểm tra {{ lastRunResult.checked }} lịch,
+        gửi thành công <span class="text-success font-bold">{{ lastRunResult.sent }}</span> thư,
+        bỏ qua <span class="text-warning font-bold">{{ lastRunResult.skipped }}</span> (không có email),
+        lỗi <span class="text-danger font-bold">{{ lastRunResult.failed }}</span>.
+      </div>
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="ui-alert ui-alert-danger">
+      <span class="material-symbols-outlined">error</span>
+      <div class="ui-alert-content">{{ errorMessage }}</div>
+    </div>
+  }
+
+  <!-- THỐNG KÊ NHANH -->
+  <div class="ui-stats">
+    <div class="ui-stat">
+      <div class="ui-stat-label">Tổng số bản ghi</div>
+      <div class="ui-stat-value">{{ totalCount }}</div>
+    </div>
+    <div class="ui-stat">
+      <div class="ui-stat-label">Đã gửi thành công (SENT)</div>
+      <div class="ui-stat-value text-success">{{ sentCount }}</div>
+    </div>
+    <div class="ui-stat">
+      <div class="ui-stat-label">Bỏ qua / Không email (SKIPPED)</div>
+      <div class="ui-stat-value text-warning">{{ skippedCount }}</div>
+    </div>
+    <div class="ui-stat">
+      <div class="ui-stat-label">Gửi lỗi / Thất bại (FAILED)</div>
+      <div class="ui-stat-value text-danger">{{ failedCount }}</div>
+    </div>
+  </div>
+
+  <!-- BỘ LỌC -->
+  <div class="ui-toolbar">
+    <div class="ui-field">
+      <label class="ui-label">Trạng thái</label>
+      <select class="ui-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+        <option value="">-- Tất cả trạng thái --</option>
+        <option value="SENT">SENT (Đã gửi)</option>
+        <option value="FAILED">FAILED (Thất bại)</option>
+        <option value="SKIPPED">SKIPPED (Bỏ qua)</option>
+      </select>
+    </div>
+
+    <div class="ui-field">
+      <label class="ui-label">Loại thông báo</label>
+      <select class="ui-select" [(ngModel)]="selectedType" (change)="onFilterChange()">
+        <option value="">-- Tất cả loại thư --</option>
+        <option value="BEFORE_APPOINTMENT">Nhắc lịch trước 24h</option>
+        <option value="CONFIRMATION">Xác nhận lịch khám</option>
+        <option value="CANCELLATION">Báo hủy lịch khám</option>
+        <option value="BEFORE_APPOINTMENT_2H">Nhắc lịch trước 2h</option>
+      </select>
+    </div>
+
+    <div class="ui-field align-self-end">
+      <button class="ui-btn ui-btn-secondary" (click)="loadLogs()" [disabled]="loading">
+        <span class="material-symbols-outlined" [class.spin]="loading">refresh</span> Làm mới
+      </button>
+    </div>
+  </div>
+
+  <!-- BẢNG NHẬT KÝ -->
+  <div class="ui-card">
+    @if (loading) {
+      <div class="ui-loading">Đang tải nhật ký...</div>
+    } @else if (logs.length === 0) {
+      <div class="ui-empty">
+        <span class="material-symbols-outlined icon-large">inbox</span>
+        <p>Không có nhật ký thông báo nào phù hợp với bộ lọc</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="ui-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Loại thư</th>
+              <th>Mã lịch</th>
+              <th>Mã BN</th>
+              <th>Giờ khám</th>
+              <th>Email người nhận</th>
+              <th>Trạng thái</th>
+              <th>Lần thử</th>
+              <th>Thời điểm gửi</th>
+              <th>Ghi chú / Lỗi</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of logs; track item.id) {
+              <tr>
+                <td>#{{ item.id }}</td>
+                <td>
+                  <span class="ui-badge" [ngClass]="getTypeBadgeClass(item.reminderType)">
+                    {{ getTypeLabel(item.reminderType) }}
+                  </span>
+                </td>
+                <td><strong>#{{ item.appointmentId }}</strong></td>
+                <td>#{{ item.patientId }}</td>
+                <td>{{ item.appointmentStart | date:'HH:mm dd/MM/yyyy' }}</td>
+                <td>
+                  @if (item.recipientEmail) {
+                    <span>{{ item.recipientEmail }}</span>
+                  } @else {
+                    <span class="text-muted">(Không có)</span>
+                  }
+                </td>
+                <td>
+                  <span class="ui-badge" [ngClass]="getStatusBadgeClass(item.status)">
+                    {{ item.status }}
+                  </span>
+                </td>
+                <td>{{ item.attemptCount }}</td>
+                <td>{{ item.sentAt ? (item.sentAt | date:'HH:mm:ss dd/MM/yyyy') : '—' }}</td>
+                <td>
+                  @if (item.lastError) {
+                    <span class="text-danger small" title="{{ item.lastError }}">
+                      {{ item.lastError }}
+                    </span>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</section>
