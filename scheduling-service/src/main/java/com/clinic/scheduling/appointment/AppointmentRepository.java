@@ -1,6 +1,7 @@
 package com.clinic.scheduling.appointment;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
-public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+public interface AppointmentRepository extends JpaRepository<Appointment, Long>, JpaSpecificationExecutor<Appointment> {
 
     // Các lịch còn chiếm slot của bác sĩ trong khoảng thời gian (dùng khi tính slot trống)
     List<Appointment> findByDoctorIdAndStatusInAndStartTimeBetween(Long doctorId, Collection<AppointmentStatus> statuses,
@@ -34,7 +35,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByStatusAndStartTimeBetweenOrderByStartTime(AppointmentStatus status, LocalDateTime from,
                                                                       LocalDateTime to);
 
+    List<Appointment> findByPatientId(Long patientId);
+
     List<Appointment> findByPatientIdAndStatusIn(Long patientId, Collection<AppointmentStatus> statuses);
+
+    int countByBookedByAccountIdAndStatus(Long bookedByAccountId, AppointmentStatus status);
+
+    int countByPatientIdAndStatusInAndStartTimeAfter(Long patientId, Collection<AppointmentStatus> statuses, LocalDateTime after);
 
     @Modifying
     @Query("""
