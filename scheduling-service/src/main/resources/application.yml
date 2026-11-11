@@ -60,3 +60,6 @@ logging:
 # Thời gian chờ tối đa khi gọi service khác (C-3, một giá trị chung cho Scheduling, Reminder, Gateway)
 clinic:
   client-timeout: 3s
+  cache:
+    # Giờ làm việc lấy từ Provider được giữ tối đa bao lâu (P2-8)
+    working-hours-ttl: 30s
