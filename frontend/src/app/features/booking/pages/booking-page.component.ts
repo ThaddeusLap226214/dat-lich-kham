@@ -275,7 +275,7 @@ export class BookingPageComponent implements OnInit, OnDestroy {
 
   getSelectedDoctorName(): string {
     const doc = this.doctors.find(d => d.id === this.selectedDoctorId);
-    return doc ? doc.name : `Bác sĩ #${this.selectedDoctorId}`;
+    return doc ? doc.fullName : `Bác sĩ #${this.selectedDoctorId}`;
   }
 
   private formatDate(d: Date): string {

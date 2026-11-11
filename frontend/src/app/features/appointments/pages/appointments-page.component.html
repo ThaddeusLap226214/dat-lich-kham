@@ -17,7 +17,7 @@
       <label class="ui-label">Bác sĩ</label>
       <select class="ui-select" [(ngModel)]="selectedDoctorId" (change)="onDoctorChange()" [disabled]="!!currentIdentity().doctorId">
         @for (doc of doctors; track doc.id) {
-          <option [ngValue]="doc.id">{{ doc.name }} ({{ doc.title || 'Bác sĩ' }})</option>
+          <option [ngValue]="doc.id">{{ doc.fullName }} ({{ doc.title || 'Bác sĩ' }})</option>
         }
       </select>
     </div>
