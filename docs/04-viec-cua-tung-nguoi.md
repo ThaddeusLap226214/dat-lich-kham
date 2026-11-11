@@ -83,7 +83,7 @@ Cách đọc bảng:
 | P3-4 | Quản lý ca làm việc, chặn ca chồng giờ | F12 · CS16 | Thêm ca chồng giờ ca có sẵn cùng ngày → 409 `SCHEDULE_OVERLAP`; ngừng ca → `active = false`, không xóa dòng | — |
 | P3-5 | Web: *Chuyên khoa & bác sĩ*, quản trị danh mục, quản trị lịch làm việc | F11–F13 | Thêm ca mới trên web → slot mới xuất hiện ở `GET /api/v1/slots` | Vũ (P2-3) |
 | P3-6 | Web: *Lịch khám trong ngày* của bác sĩ, nút "Đã khám" và "Không đến" | F37, F38, F39 | Chọn vai trò `bs.an` thấy lịch của bác sĩ 1; bấm "Đã khám" → `COMPLETED`; bấm "Không đến" → `NO_SHOW` | Lập (P4-6), Vũ (P2-5, P2-10). Trong lúc chờ: service Angular trả dữ liệu cứng đúng khuôn `AppointmentView` (`03-hop-dong-api.md` B6) |
-| P3-8 | Web: *Lịch khám của tôi*, nút hủy lịch | F36, F35 | Bệnh nhân thấy lịch kèm tên bác sĩ, phòng, kể cả lịch lễ tân đặt cho hồ sơ của mình (CS15); bấm hủy → `CANCELLED` | Lập (P4-6), Vũ (P2-5). Trong lúc chờ: như P3-6 |
+| P3-8 | Web: *Lịch khám của tôi*, nút hủy lịch | F36, F35 | Bệnh nhân thấy lịch kèm tên bác sĩ, phòng, kể cả lịch lễ tân đặt cho hồ sơ của mình (CS15); bấm hủy → `CANCELLED`. Nút Hủy chỉ hiện ở lịch có `bookedByAccountId` = tài khoản đang đăng nhập (CS08); lịch lễ tân đặt hộ hiện "Liên hệ phòng khám để hủy" | Lập (P4-6), Vũ (P2-5). Trong lúc chờ: như P3-6 |
 | ☆ P3-7 | Bộ nhớ đệm danh sách chuyên khoa / bác sĩ | F13 | Gọi `GET /api/v1/specialties` hai lần → lần 2 không sinh câu SQL | — |
 | ☆ P3-9 | Ngày nghỉ, ngày lễ của bác sĩ | F12, F14 | Thêm ngày nghỉ cho bác sĩ 1 → `working-hours` ngày đó trả `shifts` rỗng; bảng mới ghi vào `02-co-so-du-lieu.md` | — |
 
