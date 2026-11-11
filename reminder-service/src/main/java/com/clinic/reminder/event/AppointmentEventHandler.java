@@ -79,22 +79,38 @@ public class AppointmentEventHandler {
         }
 
         // Lấy thông tin email của bệnh nhân từ Patient Service (F27)
-        String recipientEmail = null;
-        String patientName = "Quý khách";
+        PatientContact contact = null;
+        boolean patientServiceFailed = false;
+        String patientServiceError = null;
+
         try {
             List<PatientContact> contacts = patientClient.findByIds(List.of(event.patientId()));
             if (contacts != null && !contacts.isEmpty()) {
-                PatientContact contact = contacts.get(0);
-                recipientEmail = contact.email();
-                if (contact.fullName() != null && !contact.fullName().isBlank()) {
-                    patientName = contact.fullName();
-                }
+                contact = contacts.get(0);
             }
         } catch (Exception e) {
+            patientServiceFailed = true;
+            patientServiceError = e.getMessage();
             log.warn("Không thể lấy email bệnh nhân {} từ Patient Service: {}", event.patientId(), e.getMessage());
         }
 
-        // CS30: Hồ sơ không có email -> SKIPPED
+        // Fix lỗi 2.2: Nếu Patient Service lỗi -> lưu FAILED để cron thử lại sau, KHÔNG coi là SKIPPED
+        if (patientServiceFailed) {
+            logEntry.setStatus(ReminderStatus.FAILED);
+            logEntry.setRecipientEmail(null);
+            String reasonSuffix = event.cancelReason() != null ? " [reason:" + event.cancelReason() + "]" : "";
+            logEntry.setLastError(truncate("Patient Service không phản hồi: " + patientServiceError + reasonSuffix, 1000));
+            logEntry.setSentAt(null);
+            reminderLogRepository.save(logEntry);
+            markEventProcessed(event);
+            return;
+        }
+
+        String recipientEmail = contact != null ? contact.email() : null;
+        String patientName = (contact != null && contact.fullName() != null && !contact.fullName().isBlank())
+                ? contact.fullName() : "Quý khách";
+
+        // CS30: Hồ sơ thực sự không có email -> SKIPPED
         if (recipientEmail == null || recipientEmail.isBlank()) {
             logEntry.setStatus(ReminderStatus.SKIPPED);
             logEntry.setRecipientEmail(null);
@@ -120,7 +136,8 @@ public class AppointmentEventHandler {
         } catch (Exception ex) {
             log.warn("Gửi thư {} cho lịch {} thất bại: {}", reminderType, event.appointmentId(), ex.getMessage());
             logEntry.setStatus(ReminderStatus.FAILED);
-            logEntry.setLastError(truncate(ex.getMessage(), 1000));
+            String reasonSuffix = event.cancelReason() != null ? " [reason:" + event.cancelReason() + "]" : "";
+            logEntry.setLastError(truncate(ex.getMessage() + reasonSuffix, 1000));
         }
 
         reminderLogRepository.save(logEntry);

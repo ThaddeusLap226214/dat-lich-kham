@@ -16,7 +16,7 @@ export class ReminderLogsPageComponent implements OnInit {
   private readonly reminderService = inject(ReminderService);
   private readonly identityService = inject(IdentityService);
 
-  readonly currentIdentity = this.identityService.currentIdentity;
+  readonly currentIdentity = this.identityService.identity;
 
   logs: ReminderLog[] = [];
   loading = false;

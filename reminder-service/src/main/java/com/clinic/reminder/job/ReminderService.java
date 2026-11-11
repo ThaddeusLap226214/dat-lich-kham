@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,6 +25,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +34,7 @@ public class ReminderService {
 
     private static final Logger log = LoggerFactory.getLogger(ReminderService.class);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM/yyyy");
+    private static final Pattern REASON_PATTERN = Pattern.compile("\\[reason:(.*?)\\]");
 
     private final SchedulingClient schedulingClient;
     private final PatientClient patientClient;
@@ -58,7 +60,7 @@ public class ReminderService {
         this.fromAddress = fromAddress;
     }
 
-    @Transactional
+    // Fix lỗi 2.3: Bỏ @Transactional để mỗi dòng nhật ký commit ngay, tránh rollback làm gửi trùng thư
     public RunResult runOnce() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime to = now.plusHours(hoursBefore);
@@ -68,7 +70,7 @@ public class ReminderService {
         int skipped = 0;
         int failed = 0;
 
-        // CS36: Lấy các dòng FAILED từ trước để gửi lại ở lần quét này
+        // CS36 & 3.1: Thử lại các dòng FAILED từ trước
         List<ReminderLog> previouslyFailedLogs = reminderLogRepository.findByStatus(ReminderStatus.FAILED);
         for (ReminderLog failedLog : previouslyFailedLogs) {
             boolean success = retryFailedLog(failedLog);
@@ -84,8 +86,8 @@ public class ReminderService {
         try {
             appointments = schedulingClient.findConfirmedBetween(now, to);
         } catch (Exception e) {
-            log.error("Không thể lấy danh sách lịch hẹn từ Scheduling Service: {}", e.getMessage());
-            throw e;
+            log.warn("Không thể lấy danh sách lịch hẹn từ Scheduling Service (service có thể đang tắt): {}", e.getMessage());
+            return new RunResult(checked, sent, skipped, failed);
         }
 
         if (appointments == null || appointments.isEmpty()) {
@@ -101,12 +103,9 @@ public class ReminderService {
                 .stream()
                 .collect(Collectors.toMap(ReminderLog::getAppointmentId, l -> l, (a, b) -> a));
 
-        // Lọc bỏ các lịch đã có log SENT hoặc SKIPPED
+        // Lọc bỏ các lịch đã có log
         List<AppointmentInfo> needReminder = appointments.stream()
-                .filter(a -> {
-                    ReminderLog l = existingLogs.get(a.id());
-                    return l == null;
-                })
+                .filter(a -> existingLogs.get(a.id()) == null)
                 .toList();
 
         if (needReminder.isEmpty()) {
@@ -115,7 +114,27 @@ public class ReminderService {
 
         // Lấy thông tin email từ Patient Service
         Set<Long> patientIds = needReminder.stream().map(AppointmentInfo::patientId).collect(Collectors.toSet());
-        Map<Long, PatientContact> contactMap = getPatientContacts(patientIds);
+        Map<Long, PatientContact> contactMap;
+        try {
+            contactMap = getPatientContacts(patientIds);
+        } catch (Exception e) {
+            log.warn("Không thể lấy thông tin bệnh nhân từ Patient Service: {}", e.getMessage());
+            // Fix lỗi 2.2: Patient tắt thì lưu FAILED để cron lần sau thử lại
+            for (AppointmentInfo appt : needReminder) {
+                ReminderLog logEntry = new ReminderLog();
+                logEntry.setAppointmentId(appt.id());
+                logEntry.setPatientId(appt.patientId());
+                logEntry.setAppointmentStart(appt.startTime());
+                logEntry.setReminderType(ReminderType.BEFORE_APPOINTMENT);
+                logEntry.setAttemptCount(1);
+                logEntry.setStatus(ReminderStatus.FAILED);
+                logEntry.setLastError(truncate("Patient Service không phản hồi: " + e.getMessage(), 1000));
+                reminderLogRepository.save(logEntry);
+                failed++;
+            }
+            return new RunResult(checked, sent, skipped, failed);
+        }
+
         MessageTemplate template = getTemplate(ReminderType.BEFORE_APPOINTMENT);
 
         for (AppointmentInfo appt : needReminder) {
@@ -142,7 +161,8 @@ public class ReminderService {
 
             logEntry.setRecipientEmail(email);
             String formattedTime = appt.startTime() != null ? appt.startTime().format(TIME_FORMATTER) : "";
-            String patientName = contact.fullName() != null ? contact.fullName() : "Quý khách";
+            String patientName = (contact != null && contact.fullName() != null && !contact.fullName().isBlank())
+                    ? contact.fullName() : "Quý khách";
             String subject = render(template.getSubject(), patientName, formattedTime, appt.id(), null);
             String body = render(template.getBody(), patientName, formattedTime, appt.id(), null);
 
@@ -165,20 +185,57 @@ public class ReminderService {
         return new RunResult(checked, sent, skipped, failed);
     }
 
+    // 3.1: Giới hạn tối đa 3 lần thử, bỏ qua lịch đã qua giờ, lấy lại email từ Patient nếu lúc trước chưa có
     private boolean retryFailedLog(ReminderLog failedLog) {
-        if (failedLog.getRecipientEmail() == null || failedLog.getRecipientEmail().isBlank()) {
-            failedLog.setStatus(ReminderStatus.SKIPPED);
-            failedLog.setLastError("Hồ sơ không có email");
-            reminderLogRepository.save(failedLog);
+        if (failedLog.getAttemptCount() >= 3) {
             return false;
         }
+
+        if (failedLog.getAppointmentStart() != null && failedLog.getAppointmentStart().isBefore(LocalDateTime.now())) {
+            log.info("Lịch hẹn {} đã qua giờ khám, không gửi nhắc lại", failedLog.getAppointmentId());
+            return false;
+        }
+
+        String recipientEmail = failedLog.getRecipientEmail();
+        String patientName = "Quý khách";
+
+        // Nếu lúc trước chưa lấy được email (do Patient Service tắt), giờ gọi lại Patient Service
+        if (recipientEmail == null || recipientEmail.isBlank()) {
+            try {
+                List<PatientContact> contacts = patientClient.findByIds(List.of(failedLog.getPatientId()));
+                if (contacts != null && !contacts.isEmpty()) {
+                    PatientContact contact = contacts.get(0);
+                    recipientEmail = contact.email();
+                    if (contact.fullName() != null && !contact.fullName().isBlank()) {
+                        patientName = contact.fullName();
+                    }
+                }
+
+                if (recipientEmail == null || recipientEmail.isBlank()) {
+                    failedLog.setStatus(ReminderStatus.SKIPPED);
+                    failedLog.setLastError("Hồ sơ không có email");
+                    reminderLogRepository.save(failedLog);
+                    return false;
+                }
+
+                failedLog.setRecipientEmail(recipientEmail);
+            } catch (Exception e) {
+                failedLog.setAttemptCount(failedLog.getAttemptCount() + 1);
+                failedLog.setLastError(truncate("Lần " + failedLog.getAttemptCount() + ": Patient Service không phản hồi", 1000));
+                reminderLogRepository.save(failedLog);
+                return false;
+            }
+        }
+
+        // Trích xuất cancelReason nếu có lưu trong lastError
+        String cancelReason = extractCancelReason(failedLog.getLastError());
 
         failedLog.setAttemptCount(failedLog.getAttemptCount() + 1);
         try {
             MessageTemplate template = getTemplate(failedLog.getReminderType());
             String formattedTime = failedLog.getAppointmentStart() != null ? failedLog.getAppointmentStart().format(TIME_FORMATTER) : "";
-            String subject = render(template.getSubject(), "Quý khách", formattedTime, failedLog.getAppointmentId(), null);
-            String body = render(template.getBody(), "Quý khách", formattedTime, failedLog.getAppointmentId(), null);
+            String subject = render(template.getSubject(), patientName, formattedTime, failedLog.getAppointmentId(), cancelReason);
+            String body = render(template.getBody(), patientName, formattedTime, failedLog.getAppointmentId(), cancelReason);
 
             sendEmail(failedLog.getRecipientEmail(), subject, body);
             failedLog.setStatus(ReminderStatus.SENT);
@@ -189,26 +246,33 @@ public class ReminderService {
         } catch (Exception e) {
             log.warn("Thử lại gửi thư cho lịch {} (lần {}) thất bại: {}",
                     failedLog.getAppointmentId(), failedLog.getAttemptCount(), e.getMessage());
-            failedLog.setLastError(truncate("Lần " + failedLog.getAttemptCount() + ": " + e.getMessage(), 1000));
+            String suffix = cancelReason != null ? " [reason:" + cancelReason + "]" : "";
+            failedLog.setLastError(truncate("Lần " + failedLog.getAttemptCount() + ": " + e.getMessage() + suffix, 1000));
             reminderLogRepository.save(failedLog);
             return false;
         }
+    }
+
+    private String extractCancelReason(String lastError) {
+        if (lastError == null) {
+            return null;
+        }
+        Matcher matcher = REASON_PATTERN.matcher(lastError);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
     }
 
     private Map<Long, PatientContact> getPatientContacts(Collection<Long> patientIds) {
         if (patientIds == null || patientIds.isEmpty()) {
             return Collections.emptyMap();
         }
-        try {
-            List<PatientContact> contacts = patientClient.findByIds(patientIds);
-            if (contacts == null) {
-                return Collections.emptyMap();
-            }
-            return contacts.stream().collect(Collectors.toMap(PatientContact::id, c -> c, (a, b) -> a));
-        } catch (Exception e) {
-            log.error("Không thể lấy thông tin bệnh nhân từ Patient Service: {}", e.getMessage());
-            throw e;
+        List<PatientContact> contacts = patientClient.findByIds(patientIds);
+        if (contacts == null) {
+            return Collections.emptyMap();
         }
+        return contacts.stream().collect(Collectors.toMap(PatientContact::id, c -> c, (a, b) -> a));
     }
 
     public MessageTemplate getTemplate(ReminderType type) {

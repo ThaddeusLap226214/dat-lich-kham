@@ -232,4 +232,77 @@ class ReminderServiceTest {
         assertThat(previouslyFailed.getAttemptCount()).isEqualTo(2);
         assertThat(previouslyFailed.getLastError()).isNull();
     }
+
+    @Test
+    @DisplayName("Review 3.1: Không thử lại khi đã vượt quá 3 lần gửi (attemptCount >= 3)")
+    void runOnce_maxAttemptsExceeded_doesNotRetry() {
+        ReminderLog failedMax = new ReminderLog();
+        failedMax.setId(101L);
+        failedMax.setAppointmentId(21L);
+        failedMax.setAppointmentStart(LocalDateTime.now().plusHours(2));
+        failedMax.setReminderType(ReminderType.BEFORE_APPOINTMENT);
+        failedMax.setRecipientEmail("retry@example.com");
+        failedMax.setStatus(ReminderStatus.FAILED);
+        failedMax.setAttemptCount(3);
+
+        when(reminderLogRepository.findByStatus(ReminderStatus.FAILED)).thenReturn(List.of(failedMax));
+        when(schedulingClient.findConfirmedBetween(any(), any())).thenReturn(Collections.emptyList());
+
+        RunResult result = reminderService.runOnce();
+
+        assertThat(result.sent()).isEqualTo(0);
+        assertThat(result.failed()).isEqualTo(1);
+        verify(mailSender, never()).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    @DisplayName("Review 3.1: Bỏ qua không gửi lại nếu lịch hẹn đã qua giờ khám")
+    void runOnce_pastAppointment_doesNotRetry() {
+        ReminderLog pastAppt = new ReminderLog();
+        pastAppt.setId(102L);
+        pastAppt.setAppointmentId(22L);
+        pastAppt.setAppointmentStart(LocalDateTime.now().minusMinutes(10));
+        pastAppt.setReminderType(ReminderType.BEFORE_APPOINTMENT);
+        pastAppt.setRecipientEmail("retry@example.com");
+        pastAppt.setStatus(ReminderStatus.FAILED);
+        pastAppt.setAttemptCount(1);
+
+        when(reminderLogRepository.findByStatus(ReminderStatus.FAILED)).thenReturn(List.of(pastAppt));
+        when(schedulingClient.findConfirmedBetween(any(), any())).thenReturn(Collections.emptyList());
+
+        RunResult result = reminderService.runOnce();
+
+        assertThat(result.sent()).isEqualTo(0);
+        verify(mailSender, never()).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    @DisplayName("Review 2.2: Thử lại thành công khi trước đó thiếu email do Patient Service sập")
+    void runOnce_retryReFetchesMissingEmail() {
+        ReminderLog noEmailFailed = new ReminderLog();
+        noEmailFailed.setId(103L);
+        noEmailFailed.setAppointmentId(23L);
+        noEmailFailed.setPatientId(99L);
+        noEmailFailed.setAppointmentStart(LocalDateTime.now().plusHours(3));
+        noEmailFailed.setReminderType(ReminderType.CONFIRMATION);
+        noEmailFailed.setRecipientEmail(null);
+        noEmailFailed.setStatus(ReminderStatus.FAILED);
+        noEmailFailed.setAttemptCount(1);
+
+        PatientContact recoveredContact = new PatientContact(99L, "Trần Văn E", "e@example.com", "0911223344", null);
+
+        when(reminderLogRepository.findByStatus(ReminderStatus.FAILED)).thenReturn(List.of(noEmailFailed));
+        when(schedulingClient.findConfirmedBetween(any(), any())).thenReturn(Collections.emptyList());
+        when(patientClient.findByIds(List.of(99L))).thenReturn(List.of(recoveredContact));
+        when(messageTemplateRepository.findById(ReminderType.CONFIRMATION)).thenReturn(Optional.of(
+                new MessageTemplate(ReminderType.CONFIRMATION, "Xác nhận {appointmentId}", "Kính gửi {patientName}")
+        ));
+
+        RunResult result = reminderService.runOnce();
+
+        assertThat(result.sent()).isEqualTo(1);
+        assertThat(noEmailFailed.getStatus()).isEqualTo(ReminderStatus.SENT);
+        assertThat(noEmailFailed.getRecipientEmail()).isEqualTo("e@example.com");
+        verify(mailSender).send(any(SimpleMailMessage.class));
+    }
 }

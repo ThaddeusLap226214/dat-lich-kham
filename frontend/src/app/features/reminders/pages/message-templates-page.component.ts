@@ -16,7 +16,7 @@ export class MessageTemplatesPageComponent implements OnInit {
   private readonly reminderService = inject(ReminderService);
   private readonly identityService = inject(IdentityService);
 
-  readonly currentIdentity = this.identityService.currentIdentity;
+  readonly currentIdentity = this.identityService.identity;
 
   templates: MessageTemplate[] = [];
   loading = false;

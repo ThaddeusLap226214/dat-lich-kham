@@ -193,4 +193,27 @@ class AppointmentEventHandlerTest {
         // Vẫn lưu processed_events để tránh tin nhắn bị redeliver lặp vô hạn
         verify(processedEventRepository).save(any(ProcessedEvent.class));
     }
+
+    @Test
+    @DisplayName("Review fix: Patient Service sập -> Lưu log FAILED để cron thử lại, KHÔNG lưu SKIPPED")
+    void handle_patientServiceDown_recordsFailed() {
+        AppointmentEvent event = createEvent("evt-patient-down", AppointmentEvent.AppointmentEventType.APPOINTMENT_CONFIRMED, 105L, 15L, null);
+
+        when(processedEventRepository.existsById("evt-patient-down")).thenReturn(false);
+        when(reminderLogRepository.findByAppointmentIdAndReminderType(105L, ReminderType.CONFIRMATION)).thenReturn(Optional.empty());
+        when(patientClient.findByIds(List.of(15L))).thenThrow(new RuntimeException("Patient Service Connection timed out"));
+
+        handler.handle(event);
+
+        verify(reminderService, never()).sendEmail(any(), any(), any());
+
+        ArgumentCaptor<ReminderLog> logCaptor = ArgumentCaptor.forClass(ReminderLog.class);
+        verify(reminderLogRepository).save(logCaptor.capture());
+        ReminderLog saved = logCaptor.getValue();
+        assertThat(saved.getStatus()).isEqualTo(ReminderStatus.FAILED);
+        assertThat(saved.getLastError()).contains("Patient Service không phản hồi");
+        assertThat(saved.getRecipientEmail()).isNull();
+
+        verify(processedEventRepository).save(any(ProcessedEvent.class));
+    }
 }
