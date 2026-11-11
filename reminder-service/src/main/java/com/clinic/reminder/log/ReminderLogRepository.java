@@ -15,6 +15,8 @@ public interface ReminderLogRepository extends JpaRepository<ReminderLog, Long> 
 
     List<ReminderLog> findByAppointmentIdInAndReminderType(Collection<Long> appointmentIds, ReminderType reminderType);
 
+    List<ReminderLog> findByStatus(ReminderStatus status);
+
     List<ReminderLog> findTop100ByOrderByCreatedAtDesc();
 
     List<ReminderLog> findTop100ByStatusOrderByCreatedAtDesc(ReminderStatus status);
