@@ -91,7 +91,7 @@ Cách đọc bảng:
 
 ### 2.4. Lập — API Gateway
 
-**Đang ở đâu:** định tuyến 5 service, Circuit Breaker + Fallback trả `ApiError`, CORS, Correlation ID đã chạy; 3 lớp client (`SchedulingClient`, `ProviderClient`, `PatientClient`) đã có lời gọi lấy lịch theo người đặt, theo bác sĩ, và bác sĩ / phòng / hồ sơ theo mã. Mỗi route một Circuit Breaker, bộ lọc token, chặn vai trò và đăng nhập Keycloak trên web đã làm xong ở nhánh `feature/gateway-bao-mat` (chờ merge). Còn: API ghép (P4-6, nhánh `feature/gateway-api-ghep`).
+**Đang ở đâu:** định tuyến 5 service, Circuit Breaker + Fallback trả `ApiError`, CORS, Correlation ID đã chạy; 3 lớp client (`SchedulingClient`, `ProviderClient`, `PatientClient`) đã có lời gọi lấy lịch theo người đặt, theo bác sĩ, và bác sĩ / phòng / hồ sơ theo mã. Mỗi route một Circuit Breaker, bộ lọc token, chặn vai trò và đăng nhập Keycloak trên web đã làm xong ở nhánh `feature/gateway-bao-mat` (chờ merge). API ghép (P4-6) xong ở nhánh `feature/gateway-api-ghep`, giới hạn số request (P4-8) xong ở nhánh `feature/gateway-gioi-han-request` (cả hai chờ merge).
 
 | Mã | Việc | Đặc tả | Xong khi | Chờ ai khi kiểm thử |
 |---|---|---|---|---|
@@ -101,7 +101,7 @@ Cách đọc bảng:
 | P4-5 | Chặn theo vai trò các API đánh dấu **(GW)** trong `03-hop-dong-api.md` | F52 | Vai trò `PATIENT` gọi `POST /api/v1/doctors` → 403 dạng `ApiError` | — |
 | P4-9 | Web: đăng nhập chuyển sang trang Keycloak, gắn token vào request, hết hạn thì về trang đăng nhập, **bỏ Chế độ thử** | F52 | Đăng nhập `letan` → menu lễ tân; web không còn ô Chế độ thử | — |
 | P4-15 | Web: sửa `app-pages.ts` cho khớp phân công và đăng nhập Keycloak | — | Nhãn phần trên từng trang đúng bảng mục 1; `frontend/src` không còn `auth/login`; `ng build` không lỗi | — |
-| ☆ P4-8 | Giới hạn số request | — | Gửi quá ngưỡng → 429 | — |
+| ☆ P4-8 | Giới hạn số request (mặc định mỗi tài khoản / IP dồn 100, hồi 50 request mỗi giây; đổi trong `.env`) | — | Gửi quá ngưỡng → 429 | — |
 
 **Lưu ý cho cả nhóm:** P4-4, P4-5, P4-9 merge **cùng một lúc**. Trước thời điểm đó mọi người thử bằng Chế độ thử như hiện nay. Sau đó thử bằng đăng nhập thật; Swagger ở cổng 8081–8085 (chế độ phát triển) vẫn dùng header gõ tay. Ngày merge sẽ báo trước trên nhóm.
 
