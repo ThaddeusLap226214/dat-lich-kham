@@ -305,4 +305,32 @@ class ReminderServiceTest {
         assertThat(noEmailFailed.getRecipientEmail()).isEqualTo("e@example.com");
         verify(mailSender).send(any(SimpleMailMessage.class));
     }
+
+    @Test
+    @DisplayName("P5-3: Khả năng phục hồi - Sau khi start lại, lần quét kế tiếp quét được lịch vừa đặt trong 24h và gửi nhắc")
+    void runOnce_afterRestart_scansAndRemindsNewlyBookedAppointment() {
+        LocalDateTime start = LocalDateTime.now().plusHours(18);
+        AppointmentInfo appt = new AppointmentInfo(50L, 1L, 2L, 3L, start, start.plusMinutes(20), "CONFIRMED");
+        PatientContact contact = new PatientContact(1L, "Nguyễn Văn F", "f@example.com", "0905555555", null);
+
+        when(reminderLogRepository.findByStatus(ReminderStatus.FAILED)).thenReturn(Collections.emptyList());
+        when(schedulingClient.findConfirmedBetween(any(), any())).thenReturn(List.of(appt));
+        when(reminderLogRepository.findByAppointmentIdInAndReminderType(List.of(50L), ReminderType.BEFORE_APPOINTMENT))
+                .thenReturn(Collections.emptyList());
+        when(patientClient.findByIds(any())).thenReturn(List.of(contact));
+        when(messageTemplateRepository.findById(ReminderType.BEFORE_APPOINTMENT)).thenReturn(Optional.of(
+                new MessageTemplate(ReminderType.BEFORE_APPOINTMENT, "Nhắc lịch {startTime}", "Chào {patientName}")
+        ));
+
+        RunResult result = reminderService.runOnce();
+
+        assertThat(result.checked()).isEqualTo(1);
+        assertThat(result.sent()).isEqualTo(1);
+        verify(mailSender).send(any(SimpleMailMessage.class));
+
+        ArgumentCaptor<ReminderLog> logCaptor = ArgumentCaptor.forClass(ReminderLog.class);
+        verify(reminderLogRepository).save(logCaptor.capture());
+        assertThat(logCaptor.getValue().getStatus()).isEqualTo(ReminderStatus.SENT);
+        assertThat(logCaptor.getValue().getAppointmentId()).isEqualTo(50L);
+    }
 }

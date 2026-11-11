@@ -216,4 +216,31 @@ class AppointmentEventHandlerTest {
 
         verify(processedEventRepository).save(any(ProcessedEvent.class));
     }
+
+    @Test
+    @DisplayName("P5-3: Khả năng phục hồi - Sự kiện tồn đọng trong hàng đợi khi service tắt -> Bật lại tiêu thụ và gửi thành công")
+    void handle_pendingEventAfterServiceRestart_sendsEmailAndLogsSent() {
+        AppointmentEvent pendingEvent = createEvent("evt-restart-recovery", AppointmentEvent.AppointmentEventType.APPOINTMENT_CONFIRMED, 201L, 21L, null);
+        PatientContact contact = new PatientContact(21L, "Đặng Văn H", "dvh@example.com", "0912999888", null);
+        MessageTemplate template = new MessageTemplate(ReminderType.CONFIRMATION, "Xác nhận lịch {appointmentId}", "Chào {patientName}");
+
+        when(processedEventRepository.existsById("evt-restart-recovery")).thenReturn(false);
+        when(reminderLogRepository.findByAppointmentIdAndReminderType(201L, ReminderType.CONFIRMATION)).thenReturn(Optional.empty());
+        when(patientClient.findByIds(List.of(21L))).thenReturn(List.of(contact));
+        when(reminderService.getTemplate(ReminderType.CONFIRMATION)).thenReturn(template);
+        when(reminderService.render(anyString(), any(), any(), any(), any())).thenCallRealMethod();
+
+        handler.handle(pendingEvent);
+
+        verify(reminderService).sendEmail(eq("dvh@example.com"), anyString(), anyString());
+
+        ArgumentCaptor<ReminderLog> logCaptor = ArgumentCaptor.forClass(ReminderLog.class);
+        verify(reminderLogRepository).save(logCaptor.capture());
+        assertThat(logCaptor.getValue().getStatus()).isEqualTo(ReminderStatus.SENT);
+        assertThat(logCaptor.getValue().getAppointmentId()).isEqualTo(201L);
+
+        ArgumentCaptor<ProcessedEvent> eventCaptor = ArgumentCaptor.forClass(ProcessedEvent.class);
+        verify(processedEventRepository).save(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().getEventId()).isEqualTo("evt-restart-recovery");
+    }
 }
