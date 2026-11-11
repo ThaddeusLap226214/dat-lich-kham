@@ -6,12 +6,12 @@ import { AppointmentView } from '../models/appointment-agenda.model';
 import { Doctor } from '../../booking/models/booking.model';
 
 const MOCK_DOCTORS: Doctor[] = [
-  { id: 1, specialtyId: 1, name: 'BS. CK1 Nguyễn Văn An', title: 'Bác sĩ chuyên khoa 1', active: true },
-  { id: 2, specialtyId: 1, name: 'ThS. BS Trần Thị Bình', title: 'Thạc sĩ bác sĩ', active: true },
-  { id: 3, specialtyId: 2, name: 'BS. Lê Văn Cường', title: 'Bác sĩ', active: true },
-  { id: 4, specialtyId: 3, name: 'BS. CK2 Phạm Thị Dung', title: 'Bác sĩ chuyên khoa 2', active: true },
-  { id: 5, specialtyId: 4, name: 'BS. Hoàng Văn Em', title: 'Bác sĩ', active: true },
-  { id: 6, specialtyId: 5, name: 'ThS. BS Vũ Thị Giang', title: 'Thạc sĩ bác sĩ', active: true }
+  { id: 1, specialtyId: 1, fullName: 'BS. CK1 Nguyễn Văn An', title: 'Bác sĩ chuyên khoa 1', active: true },
+  { id: 2, specialtyId: 1, fullName: 'ThS. BS Trần Thị Bình', title: 'Thạc sĩ bác sĩ', active: true },
+  { id: 3, specialtyId: 2, fullName: 'BS. Lê Văn Cường', title: 'Bác sĩ', active: true },
+  { id: 4, specialtyId: 3, fullName: 'BS. CK2 Phạm Thị Dung', title: 'Bác sĩ chuyên khoa 2', active: true },
+  { id: 5, specialtyId: 4, fullName: 'BS. Hoàng Văn Em', title: 'Bác sĩ', active: true },
+  { id: 6, specialtyId: 5, fullName: 'ThS. BS Vũ Thị Giang', title: 'Thạc sĩ bác sĩ', active: true }
 ];
 
 @Injectable({
@@ -65,7 +65,7 @@ export class AppointmentAgendaService {
       endTime: item.endTime,
       reason: item.reason,
       cancelReason: item.cancelReason,
-      doctor: doc ? { id: doc.id, name: doc.name, title: doc.title } : { id: doctorId, name: `Bác sĩ #${doctorId}` },
+      doctor: doc ? { id: doc.id, fullName: doc.fullName, title: doc.title } : { id: doctorId, fullName: `Bác sĩ #${doctorId}` },
       room: { id: item.roomId, code: `P${item.roomId}`, name: `Phòng khám ${item.roomId}` },
       patient: { id: item.patientId, fullName: `Hồ sơ #${item.patientId}` }
     };

@@ -14,12 +14,12 @@ const MOCK_SPECIALTIES: Specialty[] = [
 ];
 
 const MOCK_DOCTORS: Doctor[] = [
-  { id: 1, specialtyId: 1, name: 'BS. CK1 Nguyễn Văn An', title: 'Bác sĩ chuyên khoa 1', email: 'an.nguyen@clinic.vn', phone: '0905111001', active: true },
-  { id: 2, specialtyId: 1, name: 'ThS. BS Trần Thị Bình', title: 'Thạc sĩ bác sĩ', email: 'binh.tran@clinic.vn', phone: '0905111002', active: true },
-  { id: 3, specialtyId: 2, name: 'BS. Lê Văn Cường', title: 'Bác sĩ', email: 'cuong.le@clinic.vn', phone: '0905111003', active: true },
-  { id: 4, specialtyId: 3, name: 'BS. CK2 Phạm Thị Dung', title: 'Bác sĩ chuyên khoa 2', email: 'dung.pham@clinic.vn', phone: '0905111004', active: true },
-  { id: 5, specialtyId: 4, name: 'BS. Hoàng Văn Em', title: 'Bác sĩ', email: 'em.hoang@clinic.vn', phone: '0905111005', active: true },
-  { id: 6, specialtyId: 5, name: 'ThS. BS Vũ Thị Giang', title: 'Thạc sĩ bác sĩ', email: 'giang.vu@clinic.vn', phone: '0905111006', active: true }
+  { id: 1, specialtyId: 1, fullName: 'BS. CK1 Nguyễn Văn An', title: 'Bác sĩ chuyên khoa 1', email: 'an.nguyen@clinic.vn', phone: '0905111001', active: true },
+  { id: 2, specialtyId: 1, fullName: 'ThS. BS Trần Thị Bình', title: 'Thạc sĩ bác sĩ', email: 'binh.tran@clinic.vn', phone: '0905111002', active: true },
+  { id: 3, specialtyId: 2, fullName: 'BS. Lê Văn Cường', title: 'Bác sĩ', email: 'cuong.le@clinic.vn', phone: '0905111003', active: true },
+  { id: 4, specialtyId: 3, fullName: 'BS. CK2 Phạm Thị Dung', title: 'Bác sĩ chuyên khoa 2', email: 'dung.pham@clinic.vn', phone: '0905111004', active: true },
+  { id: 5, specialtyId: 4, fullName: 'BS. Hoàng Văn Em', title: 'Bác sĩ', email: 'em.hoang@clinic.vn', phone: '0905111005', active: true },
+  { id: 6, specialtyId: 5, fullName: 'ThS. BS Vũ Thị Giang', title: 'Thạc sĩ bác sĩ', email: 'giang.vu@clinic.vn', phone: '0905111006', active: true }
 ];
 
 const MOCK_PATIENTS: Patient[] = [
