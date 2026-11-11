@@ -123,6 +123,10 @@ services:
     environment:
       EUREKA_URL: http://discovery-server:8761/eureka/
       JWT_SECRET: ${JWT_SECRET:-doi-chuoi-nay-trong-file-env-it-nhat-32-ky-tu!!}
+      KEYCLOAK_ISSUER: http://localhost:8180/realms/dat-lich-kham
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/dat-lich-kham/protocol/openid-connect/certs
+      RATE_LIMIT_CAPACITY: ${RATE_LIMIT_CAPACITY:-100}
+      RATE_LIMIT_REFILL_PER_SECOND: ${RATE_LIMIT_REFILL_PER_SECOND:-50}
     ports:
       - "8080:8080"
     healthcheck:

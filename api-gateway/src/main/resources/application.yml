@@ -14,33 +14,54 @@ spring:
     gateway:
       server:
         webflux:
-          default-filters:
-            - name: CircuitBreaker
-              args:
-                name: defaultCircuitBreaker
-                fallbackUri: forward:/fallback
+          # Mỗi route một Circuit Breaker riêng (N5): service này hỏng không làm cầu dao của route khác mở theo
           # Đường dẫn /internal/** không có route nào → client bên ngoài không gọi được API nội bộ
           routes:
             - id: auth-service
               uri: lb://auth-service
               predicates:
                 - Path=/api/v1/auth/**,/api/v1/accounts/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: auth-service
+                    fallbackUri: forward:/fallback
             - id: provider-service
               uri: lb://provider-service
               predicates:
                 - Path=/api/v1/specialties/**,/api/v1/doctors/**,/api/v1/rooms/**,/api/v1/work-schedules/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: provider-service
+                    fallbackUri: forward:/fallback
             - id: patient-service
               uri: lb://patient-service
               predicates:
                 - Path=/api/v1/patients/**,/api/v1/duplicate-candidates/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: patient-service
+                    fallbackUri: forward:/fallback
             - id: scheduling-service
               uri: lb://scheduling-service
               predicates:
                 - Path=/api/v1/slots/**,/api/v1/appointments/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: scheduling-service
+                    fallbackUri: forward:/fallback
             - id: reminder-service
               uri: lb://reminder-service
               predicates:
                 - Path=/api/v1/reminders/**
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: reminder-service
+                    fallbackUri: forward:/fallback
 
 eureka:
   client:
@@ -58,9 +79,19 @@ frontend:
 # Thời gian chờ tối đa khi Gateway tự gọi service (API ghép); C-3, cùng giá trị với Scheduling, Reminder
 clinic:
   client-timeout: 3s
+  # P4-8: mỗi tài khoản (chưa đăng nhập thì mỗi IP) được dồn tối đa capacity request, hồi lại refill-per-second
+  # request mỗi giây; vượt thì 429. capacity = 0 thì tắt giới hạn
+  rate-limit:
+    capacity: ${RATE_LIMIT_CAPACITY:100}
+    refill-per-second: ${RATE_LIMIT_REFILL_PER_SECOND:50}
 
 jwt:
   secret: ${JWT_SECRET:doi-chuoi-nay-trong-file-env-it-nhat-32-ky-tu!!}
+
+# Xác minh token Keycloak (docs/03-hop-dong-api.md, mục A5). iss là địa chỉ trình duyệt thấy; JWKS lấy qua địa chỉ nội bộ
+auth:
+  issuer: ${KEYCLOAK_ISSUER:http://localhost:8180/realms/dat-lich-kham}
+  jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/dat-lich-kham/protocol/openid-connect/certs}
 
 management:
   endpoints:

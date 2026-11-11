@@ -85,6 +85,7 @@ Mọi service trả lỗi cùng một dạng (lớp `ApiError`, bắt tại `Glo
 | 405 | Đường dẫn có nhưng sai phương thức | `METHOD_NOT_ALLOWED` (tự động) |
 | 415 | Gửi body không phải `application/json` | `UNSUPPORTED_MEDIA_TYPE` (tự động) |
 | 409 | Xung đột nghiệp vụ (trùng, sai trạng thái, hết hạn) | mã riêng, xem từng API |
+| 429 | Một tài khoản (chưa đăng nhập thì một IP) gửi quá nhiều request trong thời gian ngắn — **Gateway trả**, kèm header `Retry-After` (số giây phải chờ) | `TOO_MANY_REQUESTS` |
 | 501 | Phần khung chưa viết | `NOT_IMPLEMENTED` |
 | 503 | Service phía sau không phản hồi — **Gateway trả** | `SERVICE_UNAVAILABLE` |
 
@@ -114,7 +115,7 @@ Web ──(Authorization: Bearer <token>)──► Gateway ──(X-User-Id, X-U
 
 **Token:** phải chứa `accountId` (số), `role`, `doctorId` (có thể không có) và `exp` — đây là phần bắt buộc của hợp đồng. Keycloak đưa ba trường đầu vào token bằng protocol mapper (bộ ánh xạ thuộc tính người dùng vào token) của client `web`; thuộc tính người dùng do Auth Service ghi khi tạo tài khoản (chỉ Auth Service gọi Keycloak Admin API; web không bao giờ giữ tài khoản quản trị Keycloak). Token sống 30 phút. Gateway tự so chữ ký bằng khóa công khai lấy từ `http://keycloak:8080/realms/dat-lich-kham/protocol/openid-connect/certs`, không gọi Keycloak cho từng request; trường `iss` mang địa chỉ trình duyệt thấy (`localhost:8180`) nên phải cấu hình hostname của Keycloak cho khớp. Cấu hình realm: `docker/keycloak/realm-dat-lich-kham.json`.
 
-**Khi Gateway chưa có bộ lọc token (P4-4):** web đang ở "Chế độ thử", tự gửi 3 header; khi thử API bằng Swagger hoặc Postman cũng tự gửi bằng tay: `X-User-Id: 5`, `X-User-Role: PATIENT`. Gateway hiện chuyển nguyên header xuống service.
+**Thử API sau khi Gateway có bộ lọc token (P4-4):** qua Gateway (cổng 8080) phải có token; header `X-User-*` gõ tay bị Gateway xóa. Khi thử riêng một service bằng Swagger hoặc Postman ở cổng 8081–8085 (chế độ phát triển, không qua Gateway) thì vẫn gõ tay: `X-User-Id: 5`, `X-User-Role: PATIENT`.
 
 ### A6. Service gọi service
 

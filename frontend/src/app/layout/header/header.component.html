@@ -8,13 +8,20 @@
   </div>
 
   <div class="header-actions">
-    <label class="demo-switch" title="Chọn vai trò thay cho đăng nhập, cho tới khi Auth Service làm xong">
-      <span class="demo-label">Chế độ thử</span>
-      <select [ngModel]="identity.identity().key" (ngModelChange)="onIdentityChange($event)">
-        @for (i of identities; track i.key) {
-          <option [value]="i.key">{{ i.label }}</option>
-        }
-      </select>
-    </label>
+    @if (identity.role() === 'GUEST') {
+      <button class="auth-btn" (click)="login()">
+        <span class="material-symbols-outlined">login</span> Đăng nhập
+      </button>
+    } @else {
+      <div class="user-box">
+        <div class="user-text">
+          <span class="user-label">{{ identity.identity().label }}</span>
+          <span class="user-role-label">{{ roleLabels[identity.role()] }}</span>
+        </div>
+        <button class="auth-btn" (click)="logout()">
+          <span class="material-symbols-outlined">logout</span> Đăng xuất
+        </button>
+      </div>
+    }
   </div>
 </header>

@@ -119,23 +119,23 @@ Mở http://localhost:4200. Trang chủ gọi thật một API của mỗi thàn
 
 Thành phần nào đã có phần xử lý thì báo 200, phần còn chờ người phụ trách viết thì báo 501.
 
-**Chế độ thử (chọn vai trò).**
+**Đăng nhập (Keycloak).**
 
-Keycloak đã chạy và giữ 11 tài khoản mẫu, nhưng web chưa chuyển sang trang đăng nhập Keycloak và Gateway chưa xác minh token (việc P4-4, P4-9). Trong lúc đó, ô **Chế độ thử** trên thanh đầu trang cho phép chọn một trong các tài khoản mẫu. Web tự gắn header `X-User-Id`, `X-User-Role`, `X-Doctor-Id` vào mọi request — đúng các header mà Gateway sẽ gắn sau khi xác minh token (xem `03-hop-dong-api.md` mục A5). Menu bên trái thay đổi theo vai trò.
+Bấm **Đăng nhập** ở góc phải thanh đầu trang: web chuyển sang trang Keycloak, đăng nhập xong quay lại đúng trang đang mở. Web gắn token vào mọi request; Gateway xác minh token, gắn `X-User-Id`, `X-User-Role`, `X-Doctor-Id` rồi chuyển xuống service (xem `03-hop-dong-api.md` mục A5). Header mà client tự gửi lên Gateway bị xóa. Token hết hạn thì web tự sang lại Keycloak. Menu bên trái thay đổi theo vai trò. Ô "Chế độ thử" đã bỏ.
 
 Mọi vai trò đều thấy *Trang chủ* và *Chuyên khoa & bác sĩ*; ngoài ra:
 
 | Vai trò | Tài khoản mẫu | Trang riêng trong menu |
 |---|---|---|
-| Khách | — | Đăng nhập, Đăng ký |
+| Khách | — | Đăng ký (và nút Đăng nhập ở thanh đầu trang) |
 | Bệnh nhân | `benhnhan` | Đặt lịch, Lịch khám của tôi, Hồ sơ bệnh nhân của tôi |
-| Lễ tân | `letan` | Đặt lịch, Hồ sơ bệnh nhân, Hàng chờ duyệt hồ sơ trùng, Lịch hẹn theo bác sĩ |
+| Lễ tân | `letan` | Đặt lịch, Hồ sơ bệnh nhân, Hàng chờ duyệt hồ sơ trùng, Lịch hẹn theo bác sĩ, Nhật ký thông báo |
 | Bác sĩ | `bs.an` | Hồ sơ bệnh nhân, Lịch khám trong ngày |
-| Quản trị | `admin` | Chuyên khoa – bác sĩ – phòng, Lịch làm việc, Tài khoản, Nhật ký nhắc lịch |
+| Quản trị | `admin` | Chuyên khoa – bác sĩ – phòng, Lịch làm việc, Tài khoản, Nhật ký thông báo, Mẫu thư |
 
 Mật khẩu chung của các tài khoản mẫu là `123456` (lưu ở Keycloak). Mỗi trang chưa hoàn thiện hiển thị phần việc phụ trách, danh sách việc cần làm, API chính và nút **Gọi thử** để xem phản hồi thật của backend.
 
-**Xong khi:** `docker compose ps` đủ 12 container `healthy`; trang chủ http://localhost:4200 mở được; chọn vai trò `letan` thấy menu lễ tân.
+**Xong khi:** `docker compose ps` đủ 12 container `healthy`; trang chủ http://localhost:4200 mở được; đăng nhập `letan` thấy menu lễ tân.
 
 ---
 
@@ -199,7 +199,7 @@ Cột "Trạng thái": ✅ đã chạy "Cách kiểm" và đạt (31/10/2026, tr
 | 7 | Correlation ID (mã truy vết request) | Gateway sinh `X-Correlation-Id`, mọi service ghi mã này vào log và chuyển tiếp khi gọi service khác | Gọi một API qua Gateway → log Gateway và log service có cùng một mã (`docker compose logs api-gateway auth-service`, mã nằm trong `[...]`) | ✅ Gateway và Auth cùng mã. Phần chuyển tiếp sang service thứ hai kiểm khi có API gọi nhau chạy được (P2-3) |
 | 8 | API nội bộ giờ làm việc (Provider) | `GET /internal/v1/doctors/{id}/working-hours?date=` | Bác sĩ 1, một ngày thứ Hai → 2 ca (07:30–11:30 và 13:30–16:30, 20 phút); Chủ nhật → `shifts` rỗng. Gọi từ trong mạng Docker: `docker exec scheduling-service curl -s "http://provider-service:8082/internal/v1/doctors/1/working-hours?date=2026-11-02"` | ✅ |
 | 9 | API nội bộ bác sĩ, phòng theo mã (Provider) | `GET /internal/v1/doctors?ids=`, `GET /internal/v1/rooms?ids=` | `?ids=1,2` trả đúng 2 bác sĩ kèm tên chuyên khoa (gọi như dòng 8) | ✅ |
-| 10 | Chế độ thử | Web cho chọn vai trò thay đăng nhập và tự gắn header `X-User-*` | Ô chọn vai trò ở đầu trang; chọn `letan` → menu lễ tân | ✅ có từ trước |
+| 10 | Đăng nhập Keycloak | Web chuyển sang trang Keycloak, gắn token vào request; Gateway xác minh token và gắn `X-User-*` (thay Chế độ thử cũ) | Bấm Đăng nhập, vào `letan` / `123456` → menu lễ tân | ⬜ chờ merge nhánh `feature/gateway-bao-mat` |
 | 11 | Dữ liệu mẫu | 11 tài khoản, 24 hồ sơ (đủ tình huống trùng, 8 lần gộp, 2 lần tách), 24 lịch hẹn tính theo ngày chạy, 17 dòng nhật ký thông báo, 3 mẫu thư; mọi bảng sinh ra khi thao tác có ít nhất 10 dòng | [`02-co-so-du-lieu.md`](02-co-so-du-lieu.md) mục 5 | ✅ Kiểm 31/10/2026 trên volume trống: đủ số dòng mọi bảng; tài khoản 5 có lịch 1, 6, 7, 13; 7 lịch `CONFIRMED`; 2 cặp `PENDING`; hồ sơ đã gộp không còn lịch; lịch chuyển / trả lại đúng hồ sơ; mỗi lần gộp / tách có sự kiện bên Scheduling |
 | 12 | Tài liệu | 5 file trong `docs/` (bảng "Bộ tài liệu" ở đầu file này) | Mở từng file trên GitHub, bấm thử các liên kết | ✅ Đủ 5 file, mọi liên kết giữa các file trỏ đúng |
 | 13 | Dữ liệu cho trạng thái "không đến" | Bảng `appointments` có trạng thái `NO_SHOW`, cột `no_show_at`; lịch `NO_SHOW` vẫn giữ khóa slot (CS10, `01-nghiep-vu-va-dac-ta-chuc-nang.md` mục 7). API ghi nhận là việc P2-10 | Trên `scheduling_db`: `UPDATE appointments SET status='NO_SHOW', no_show_at=NOW() WHERE id=6` chạy được | ✅ Lịch 6 thành `NO_SHOW`, vẫn giữ `slot_lock` |
@@ -292,12 +292,12 @@ Chạy ở chế độ phát triển (mục 6.3.1), sau đó mở trang Swagger 
 | scheduling-service | http://localhost:8084/swagger-ui.html |
 | reminder-service | http://localhost:8085/swagger-ui.html |
 
-Các API cần danh tính yêu cầu header `X-User-Id` và `X-User-Role`; nhập trực tiếp trong Swagger (ví dụ `5` và `PATIENT`).
+Các API cần danh tính yêu cầu header `X-User-Id` và `X-User-Role`; nhập trực tiếp trong Swagger (ví dụ `5` và `PATIENT`). Swagger ở cổng 8081–8085 đi thẳng vào service, không qua Gateway nên vẫn dùng header gõ tay; cổng 8080 (Gateway) thì header gõ tay bị xóa, phải có token đăng nhập thật.
 
-Ví dụ gọi qua Gateway bằng PowerShell:
+Ví dụ gọi thẳng Patient Service (cổng 8083, chế độ phát triển) bằng PowerShell:
 
 ```powershell
-Invoke-RestMethod "http://localhost:8080/api/v1/patients?keyword=le thi hoa" -Headers @{ "X-User-Id" = "2"; "X-User-Role" = "RECEPTIONIST" }
+Invoke-RestMethod "http://localhost:8083/api/v1/patients?keyword=le thi hoa" -Headers @{ "X-User-Id" = "2"; "X-User-Role" = "RECEPTIONIST" }
 ```
 
 Kết quả gồm 2 hồ sơ (mã 1 và 3). PowerShell 5.1 có thể hiển thị sai dấu tiếng Việt (ví dụ `LÃª Thá»‹ Hoa`) do tự đoán bảng mã của phản hồi; dữ liệu vẫn đúng, xem trên trình duyệt hoặc Swagger sẽ hiển thị chuẩn.
