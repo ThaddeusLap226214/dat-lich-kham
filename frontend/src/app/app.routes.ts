@@ -98,6 +98,41 @@ export const routes: Routes = [
           .then(m => m.AppointmentsPageComponent)
       },
       {
+        path: 'doctors',
+        canActivate: [roleGuard],
+        data: { page: pageOf('doctors') },
+        loadComponent: () => import('./features/provider/pages/doctors-page.component')
+          .then(m => m.DoctorsPageComponent)
+      },
+      {
+        path: 'admin/catalog',
+        canActivate: [roleGuard],
+        data: { page: pageOf('admin/catalog') },
+        loadComponent: () => import('./features/provider/pages/admin-catalog-page.component')
+          .then(m => m.AdminCatalogPageComponent)
+      },
+      {
+        path: 'admin/work-schedules',
+        canActivate: [roleGuard],
+        data: { page: pageOf('admin/work-schedules') },
+        loadComponent: () => import('./features/provider/pages/work-schedules-page.component')
+          .then(m => m.WorkSchedulesPageComponent)
+      },
+      {
+        path: 'my-appointments',
+        canActivate: [roleGuard],
+        data: { page: pageOf('my-appointments') },
+        loadComponent: () => import('./features/appointments/pages/my-appointments-page.component')
+          .then(m => m.MyAppointmentsPageComponent)
+      },
+      {
+        path: 'doctor-agenda',
+        canActivate: [roleGuard],
+        data: { page: pageOf('doctor-agenda') },
+        loadComponent: () => import('./features/appointments/pages/doctor-agenda-page.component')
+          .then(m => m.DoctorAgendaPageComponent)
+      },
+      {
         path: 'ui-kit',
         loadComponent: () => import('./features/ui-kit/ui-kit-page.component').then(m => m.UiKitPageComponent)
       },

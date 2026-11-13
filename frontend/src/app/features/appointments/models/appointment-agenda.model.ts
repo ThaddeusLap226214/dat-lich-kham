@@ -15,6 +15,7 @@ export interface PatientInfo {
   id: number;
   fullName: string;
   phone?: string;
+  dateOfBirth?: string;
 }
 
 export interface AppointmentView {
@@ -24,6 +25,7 @@ export interface AppointmentView {
   endTime: string;
   reason?: string;
   cancelReason?: string;
+  bookedByAccountId?: number;
   doctor?: DoctorInfo | null;
   room?: RoomInfo | null;
   patient?: PatientInfo | null;
