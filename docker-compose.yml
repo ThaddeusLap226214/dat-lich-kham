@@ -270,6 +270,9 @@ services:
       DB_HOST: mysql
       DB_USERNAME: reminder_user
       DB_PASSWORD: ${REMINDER_DB_PASSWORD:-reminder_user_pw}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER:-clinic}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-clinic_pw}
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
     healthcheck:
@@ -282,6 +285,8 @@ services:
       discovery-server:
         condition: service_healthy
       mysql:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
 
   frontend:

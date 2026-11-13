@@ -115,13 +115,15 @@ export const APP_PAGES: AppPage[] = [
     path: 'admin/reminders', title: 'Nhật ký thông báo', icon: 'notifications_active', roles: ['ADMIN', 'RECEPTIONIST'], part: 'P5',
     summary: 'Các thư nhắc lịch, xác nhận, báo hủy đã gửi / lỗi / bỏ qua; quản trị viên có nút quét ngay khi demo.',
     tasks: ['Bảng nhật ký (GET /api/v1/reminders/logs), lọc theo trạng thái và loại thư', 'Nút "Quét ngay" (POST /api/v1/reminders/run) — chỉ quản trị viên', 'Liên kết sang Mailpit http://localhost:8025 để xem thư'],
-    api: { method: 'GET', path: '/reminders/logs' }
+    api: { method: 'GET', path: '/reminders/logs' },
+    implemented: true
   },
   {
     path: 'admin/message-templates', title: 'Mẫu thư', icon: 'mail', roles: ['ADMIN'], part: 'P5',
     summary: 'Quản trị viên sửa tiêu đề và nội dung của 3 loại thư: nhắc lịch, xác nhận, báo hủy.',
     tasks: ['Xem 3 mẫu (GET /api/v1/reminders/templates)', 'Sửa tiêu đề, nội dung một mẫu (PUT /api/v1/reminders/templates/{type})'],
-    api: { method: 'GET', path: '/reminders/templates' }
+    api: { method: 'GET', path: '/reminders/templates' },
+    implemented: true
   }
 ];
 
