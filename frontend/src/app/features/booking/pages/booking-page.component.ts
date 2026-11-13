@@ -149,6 +149,9 @@ export class BookingPageComponent implements OnInit, OnDestroy {
           if (this.myPatients.length > 0 && !this.selectedPatientId) {
             this.selectedPatientId = this.myPatients[0].id;
           }
+        },
+        error: (err) => {
+          this.apiError.show(err);
         }
       });
     } else {

@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { mockWhenNotImplemented } from '../../../shared/services/mock-when-not-implemented';
 import { Specialty, Doctor, Slot, HoldRequest, AppointmentResponse } from '../models/booking.model';
 import { Gender, Patient, PatientStatus } from '../../patient/models/patient.model';
 
@@ -70,7 +71,7 @@ export class BookingService {
 
   getSpecialties(): Observable<Specialty[]> {
     return this.http.get<Specialty[]>(`${this.apiUrl}/specialties`).pipe(
-      catchError(() => of(MOCK_SPECIALTIES))
+      mockWhenNotImplemented(() => MOCK_SPECIALTIES)
     );
   }
 
@@ -80,12 +81,7 @@ export class BookingService {
       params = params.set('specialtyId', specialtyId.toString());
     }
     return this.http.get<Doctor[]>(`${this.apiUrl}/doctors`, { params }).pipe(
-      catchError(() => {
-        if (specialtyId) {
-          return of(MOCK_DOCTORS.filter(d => d.specialtyId === specialtyId));
-        }
-        return of(MOCK_DOCTORS);
-      })
+      mockWhenNotImplemented(() => specialtyId ? MOCK_DOCTORS.filter(d => d.specialtyId === specialtyId) : MOCK_DOCTORS)
     );
   }
 
@@ -98,7 +94,7 @@ export class BookingService {
 
   getMyPatients(): Observable<Patient[]> {
     return this.http.get<Patient[]>(`${this.apiUrl}/patients/mine`).pipe(
-      catchError(() => of(MOCK_PATIENTS))
+      mockWhenNotImplemented(() => MOCK_PATIENTS)
     );
   }
 

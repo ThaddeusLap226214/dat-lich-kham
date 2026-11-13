@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, catchError, map, of } from 'rxjs';
+import { Observable, catchError, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { mockWhenNotImplemented } from '../../../shared/services/mock-when-not-implemented';
 import { AppointmentView } from '../models/appointment-agenda.model';
 import { Doctor } from '../../booking/models/booking.model';
 
@@ -23,7 +24,7 @@ export class AppointmentAgendaService {
 
   getDoctors(): Observable<Doctor[]> {
     return this.http.get<Doctor[]>(`${this.apiUrl}/doctors`).pipe(
-      catchError(() => of(MOCK_DOCTORS))
+      mockWhenNotImplemented(() => MOCK_DOCTORS)
     );
   }
 
@@ -35,10 +36,9 @@ export class AppointmentAgendaService {
     // Ưu tiên gọi API Composite của Gateway (P4-6)
     return this.http.get<AppointmentView[]>(`${this.apiUrl}/composite/doctor-agenda`, { params }).pipe(
       catchError(() => {
-        // Fallback gọi trực tiếp Scheduling Service (P2-1 / P2-9)
+        // Fallback gọi trực tiếp Scheduling Service (P2-1 / P2-9); lỗi tiếp thì để trang báo lỗi, không trả bảng rỗng
         return this.http.get<any[]>(`${this.apiUrl}/appointments`, { params }).pipe(
-          map(items => items.map(item => this.mapToView(item, doctorId))),
-          catchError(() => of([]))
+          map(items => items.map(item => this.mapToView(item, doctorId)))
         );
       })
     );
