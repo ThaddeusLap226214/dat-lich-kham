@@ -1,6 +1,6 @@
 export interface DoctorInfo {
   id: number;
-  name: string;
+  fullName: string;
   title?: string;
   specialtyName?: string;
 }

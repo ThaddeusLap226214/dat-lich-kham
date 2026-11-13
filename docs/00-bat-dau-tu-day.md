@@ -150,6 +150,7 @@ Mở Docker Desktop, chờ góc dưới trái hiện *Engine running*, rồi ch�
 | Bật lại | `docker compose up -d` | Khoảng 30 giây; kiểm bằng `docker compose ps` đủ 12 container `healthy` |
 | Tắt, giữ dữ liệu | `docker compose down` | Dữ liệu còn trong volume `dat-lich-kham_mysql-data` |
 | Tắt và xóa sạch dữ liệu | `docker compose down -v` | Lần bật sau nạp lại dữ liệu mẫu |
+| Dùng xong, trả RAM cho Windows | `docker compose stop` → chuột phải biểu tượng Docker ở khay hệ thống → **Quit Docker Desktop** → `wsl --shutdown` | Tắt container thôi thì máy ảo Docker vẫn giữ 2–5 GB RAM |
 
 `up -d` **không build lại code**: chỉ dùng khi code trên máy không đổi so với lần bật trước.
 
@@ -328,11 +329,27 @@ Các mật khẩu trên là giá trị mặc định chỉ dùng khi chạy trê
 |---|---|---|
 | Vừa bật, gọi API nhận 503 | Service vừa khởi động, chưa đăng ký xong với Eureka | Chờ tới khi `docker compose ps` báo đủ 12 container `healthy` (khoảng 30 giây; lần đầu Keycloak lâu hơn) |
 | Máy chậm, RAM Windows trên 90% | Máy ảo Docker giữ bộ nhớ đệm | Làm mục 2.3; xả ngay: `docker run --rm --privileged alpine sh -c "sync; echo 3 > /proc/sys/vm/drop_caches"` |
+| RAM vượt 90% ngay lúc `up -d --build` (máy ảo chạm trần 5 GB dù container chưa chạy) | Build cùng lúc 7 module Java, bộ nhớ đệm file dồn lên ~4 GB | Build lần lượt từng service, xả bộ đệm sau mỗi lần (lệnh ở dòng trên), rồi `docker compose up -d`: `foreach ($s in docker compose config --services) { docker compose build $s }`. Xem RAM thật của từng container: `docker stats --no-stream` |
 | `mvnw` báo `ClassNotFoundException: MavenWrapperMain` | Đường dẫn chứa chữ có dấu | Chuyển repo sang thư mục không dấu (mục 2.4) |
 | `port is already allocated` | Cổng 3307, 8080, 4200… đang bị chương trình khác dùng | Tắt chương trình đó, hoặc đổi số cổng bên trái trong `ports:` của `docker-compose.yml` |
 | Sửa `schema.sql` nhưng bảng không đổi | `CREATE TABLE IF NOT EXISTS` bỏ qua bảng đã có | `docker compose down -v` rồi `docker compose up -d --build` (mất dữ liệu trên máy mình) |
 | Một container báo `unhealthy` hoặc tự khởi động lại liên tục | Lỗi khi khởi động service | `docker compose logs <tên-service>` và tìm dòng `ERROR` / `Caused by` |
 | Build frontend báo `npm ci … not in sync` | `package-lock.json` lệch `package.json` | Trong `frontend/`: `npm install --package-lock-only`, rồi build lại |
+
+### 6.7. Kiểm thử trên Docker
+
+Unit test dùng đối tượng giả (mock) nên không bắt được lỗi ở chỗ nối giữa các service (sai đường dẫn API nội bộ, service kia chưa làm API, hàng đợi không nhận tin…). Trước khi mở PR, chạy cả hệ thống và kiểm theo luồng thật:
+
+| Kiểm cái gì | Cách xem |
+|---|---|
+| API qua Gateway | Đăng nhập trên web rồi bấm, hoặc gọi `http://localhost:8080/api/v1/...` kèm token. Gọi thẳng service (bỏ qua Gateway): mục 6.4 |
+| Service gọi service khác | `docker compose logs <tên-service>`; lỗi 501 ở API nội bộ nghĩa là bên kia chưa làm |
+| Sự kiện RabbitMQ | http://localhost:15672 → *Queues* → `reminder.appointment-events`: số tin *Ready* (đang chờ) và *Consumers* (service đang nghe) |
+| Thư đã gửi | http://localhost:8025 (Mailpit) |
+| Dữ liệu sau thao tác | Mục 6.5 |
+| Chịu lỗi khi một service tắt | `docker compose stop <tên-service>` → thao tác trên web → `docker compose start <tên-service>` → xem service đó làm bù |
+
+> **Lưu ý:** số liệu hàng đợi trên RabbitMQ Management cập nhật khoảng 5 giây một lần; đọc ngay sau thao tác có thể vẫn thấy số cũ. Kiểm thử làm đổi dữ liệu trên máy mình (thêm lịch, nhật ký thư); trước buổi demo chạy `docker compose down -v` rồi `docker compose up -d` để nạp lại dữ liệu mẫu.
 
 ---
 

@@ -91,7 +91,7 @@ public class AppointmentService {
         }
 
         // 5. Lấy giờ làm việc của bác sĩ từ Provider Service và khớp slot
-        WorkingHours workingHours = providerClient.getWorkingHours(request.doctorId(), date);
+        WorkingHours workingHours = providerClient.getWorkingHoursFresh(request.doctorId(), date);
         if (workingHours == null || workingHours.shifts() == null || workingHours.shifts().isEmpty()) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "SLOT_NOT_IN_SCHEDULE", "Bác sĩ không có ca làm việc ngày này");
         }

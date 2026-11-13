@@ -70,23 +70,32 @@ public class ReminderService {
         int skipped = 0;
         int failed = 0;
 
-        // CS36 & 3.1: Thử lại các dòng FAILED từ trước
-        List<ReminderLog> previouslyFailedLogs = reminderLogRepository.findByStatus(ReminderStatus.FAILED);
-        for (ReminderLog failedLog : previouslyFailedLogs) {
-            boolean success = retryFailedLog(failedLog);
-            if (success) {
-                sent++;
-            } else {
-                failed++;
-            }
-        }
-
         // F41 & CS28: Lấy lịch CONFIRMED trong 24 giờ tới (0 < start_time - now <= 24h)
-        List<AppointmentInfo> appointments;
+        List<AppointmentInfo> appointments = null;
+        boolean schedulingDown = false;
         try {
             appointments = schedulingClient.findConfirmedBetween(now, to);
         } catch (Exception e) {
             log.warn("Không thể lấy danh sách lịch hẹn từ Scheduling Service (service có thể đang tắt): {}", e.getMessage());
+            schedulingDown = true;
+        }
+        // null = không biết lịch nào còn CONFIRMED (Scheduling lỗi)
+        Set<Long> confirmedIds = schedulingDown ? null
+                : appointments == null ? Set.of()
+                : appointments.stream().map(AppointmentInfo::id).collect(Collectors.toSet());
+
+        // CS36: Thử lại các dòng FAILED từ trước
+        List<ReminderLog> previouslyFailedLogs = reminderLogRepository.findByStatus(ReminderStatus.FAILED);
+        for (ReminderLog failedLog : previouslyFailedLogs) {
+            switch (retryFailedLog(failedLog, confirmedIds)) {
+                case SENT -> sent++;
+                case FAILED -> failed++;
+                case SKIPPED -> skipped++;
+                case NOT_RETRIED -> { }
+            }
+        }
+
+        if (schedulingDown) {
             return new RunResult(checked, sent, skipped, failed);
         }
 
@@ -185,50 +194,64 @@ public class ReminderService {
         return new RunResult(checked, sent, skipped, failed);
     }
 
-    // 3.1: Giới hạn tối đa 3 lần thử, bỏ qua lịch đã qua giờ, lấy lại email từ Patient nếu lúc trước chưa có
-    private boolean retryFailedLog(ReminderLog failedLog) {
-        if (failedLog.getAttemptCount() >= 3) {
-            return false;
+    private enum RetryOutcome { SENT, FAILED, SKIPPED, NOT_RETRIED }
+
+    private static final int MAX_ATTEMPTS = 3;
+
+    // confirmedIds: lịch còn CONFIRMED trong 24 giờ tới; null nếu Scheduling lỗi
+    private RetryOutcome retryFailedLog(ReminderLog failedLog, Set<Long> confirmedIds) {
+        if (failedLog.getAttemptCount() >= MAX_ATTEMPTS) {
+            return RetryOutcome.NOT_RETRIED;
         }
 
         if (failedLog.getAppointmentStart() != null && failedLog.getAppointmentStart().isBefore(LocalDateTime.now())) {
             log.info("Lịch hẹn {} đã qua giờ khám, không gửi nhắc lại", failedLog.getAppointmentId());
-            return false;
+            return RetryOutcome.NOT_RETRIED;
         }
 
-        String recipientEmail = failedLog.getRecipientEmail();
-        String patientName = "Quý khách";
-
-        // Nếu lúc trước chưa lấy được email (do Patient Service tắt), giờ gọi lại Patient Service
-        if (recipientEmail == null || recipientEmail.isBlank()) {
-            try {
-                List<PatientContact> contacts = patientClient.findByIds(List.of(failedLog.getPatientId()));
-                if (contacts != null && !contacts.isEmpty()) {
-                    PatientContact contact = contacts.get(0);
-                    recipientEmail = contact.email();
-                    if (contact.fullName() != null && !contact.fullName().isBlank()) {
-                        patientName = contact.fullName();
-                    }
-                }
-
-                if (recipientEmail == null || recipientEmail.isBlank()) {
-                    failedLog.setStatus(ReminderStatus.SKIPPED);
-                    failedLog.setLastError("Hồ sơ không có email");
-                    reminderLogRepository.save(failedLog);
-                    return false;
-                }
-
-                failedLog.setRecipientEmail(recipientEmail);
-            } catch (Exception e) {
-                failedLog.setAttemptCount(failedLog.getAttemptCount() + 1);
-                failedLog.setLastError(truncate("Lần " + failedLog.getAttemptCount() + ": Patient Service không phản hồi", 1000));
-                reminderLogRepository.save(failedLog);
-                return false;
+        if (isBeforeAppointment(failedLog.getReminderType())) {
+            if (confirmedIds == null) {
+                return RetryOutcome.NOT_RETRIED;
+            }
+            if (!confirmedIds.contains(failedLog.getAppointmentId())) {
+                log.info("Lịch hẹn {} không còn CONFIRMED, không gửi nhắc lại", failedLog.getAppointmentId());
+                return RetryOutcome.NOT_RETRIED;
             }
         }
 
-        // Trích xuất cancelReason nếu có lưu trong lastError
+        // Đọc lý do hủy trước khi lastError bị ghi đè ở các nhánh lỗi bên dưới
         String cancelReason = extractCancelReason(failedLog.getLastError());
+        String reasonSuffix = cancelReason != null ? " [reason:" + cancelReason + "]" : "";
+
+        PatientContact contact = null;
+        try {
+            List<PatientContact> contacts = patientClient.findByIds(List.of(failedLog.getPatientId()));
+            if (contacts != null && !contacts.isEmpty()) {
+                contact = contacts.get(0);
+            }
+        } catch (Exception e) {
+            if (failedLog.getRecipientEmail() == null || failedLog.getRecipientEmail().isBlank()) {
+                failedLog.setAttemptCount(failedLog.getAttemptCount() + 1);
+                failedLog.setLastError(truncate("Lần " + failedLog.getAttemptCount()
+                        + ": Patient Service không phản hồi: " + e.getMessage() + reasonSuffix, 1000));
+                reminderLogRepository.save(failedLog);
+                return RetryOutcome.FAILED;
+            }
+            // Đã có email từ lần trước: vẫn gửi, chỉ thiếu tên
+            log.warn("Không lấy được tên bệnh nhân {} khi gửi lại: {}", failedLog.getPatientId(), e.getMessage());
+        }
+
+        if (contact != null && contact.email() != null && !contact.email().isBlank()) {
+            failedLog.setRecipientEmail(contact.email());
+        }
+        if (failedLog.getRecipientEmail() == null || failedLog.getRecipientEmail().isBlank()) {
+            failedLog.setStatus(ReminderStatus.SKIPPED);
+            failedLog.setLastError("Hồ sơ không có email");
+            reminderLogRepository.save(failedLog);
+            return RetryOutcome.SKIPPED;
+        }
+        String patientName = (contact != null && contact.fullName() != null && !contact.fullName().isBlank())
+                ? contact.fullName() : "Quý khách";
 
         failedLog.setAttemptCount(failedLog.getAttemptCount() + 1);
         try {
@@ -242,15 +265,18 @@ public class ReminderService {
             failedLog.setSentAt(LocalDateTime.now());
             failedLog.setLastError(null);
             reminderLogRepository.save(failedLog);
-            return true;
+            return RetryOutcome.SENT;
         } catch (Exception e) {
             log.warn("Thử lại gửi thư cho lịch {} (lần {}) thất bại: {}",
                     failedLog.getAppointmentId(), failedLog.getAttemptCount(), e.getMessage());
-            String suffix = cancelReason != null ? " [reason:" + cancelReason + "]" : "";
-            failedLog.setLastError(truncate("Lần " + failedLog.getAttemptCount() + ": " + e.getMessage() + suffix, 1000));
+            failedLog.setLastError(truncate("Lần " + failedLog.getAttemptCount() + ": " + e.getMessage() + reasonSuffix, 1000));
             reminderLogRepository.save(failedLog);
-            return false;
+            return RetryOutcome.FAILED;
         }
+    }
+
+    private boolean isBeforeAppointment(ReminderType type) {
+        return type == ReminderType.BEFORE_APPOINTMENT || type == ReminderType.BEFORE_APPOINTMENT_2H;
     }
 
     private String extractCancelReason(String lastError) {

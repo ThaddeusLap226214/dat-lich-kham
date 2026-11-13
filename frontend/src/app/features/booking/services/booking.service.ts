@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { mockWhenNotImplemented } from '../../../shared/services/mock-when-not-implemented';
 import { Specialty, Doctor, Slot, HoldRequest, AppointmentResponse } from '../models/booking.model';
 import { Gender, Patient, PatientStatus } from '../../patient/models/patient.model';
 
@@ -14,12 +15,12 @@ const MOCK_SPECIALTIES: Specialty[] = [
 ];
 
 const MOCK_DOCTORS: Doctor[] = [
-  { id: 1, specialtyId: 1, name: 'BS. CK1 Nguyễn Văn An', title: 'Bác sĩ chuyên khoa 1', email: 'an.nguyen@clinic.vn', phone: '0905111001', active: true },
-  { id: 2, specialtyId: 1, name: 'ThS. BS Trần Thị Bình', title: 'Thạc sĩ bác sĩ', email: 'binh.tran@clinic.vn', phone: '0905111002', active: true },
-  { id: 3, specialtyId: 2, name: 'BS. Lê Văn Cường', title: 'Bác sĩ', email: 'cuong.le@clinic.vn', phone: '0905111003', active: true },
-  { id: 4, specialtyId: 3, name: 'BS. CK2 Phạm Thị Dung', title: 'Bác sĩ chuyên khoa 2', email: 'dung.pham@clinic.vn', phone: '0905111004', active: true },
-  { id: 5, specialtyId: 4, name: 'BS. Hoàng Văn Em', title: 'Bác sĩ', email: 'em.hoang@clinic.vn', phone: '0905111005', active: true },
-  { id: 6, specialtyId: 5, name: 'ThS. BS Vũ Thị Giang', title: 'Thạc sĩ bác sĩ', email: 'giang.vu@clinic.vn', phone: '0905111006', active: true }
+  { id: 1, specialtyId: 1, fullName: 'BS. CK1 Nguyễn Văn An', title: 'Bác sĩ chuyên khoa 1', email: 'an.nguyen@clinic.vn', phone: '0905111001', active: true },
+  { id: 2, specialtyId: 1, fullName: 'ThS. BS Trần Thị Bình', title: 'Thạc sĩ bác sĩ', email: 'binh.tran@clinic.vn', phone: '0905111002', active: true },
+  { id: 3, specialtyId: 2, fullName: 'BS. Lê Văn Cường', title: 'Bác sĩ', email: 'cuong.le@clinic.vn', phone: '0905111003', active: true },
+  { id: 4, specialtyId: 3, fullName: 'BS. CK2 Phạm Thị Dung', title: 'Bác sĩ chuyên khoa 2', email: 'dung.pham@clinic.vn', phone: '0905111004', active: true },
+  { id: 5, specialtyId: 4, fullName: 'BS. Hoàng Văn Em', title: 'Bác sĩ', email: 'em.hoang@clinic.vn', phone: '0905111005', active: true },
+  { id: 6, specialtyId: 5, fullName: 'ThS. BS Vũ Thị Giang', title: 'Thạc sĩ bác sĩ', email: 'giang.vu@clinic.vn', phone: '0905111006', active: true }
 ];
 
 const MOCK_PATIENTS: Patient[] = [
@@ -70,7 +71,7 @@ export class BookingService {
 
   getSpecialties(): Observable<Specialty[]> {
     return this.http.get<Specialty[]>(`${this.apiUrl}/specialties`).pipe(
-      catchError(() => of(MOCK_SPECIALTIES))
+      mockWhenNotImplemented(() => MOCK_SPECIALTIES)
     );
   }
 
@@ -80,12 +81,7 @@ export class BookingService {
       params = params.set('specialtyId', specialtyId.toString());
     }
     return this.http.get<Doctor[]>(`${this.apiUrl}/doctors`, { params }).pipe(
-      catchError(() => {
-        if (specialtyId) {
-          return of(MOCK_DOCTORS.filter(d => d.specialtyId === specialtyId));
-        }
-        return of(MOCK_DOCTORS);
-      })
+      mockWhenNotImplemented(() => specialtyId ? MOCK_DOCTORS.filter(d => d.specialtyId === specialtyId) : MOCK_DOCTORS)
     );
   }
 
@@ -98,7 +94,7 @@ export class BookingService {
 
   getMyPatients(): Observable<Patient[]> {
     return this.http.get<Patient[]>(`${this.apiUrl}/patients/mine`).pipe(
-      catchError(() => of(MOCK_PATIENTS))
+      mockWhenNotImplemented(() => MOCK_PATIENTS)
     );
   }
 

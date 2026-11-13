@@ -219,8 +219,13 @@ class ReminderServiceTest {
         previouslyFailed.setStatus(ReminderStatus.FAILED);
         previouslyFailed.setAttemptCount(1);
 
+        LocalDateTime start = previouslyFailed.getAppointmentStart();
+        AppointmentInfo appt = new AppointmentInfo(20L, 1L, 2L, 3L, start, start.plusMinutes(20), "CONFIRMED");
+
         when(reminderLogRepository.findByStatus(ReminderStatus.FAILED)).thenReturn(List.of(previouslyFailed));
-        when(schedulingClient.findConfirmedBetween(any(), any())).thenReturn(Collections.emptyList());
+        when(schedulingClient.findConfirmedBetween(any(), any())).thenReturn(List.of(appt));
+        when(reminderLogRepository.findByAppointmentIdInAndReminderType(List.of(20L), ReminderType.BEFORE_APPOINTMENT))
+                .thenReturn(List.of(previouslyFailed));
 
         RunResult result = reminderService.runOnce();
 
@@ -251,7 +256,8 @@ class ReminderServiceTest {
         RunResult result = reminderService.runOnce();
 
         assertThat(result.sent()).isEqualTo(0);
-        assertThat(result.failed()).isEqualTo(1);
+        // Dòng đã hết lượt thử không được đếm lại vào failed ở mỗi lần quét
+        assertThat(result.failed()).isEqualTo(0);
         verify(mailSender, never()).send(any(SimpleMailMessage.class));
     }
 
@@ -332,5 +338,110 @@ class ReminderServiceTest {
         verify(reminderLogRepository).save(logCaptor.capture());
         assertThat(logCaptor.getValue().getStatus()).isEqualTo(ReminderStatus.SENT);
         assertThat(logCaptor.getValue().getAppointmentId()).isEqualTo(50L);
+    }
+
+    private ReminderLog failedLog(long appointmentId, ReminderType type, String email, String lastError) {
+        ReminderLog l = new ReminderLog();
+        l.setId(appointmentId + 1000);
+        l.setAppointmentId(appointmentId);
+        l.setPatientId(7L);
+        l.setAppointmentStart(LocalDateTime.now().plusHours(6));
+        l.setReminderType(type);
+        l.setRecipientEmail(email);
+        l.setStatus(ReminderStatus.FAILED);
+        l.setAttemptCount(1);
+        l.setLastError(lastError);
+        return l;
+    }
+
+    @Test
+    @DisplayName("Thử lại thư hủy khi Patient vẫn tắt -> giữ lý do hủy trong lastError cho lần sau")
+    void retry_patientStillDown_keepsCancelReason() {
+        ReminderLog log = failedLog(30L, ReminderType.CANCELLATION, null,
+                "Patient Service không phản hồi: timeout [reason:Bác sĩ nghỉ đột xuất]");
+
+        when(schedulingClient.findConfirmedBetween(any(), any())).thenReturn(Collections.emptyList());
+        when(reminderLogRepository.findByStatus(ReminderStatus.FAILED)).thenReturn(List.of(log));
+        when(patientClient.findByIds(List.of(7L))).thenThrow(new RuntimeException("timeout"));
+
+        RunResult result = reminderService.runOnce();
+
+        assertThat(result.failed()).isEqualTo(1);
+        assertThat(log.getStatus()).isEqualTo(ReminderStatus.FAILED);
+        assertThat(log.getAttemptCount()).isEqualTo(2);
+        assertThat(log.getLastError()).contains("[reason:Bác sĩ nghỉ đột xuất]");
+        verify(mailSender, never()).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    @DisplayName("Thử lại thư hủy đã có email -> thư dùng tên thật và lý do hủy")
+    void retry_emailKnown_usesPatientNameAndReason() {
+        ReminderLog log = failedLog(31L, ReminderType.CANCELLATION, "lan@example.com",
+                "Connection refused [reason:Bác sĩ nghỉ đột xuất]");
+        PatientContact contact = new PatientContact(7L, "Phạm Thị Lan", "lan@example.com", "0905000000", null);
+
+        when(schedulingClient.findConfirmedBetween(any(), any())).thenReturn(Collections.emptyList());
+        when(reminderLogRepository.findByStatus(ReminderStatus.FAILED)).thenReturn(List.of(log));
+        when(patientClient.findByIds(List.of(7L))).thenReturn(List.of(contact));
+
+        RunResult result = reminderService.runOnce();
+
+        assertThat(result.sent()).isEqualTo(1);
+        ArgumentCaptor<SimpleMailMessage> msg = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        verify(mailSender).send(msg.capture());
+        assertThat(msg.getValue().getText()).contains("Phạm Thị Lan").contains("Bác sĩ nghỉ đột xuất");
+    }
+
+    @Test
+    @DisplayName("Thử lại khi đã có email nhưng Patient tắt -> vẫn gửi, xưng Quý khách")
+    void retry_emailKnown_patientDown_stillSends() {
+        ReminderLog log = failedLog(32L, ReminderType.CONFIRMATION, "lan@example.com", "Connection refused");
+
+        when(schedulingClient.findConfirmedBetween(any(), any())).thenReturn(Collections.emptyList());
+        when(reminderLogRepository.findByStatus(ReminderStatus.FAILED)).thenReturn(List.of(log));
+        when(patientClient.findByIds(List.of(7L))).thenThrow(new RuntimeException("timeout"));
+
+        RunResult result = reminderService.runOnce();
+
+        assertThat(result.sent()).isEqualTo(1);
+        assertThat(log.getStatus()).isEqualTo(ReminderStatus.SENT);
+        ArgumentCaptor<SimpleMailMessage> msg = ArgumentCaptor.forClass(SimpleMailMessage.class);
+        verify(mailSender).send(msg.capture());
+        assertThat(msg.getValue().getText()).contains("Quý khách");
+    }
+
+    @Test
+    @DisplayName("Thư nhắc lỗi của lịch không còn CONFIRMED (đã hủy) -> không gửi lại, không đếm failed")
+    void retry_reminderForCancelledAppointment_notSent() {
+        ReminderLog log = failedLog(33L, ReminderType.BEFORE_APPOINTMENT, "lan@example.com", "Connection refused");
+
+        when(schedulingClient.findConfirmedBetween(any(), any())).thenReturn(Collections.emptyList());
+        when(reminderLogRepository.findByStatus(ReminderStatus.FAILED)).thenReturn(List.of(log));
+
+        RunResult result = reminderService.runOnce();
+
+        assertThat(result.sent()).isEqualTo(0);
+        assertThat(result.failed()).isEqualTo(0);
+        assertThat(log.getStatus()).isEqualTo(ReminderStatus.FAILED);
+        assertThat(log.getAttemptCount()).isEqualTo(1);
+        verify(mailSender, never()).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    @DisplayName("Scheduling tắt -> hoãn gửi lại thư nhắc, thư xác nhận vẫn được gửi lại")
+    void retry_schedulingDown_skipsReminderButRetriesConfirmation() {
+        ReminderLog reminder = failedLog(34L, ReminderType.BEFORE_APPOINTMENT, "lan@example.com", "Connection refused");
+        ReminderLog confirmation = failedLog(35L, ReminderType.CONFIRMATION, "lan@example.com", "Connection refused");
+
+        when(schedulingClient.findConfirmedBetween(any(), any())).thenThrow(new RuntimeException("Scheduling down"));
+        when(reminderLogRepository.findByStatus(ReminderStatus.FAILED)).thenReturn(List.of(reminder, confirmation));
+
+        RunResult result = reminderService.runOnce();
+
+        assertThat(result.sent()).isEqualTo(1);
+        assertThat(result.failed()).isEqualTo(0);
+        assertThat(reminder.getStatus()).isEqualTo(ReminderStatus.FAILED);
+        assertThat(confirmation.getStatus()).isEqualTo(ReminderStatus.SENT);
+        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
     }
 }

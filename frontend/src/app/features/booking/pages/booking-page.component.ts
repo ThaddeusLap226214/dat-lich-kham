@@ -149,6 +149,9 @@ export class BookingPageComponent implements OnInit, OnDestroy {
           if (this.myPatients.length > 0 && !this.selectedPatientId) {
             this.selectedPatientId = this.myPatients[0].id;
           }
+        },
+        error: (err) => {
+          this.apiError.show(err);
         }
       });
     } else {
@@ -275,7 +278,7 @@ export class BookingPageComponent implements OnInit, OnDestroy {
 
   getSelectedDoctorName(): string {
     const doc = this.doctors.find(d => d.id === this.selectedDoctorId);
-    return doc ? doc.name : `Bác sĩ #${this.selectedDoctorId}`;
+    return doc ? doc.fullName : `Bác sĩ #${this.selectedDoctorId}`;
   }
 
   private formatDate(d: Date): string {

@@ -30,6 +30,22 @@ public class GlobalExceptionHandler {
         return build(ex.getStatus(), ex.getCode(), ex.getMessage(), req);
     }
 
+    // Service kia trả 4xx (vd Provider 404 "bác sĩ không tồn tại") là lỗi của request, không phải service kia sập
+    @ExceptionHandler(org.springframework.web.client.HttpClientErrorException.class)
+    public ResponseEntity<ApiError> handleDownstreamClientError(org.springframework.web.client.HttpClientErrorException ex,
+                                                                HttpServletRequest req) {
+        ApiError downstream = null;
+        try {
+            downstream = ex.getResponseBodyAs(ApiError.class);
+        } catch (Exception ignored) {
+            // thân phản hồi không phải ApiError
+        }
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        String code = downstream != null && downstream.error() != null ? downstream.error() : status.name();
+        String message = downstream != null && downstream.message() != null ? downstream.message() : ex.getStatusText();
+        return build(status, code, message, req);
+    }
+
     @ExceptionHandler(org.springframework.web.client.RestClientException.class)
     public ResponseEntity<ApiError> handleRestClientException(org.springframework.web.client.RestClientException ex,
                                                                HttpServletRequest req) {

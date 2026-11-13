@@ -99,7 +99,7 @@
             <label class="ui-label is-required">Bác sĩ khám</label>
             <select class="ui-select" [(ngModel)]="selectedDoctorId" (change)="onDoctorChange()" [disabled]="!!heldAppointment">
               @for (doc of doctors; track doc.id) {
-                <option [ngValue]="doc.id">{{ doc.name }} ({{ doc.title || 'Bác sĩ' }})</option>
+                <option [ngValue]="doc.id">{{ doc.fullName }} ({{ doc.title || 'Bác sĩ' }})</option>
               }
             </select>
           </div>
