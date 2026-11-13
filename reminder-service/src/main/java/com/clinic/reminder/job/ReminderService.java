@@ -233,7 +233,7 @@ public class ReminderService {
             if (failedLog.getRecipientEmail() == null || failedLog.getRecipientEmail().isBlank()) {
                 failedLog.setAttemptCount(failedLog.getAttemptCount() + 1);
                 failedLog.setLastError(truncate("Lần " + failedLog.getAttemptCount()
-                        + ": Patient Service không phản hồi" + reasonSuffix, 1000));
+                        + ": Patient Service không phản hồi: " + e.getMessage() + reasonSuffix, 1000));
                 reminderLogRepository.save(failedLog);
                 return RetryOutcome.FAILED;
             }
