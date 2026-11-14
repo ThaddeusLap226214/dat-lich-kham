@@ -9,4 +9,10 @@ public interface SpecialtyRepository extends JpaRepository<Specialty, Long> {
     List<Specialty> findByActiveTrueOrderByNameAsc();
 
     boolean existsByCode(String code);
+
+    boolean existsByCodeAndIdNot(String code, Long id);
+
+    boolean existsByName(String name);
+
+    boolean existsByNameAndIdNot(String name, Long id);
 }

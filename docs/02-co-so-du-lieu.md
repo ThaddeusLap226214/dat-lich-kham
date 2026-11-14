@@ -161,7 +161,16 @@ erDiagram
 | `effective_to` | DATE | | Ngày hết áp dụng; `NULL` = chưa hết |
 | `active` | BOOLEAN | ✔ | Xóa ca = đặt `false`, không xóa dòng |
 
-> **Cách tính "ca của bác sĩ X ngày D":** lấy các dòng có `doctor_id = X`, `day_of_week = thứ của D`, `active = true`, `effective_from ≤ D` và (`effective_to` rỗng hoặc `≥ D`). Truy vấn này đã có sẵn: `WorkScheduleRepository.findEffective(...)`.
+> **Cách tính "ca của bác sĩ X ngày D":** lấy các dòng có `doctor_id = X`, `day_of_week = thứ của D`, `active = true`, `effective_from ≤ D` và (`effective_to` rỗng hoặc `≥ D`). Truy vấn này đã có sẵn: `WorkScheduleRepository.findEffective(...)`. Nếu ngày `D` nằm trong `doctor_day_offs` của bác sĩ `X` (`☆ P3-9`), `working-hours` trả danh sách `shifts` rỗng.
+
+**`doctor_day_offs`** (ngày nghỉ / ngày lễ riêng của bác sĩ — `☆ P3-9`)
+
+| Cột | Kiểu | Bắt buộc | Ý nghĩa |
+|---|---|---|---|
+| `id` | BIGINT | ✔ | Khóa chính tự tăng |
+| `doctor_id` | BIGINT | ✔ | Khóa ngoại → `doctors` |
+| `off_date` | DATE | ✔ | Ngày bác sĩ nghỉ (duy nhất theo cặp `(doctor_id, off_date)`) |
+| `reason` | VARCHAR(255) | | Lý do nghỉ phép / ngày lễ |
 
 ### 3.3. `patient_db` — Patient Service (MPI)
 

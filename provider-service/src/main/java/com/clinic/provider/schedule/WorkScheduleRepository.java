@@ -13,6 +13,9 @@ public interface WorkScheduleRepository extends JpaRepository<WorkSchedule, Long
     @EntityGraph(attributePaths = "room")
     List<WorkSchedule> findByDoctorIdOrderByDayOfWeekAscStartTimeAsc(Long doctorId);
 
+    @EntityGraph(attributePaths = "room")
+    List<WorkSchedule> findByDoctorIdAndDayOfWeekAndActiveTrue(Long doctorId, int dayOfWeek);
+
     // Các ca của bác sĩ còn hiệu lực vào ngày date (date rơi vào thứ dayOfWeek)
     @EntityGraph(attributePaths = "room")
     @Query("""

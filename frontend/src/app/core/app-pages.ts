@@ -44,7 +44,8 @@ export const APP_PAGES: AppPage[] = [
     path: 'doctors', title: 'Chuyên khoa & bác sĩ', icon: 'stethoscope', roles: ALL, part: 'P3',
     summary: 'Ai cũng xem được danh sách chuyên khoa và bác sĩ, không cần đăng nhập.',
     tasks: ['Danh sách chuyên khoa (GET /api/v1/specialties)', 'Lọc bác sĩ theo chuyên khoa (GET /api/v1/doctors?specialtyId=)', 'Xem lịch làm việc trong tuần của một bác sĩ'],
-    api: { method: 'GET', path: '/doctors' }
+    api: { method: 'GET', path: '/doctors' },
+    implemented: true
   },
   {
     path: 'booking', title: 'Đặt lịch khám', icon: 'event_available', roles: ['PATIENT', 'RECEPTIONIST'], part: 'P2',
@@ -62,7 +63,8 @@ export const APP_PAGES: AppPage[] = [
     path: 'my-appointments', title: 'Lịch khám của tôi', icon: 'calendar_month', roles: ['PATIENT'], part: 'P3',
     summary: 'Danh sách lịch hẹn kèm tên bác sĩ, phòng, bệnh nhân. Trang thuộc P3, API ghép thuộc P4 (Gateway ghép từ 3 service).',
     tasks: ['Gateway ghép Scheduling + Provider + Patient (GET /api/v1/composite/my-appointments)', 'Nút hủy lịch (POST /api/v1/appointments/{id}/cancel)'],
-    api: { method: 'GET', path: '/composite/my-appointments' }
+    api: { method: 'GET', path: '/composite/my-appointments' },
+    implemented: true
   },
   {
     path: 'my-patients', title: 'Hồ sơ bệnh nhân của tôi', icon: 'family_restroom', roles: ['PATIENT'], part: 'P1',
@@ -92,19 +94,22 @@ export const APP_PAGES: AppPage[] = [
     path: 'doctor-agenda', title: 'Lịch khám trong ngày', icon: 'today', roles: ['DOCTOR'], part: 'P3',
     summary: 'Bác sĩ xem bệnh nhân của mình trong ngày và đánh dấu đã khám. Trang thuộc P3, API ghép thuộc P4.',
     tasks: ['Danh sách từ GET /api/v1/composite/doctor-agenda (P4 làm API)', 'Nút "Đã khám" (POST /api/v1/appointments/{id}/complete)'],
-    api: { method: 'GET', path: '/composite/doctor-agenda?doctorId={doctorId}&date={today}' }
+    api: { method: 'GET', path: '/composite/doctor-agenda?doctorId={doctorId}&date={today}' },
+    implemented: true
   },
   {
     path: 'admin/catalog', title: 'Chuyên khoa, bác sĩ, phòng', icon: 'medical_services', roles: ['ADMIN'], part: 'P3',
     summary: 'Quản trị viên thêm/sửa chuyên khoa, bác sĩ, phòng khám.',
     tasks: ['Bảng + form cho chuyên khoa, bác sĩ, phòng (POST/PUT /api/v1/specialties, /doctors, /rooms)'],
-    api: { method: 'GET', path: '/rooms' }
+    api: { method: 'GET', path: '/rooms' },
+    implemented: true
   },
   {
     path: 'admin/work-schedules', title: 'Lịch làm việc bác sĩ', icon: 'schedule', roles: ['ADMIN'], part: 'P3',
     summary: 'Cấu hình ca làm việc hằng tuần: thứ, giờ bắt đầu – kết thúc, phòng, thời lượng một lượt khám.',
     tasks: ['Xem ca theo bác sĩ (GET /api/v1/doctors/{id}/work-schedules)', 'Thêm/sửa/ngừng ca, báo lỗi SCHEDULE_OVERLAP'],
-    api: { method: 'GET', path: '/doctors/1/work-schedules' }
+    api: { method: 'GET', path: '/doctors/1/work-schedules' },
+    implemented: true
   },
   {
     path: 'admin/accounts', title: 'Tài khoản', icon: 'manage_accounts', roles: ['ADMIN'], part: 'P6',

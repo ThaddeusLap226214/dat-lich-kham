@@ -3,10 +3,13 @@ package com.clinic.provider.catalog;
 import com.clinic.provider.catalog.dto.DoctorRequest;
 import com.clinic.provider.catalog.dto.DoctorResponse;
 import com.clinic.provider.schedule.WorkScheduleService;
+import com.clinic.provider.schedule.dto.DoctorDayOffRequest;
+import com.clinic.provider.schedule.dto.DoctorDayOffResponse;
 import com.clinic.provider.schedule.dto.WorkScheduleRequest;
 import com.clinic.provider.schedule.dto.WorkScheduleResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -61,5 +64,22 @@ public class DoctorController {
     @ResponseStatus(HttpStatus.CREATED)
     public WorkScheduleResponse addSchedule(@PathVariable Long id, @Valid @RequestBody WorkScheduleRequest request) {
         return workScheduleService.create(id, request);
+    }
+
+    @GetMapping("/{id}/day-offs")
+    public List<DoctorDayOffResponse> listDayOffs(@PathVariable Long id) {
+        return workScheduleService.listDayOffs(id);
+    }
+
+    @PostMapping("/{id}/day-offs")
+    @ResponseStatus(HttpStatus.CREATED)
+    public DoctorDayOffResponse addDayOff(@PathVariable Long id, @Valid @RequestBody DoctorDayOffRequest request) {
+        return workScheduleService.addDayOff(id, request);
+    }
+
+    @DeleteMapping("/{id}/day-offs/{dayOffId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteDayOff(@PathVariable Long id, @PathVariable Long dayOffId) {
+        workScheduleService.deleteDayOff(id, dayOffId);
     }
 }

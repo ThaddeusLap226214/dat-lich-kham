@@ -28,6 +28,10 @@ export class AppointmentAgendaService {
     );
   }
 
+  getMyAppointments(): Observable<AppointmentView[]> {
+    return this.http.get<AppointmentView[]>(`${this.apiUrl}/composite/my-appointments`);
+  }
+
   getDoctorAgenda(doctorId: number, date: string): Observable<AppointmentView[]> {
     const params = new HttpParams()
       .set('doctorId', doctorId.toString())

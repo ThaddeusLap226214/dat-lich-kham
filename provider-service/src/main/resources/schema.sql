@@ -48,3 +48,14 @@ CREATE TABLE IF NOT EXISTS work_schedules (
     CONSTRAINT ck_work_schedules_slot CHECK (slot_minutes BETWEEN 5 AND 120),
     INDEX idx_work_schedules_doctor_day (doctor_id, day_of_week)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
+-- Ngày nghỉ, ngày lễ riêng của bác sĩ (☆ P3-9)
+CREATE TABLE IF NOT EXISTS doctor_day_offs (
+    id        BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    doctor_id BIGINT       NOT NULL,
+    off_date  DATE         NOT NULL,
+    reason    VARCHAR(255),
+    CONSTRAINT fk_doctor_day_offs_doctor FOREIGN KEY (doctor_id) REFERENCES doctors (id),
+    CONSTRAINT uk_doctor_day_offs_doctor_date UNIQUE (doctor_id, off_date),
+    INDEX idx_doctor_day_offs_doctor_date (doctor_id, off_date)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
