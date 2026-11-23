@@ -1,0 +1,361 @@
+<div class="duplicate-queue-page">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h2 class="page-title">
+        Hàng chờ duyệt hồ sơ trùng (MPI)
+        @if (pendingCount() > 0) {
+          <span class="badge-pending-count">{{ pendingCount() }}</span>
+        }
+      </h2>
+      <p class="page-subtitle">Xem xét và xử lý các cặp hồ sơ nghi ngờ trùng nhau theo thuật toán định danh bệnh nhân</p>
+    </div>
+  </div>
+
+  <div class="tabs-bar">
+    <button
+      class="tab-btn"
+      [class.active]="selectedStatus() === CandidateStatus.PENDING"
+      (click)="changeStatus(CandidateStatus.PENDING)">
+      <span class="material-symbols-outlined">pending_actions</span>
+      Chờ duyệt
+      @if (pendingCount() > 0) {
+        <span class="tab-badge">{{ pendingCount() }}</span>
+      }
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="selectedStatus() === CandidateStatus.MERGED"
+      (click)="changeStatus(CandidateStatus.MERGED)">
+      <span class="material-symbols-outlined">call_merge</span>
+      Đã gộp
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="selectedStatus() === CandidateStatus.NOT_DUPLICATE"
+      (click)="changeStatus(CandidateStatus.NOT_DUPLICATE)">
+      <span class="material-symbols-outlined">check_circle</span>
+      Xác nhận không trùng
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Đang tải danh sách hồ sơ nghi trùng...</p>
+    </div>
+  } @else if (candidates().length === 0) {
+    <div class="empty-state">
+      <span class="material-symbols-outlined empty-icon">rule</span>
+      <h3>Không có cặp hồ sơ nào trong trạng thái này</h3>
+      <p>Hiện không có hồ sơ nào cần xử lý trong mục {{ selectedStatus() === CandidateStatus.PENDING ? 'Chờ duyệt' : (selectedStatus() === CandidateStatus.MERGED ? 'Đã gộp' : 'Không trùng') }}.</p>
+    </div>
+  } @else {
+    <div class="candidates-list">
+      @for (c of candidates(); track c.id) {
+        <div class="candidate-card">
+          <div class="candidate-card-header">
+            <div class="reason-section">
+              <span class="reason-badge">
+                <span class="material-symbols-outlined">info</span>
+                {{ REASON_LABELS[c.reason] || c.reason }}
+              </span>
+              <span class="score-badge" [class.high-score]="c.score >= 70">
+                Độ trùng khớp: {{ c.score }}%
+              </span>
+            </div>
+            <div class="meta-section">
+              <span class="created-time">{{ c.createdAt | date:'HH:mm dd/MM/yyyy' }}</span>
+              <span class="pair-id">Cặp #{{ c.id }}</span>
+            </div>
+          </div>
+
+          <div class="comparison-grid">
+            <!-- Patient A: Hồ sơ mới / phát sinh -->
+            <div class="patient-side side-new">
+              <div class="side-header">
+                <span class="side-tag tag-new">Hồ sơ mới phát sinh (#{{ c.patient.id }})</span>
+                <app-status-badge [kind]="'patient'" [value]="c.patient.status"></app-status-badge>
+              </div>
+              <div class="side-body">
+                <div class="comp-field">
+                  <span class="field-label">Họ và tên:</span>
+                  <span class="field-value highlight-name">{{ c.patient.fullName }}</span>
+                </div>
+                <div class="comp-field">
+                  <span class="field-label">Ngày sinh:</span>
+                  <span class="field-value">{{ c.patient.dateOfBirth | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="comp-field">
+                  <span class="field-label">Giới tính:</span>
+                  <span class="field-value">{{ c.patient.gender === 'FEMALE' ? 'Nữ' : (c.patient.gender === 'MALE' ? 'Nam' : 'Khác') }}</span>
+                </div>
+                <div class="comp-field">
+                  <span class="field-label">Số điện thoại:</span>
+                  <span class="field-value">{{ c.patient.phone || '—' }}</span>
+                </div>
+                <div class="comp-field">
+                  <span class="field-label">Giấy tờ:</span>
+                  <span class="field-value">
+                    @if (c.patient.idNumber) {
+                      <strong>{{ c.patient.idType }}:</strong> {{ c.patient.idNumber }}
+                    } @else {
+                      <span class="text-muted">Chưa có</span>
+                    }
+                  </span>
+                </div>
+                @if (c.patient.address) {
+                  <div class="comp-field">
+                    <span class="field-label">Địa chỉ:</span>
+                    <span class="field-value">{{ c.patient.address }}</span>
+                  </div>
+                }
+                @if (c.patient.guardianName) {
+                  <div class="comp-field">
+                    <span class="field-label">Giám hộ:</span>
+                    <span class="field-value">{{ c.patient.guardianName }} ({{ c.patient.guardianPhone }})</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Divider with VS -->
+            <div class="comparison-divider">
+              <span class="vs-circle">VS</span>
+            </div>
+
+            <!-- Patient B: Hồ sơ có sẵn trong hệ thống -->
+            <div class="patient-side side-existing">
+              <div class="side-header">
+                <span class="side-tag tag-existing">Hồ sơ có sẵn (#{{ c.candidatePatient.id }})</span>
+                <app-status-badge [kind]="'patient'" [value]="c.candidatePatient.status"></app-status-badge>
+              </div>
+              <div class="side-body">
+                <div class="comp-field">
+                  <span class="field-label">Họ và tên:</span>
+                  <span class="field-value highlight-name">{{ c.candidatePatient.fullName }}</span>
+                </div>
+                <div class="comp-field">
+                  <span class="field-label">Ngày sinh:</span>
+                  <span class="field-value">{{ c.candidatePatient.dateOfBirth | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="comp-field">
+                  <span class="field-label">Giới tính:</span>
+                  <span class="field-value">{{ c.candidatePatient.gender === 'FEMALE' ? 'Nữ' : (c.candidatePatient.gender === 'MALE' ? 'Nam' : 'Khác') }}</span>
+                </div>
+                <div class="comp-field">
+                  <span class="field-label">Số điện thoại:</span>
+                  <span class="field-value">{{ c.candidatePatient.phone || '—' }}</span>
+                </div>
+                <div class="comp-field">
+                  <span class="field-label">Giấy tờ:</span>
+                  <span class="field-value">
+                    @if (c.candidatePatient.idNumber) {
+                      <strong>{{ c.candidatePatient.idType }}:</strong> {{ c.candidatePatient.idNumber }}
+                    } @else {
+                      <span class="text-muted">Chưa có</span>
+                    }
+                  </span>
+                </div>
+                @if (c.candidatePatient.address) {
+                  <div class="comp-field">
+                    <span class="field-label">Địa chỉ:</span>
+                    <span class="field-value">{{ c.candidatePatient.address }}</span>
+                  </div>
+                }
+                @if (c.candidatePatient.guardianName) {
+                  <div class="comp-field">
+                    <span class="field-label">Giám hộ:</span>
+                    <span class="field-value">{{ c.candidatePatient.guardianName }} ({{ c.candidatePatient.guardianPhone }})</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Note or Actions -->
+          <div class="candidate-card-footer">
+            @if (c.status === CandidateStatus.PENDING) {
+              <div class="footer-actions">
+                <button class="btn-reject" (click)="openRejectModal(c)">
+                  <span class="material-symbols-outlined">block</span>
+                  Xác nhận không trùng
+                </button>
+                <button class="btn-merge" (click)="openMergeModal(c)">
+                  <span class="material-symbols-outlined">call_merge</span>
+                  Gộp hồ sơ
+                </button>
+              </div>
+            } @else if (c.status === CandidateStatus.MERGED) {
+              <div class="footer-reviewed">
+                <span class="review-info">
+                  <strong>Đã gộp lúc:</strong> {{ c.reviewedAt | date:'HH:mm dd/MM/yyyy' }}
+                  @if (c.reviewNote) {
+                    — <em>"{{ c.reviewNote }}"</em>
+                  }
+                </span>
+                <button class="btn-unmerge" (click)="openUnmergeModal(c)">
+                  <span class="material-symbols-outlined">call_split</span>
+                  Tách hồ sơ
+                </button>
+              </div>
+            } @else {
+              <div class="footer-reviewed">
+                <span class="review-info">
+                  <strong>Đã duyệt không trùng lúc:</strong> {{ c.reviewedAt | date:'HH:mm dd/MM/yyyy' }}
+                  @if (c.reviewNote) {
+                    — <em>"{{ c.reviewNote }}"</em>
+                  }
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <app-pagination [pageMeta]="pageMeta()" (pageChange)="onPageChange($event)"></app-pagination>
+  }
+
+  <!-- Modal Gộp hồ sơ -->
+  @if (isMergeModalOpen && selectedCandidate) {
+    <div class="modal-backdrop active" (click)="closeModals()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">Duyệt gộp hồ sơ trùng</h3>
+          <button class="btn-close" (click)="closeModals()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Khi gộp, hồ sơ bị gộp sẽ chuyển sang trạng thái <strong>MERGED</strong>, mọi lịch hẹn đặt trước đó sẽ tự động chuyển sang hồ sơ giữ lại qua RabbitMQ.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Chọn hồ sơ được giữ lại (Hồ sơ chính):</label>
+            <div class="radio-options">
+              <label class="radio-card" [class.selected]="keepPatientId === selectedCandidate.candidatePatient.id">
+                <input
+                  type="radio"
+                  name="keepPatient"
+                  [value]="selectedCandidate.candidatePatient.id"
+                  [(ngModel)]="keepPatientId">
+                <div class="radio-card-content">
+                  <strong>#{{ selectedCandidate.candidatePatient.id }} — {{ selectedCandidate.candidatePatient.fullName }}</strong>
+                  <span>Hồ sơ có sẵn trong hệ thống ({{ selectedCandidate.candidatePatient.status }})</span>
+                </div>
+              </label>
+
+              <label class="radio-card" [class.selected]="keepPatientId === selectedCandidate.patient.id">
+                <input
+                  type="radio"
+                  name="keepPatient"
+                  [value]="selectedCandidate.patient.id"
+                  [(ngModel)]="keepPatientId">
+                <div class="radio-card-content">
+                  <strong>#{{ selectedCandidate.patient.id }} — {{ selectedCandidate.patient.fullName }}</strong>
+                  <span>Hồ sơ mới phát sinh ({{ selectedCandidate.patient.status }})</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Ghi chú duyệt gộp:</label>
+            <textarea
+              class="form-textarea"
+              rows="3"
+              placeholder="Nhập lý do hoặc căn cứ gộp hồ sơ..."
+              [(ngModel)]="reviewNote"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModals()" [disabled]="isSubmitting">Hủy</button>
+          <button class="btn-primary" (click)="confirmMerge()" [disabled]="isSubmitting">
+            @if (!isSubmitting) {
+              <span>Xác nhận gộp</span>
+            } @else {
+              <span>Đang xử lý...</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Xác nhận không trùng -->
+  @if (isRejectModalOpen && selectedCandidate) {
+    <div class="modal-backdrop active" (click)="closeModals()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">Xác nhận không trùng</h3>
+          <button class="btn-close" (click)="closeModals()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Xác nhận hai hồ sơ này thuộc về hai người khác nhau. Cặp hồ sơ sẽ được đánh dấu <strong>NOT_DUPLICATE</strong> và loại khỏi hàng chờ duyệt.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Ghi chú xác nhận:</label>
+            <textarea
+              class="form-textarea"
+              rows="3"
+              placeholder="Nhập ghi chú (ví dụ: Hai người khác nhau, trùng tên và SĐT công ty)..."
+              [(ngModel)]="reviewNote"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModals()" [disabled]="isSubmitting">Hủy</button>
+          <button class="btn-primary btn-danger-action" (click)="confirmReject()" [disabled]="isSubmitting">
+            @if (!isSubmitting) {
+              <span>Xác nhận không trùng</span>
+            } @else {
+              <span>Đang xử lý...</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Tách hồ sơ gộp nhầm -->
+  @if (isUnmergeModalOpen && selectedCandidate) {
+    <div class="modal-backdrop active" (click)="closeModals()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">Tách hồ sơ đã gộp nhầm</h3>
+          <button class="btn-close" (click)="closeModals()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Hồ sơ bị gộp sẽ được khôi phục về trạng thái trước khi gộp, cặp này chuyển sang <strong>NOT_DUPLICATE</strong> và hệ thống phát sự kiện <code>PATIENT_UNMERGED</code> để trả lại các lịch hẹn về hồ sơ ban đầu.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Lý do tách hồ sơ:</label>
+            <textarea
+              class="form-textarea"
+              rows="3"
+              placeholder="Nhập lý do tách hồ sơ..."
+              [(ngModel)]="reviewNote"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" (click)="closeModals()" [disabled]="isSubmitting">Hủy</button>
+          <button class="btn-primary" (click)="confirmUnmerge()" [disabled]="isSubmitting">
+            @if (!isSubmitting) {
+              <span>Xác nhận tách hồ sơ</span>
+            } @else {
+              <span>Đang xử lý...</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

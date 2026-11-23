@@ -1,0 +1,102 @@
+<div class="my-patients-page">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h2 class="page-title">Hồ sơ bệnh nhân của tôi</h2>
+      <p class="page-subtitle">Quản lý hồ sơ khám chữa bệnh cho bản thân và người thân trong gia đình</p>
+    </div>
+    <button class="btn-primary" (click)="openAddModal()">
+      <span class="material-symbols-outlined">person_add</span>
+      Khai hồ sơ mới
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Đang tải danh sách hồ sơ...</p>
+    </div>
+  } @else if (patients().length === 0) {
+    <div class="empty-state">
+      <span class="material-symbols-outlined empty-icon">badge</span>
+      <h3>Chưa có hồ sơ bệnh nhân nào</h3>
+      <p>Bạn chưa khai hồ sơ bệnh nhân nào. Vui lòng bấm "Khai hồ sơ mới" để tạo hồ sơ đặt khám.</p>
+      <button class="btn-primary" (click)="openAddModal()">
+        <span class="material-symbols-outlined">person_add</span>
+        Khai hồ sơ ngay
+      </button>
+    </div>
+  } @else {
+    <div class="patient-cards-grid">
+      @for (patient of patients(); track patient.id) {
+        <div class="patient-card">
+          <div class="card-header">
+            <div class="patient-avatar">
+              <span class="material-symbols-outlined">{{ patient.gender === 'FEMALE' ? 'female' : 'male' }}</span>
+            </div>
+            <div class="header-info">
+              <h3 class="patient-name">{{ patient.fullName }}</h3>
+              <span class="patient-id">Mã hồ sơ: #{{ patient.id }}</span>
+            </div>
+            <app-status-badge [kind]="'patient'" [value]="patient.status"></app-status-badge>
+          </div>
+
+          <div class="card-body">
+            <div class="info-row">
+              <span class="info-label">Ngày sinh:</span>
+              <span class="info-value">{{ patient.dateOfBirth | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Giới tính:</span>
+              <span class="info-value">{{ patient.gender === 'FEMALE' ? 'Nữ' : (patient.gender === 'MALE' ? 'Nam' : 'Khác') }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Điện thoại:</span>
+              <span class="info-value">{{ patient.phone || 'Chưa có' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Giấy tờ:</span>
+              <span class="info-value">
+                @if (patient.idNumber) {
+                  <strong>{{ patient.idType }}:</strong> {{ patient.idNumber }}
+                } @else {
+                  <span class="text-muted">Chưa bổ sung</span>
+                }
+              </span>
+            </div>
+            @if (patient.guardianName) {
+              <div class="info-row guardian-row">
+                <span class="info-label">Người giám hộ:</span>
+                <span class="info-value">{{ patient.guardianName }} ({{ patient.guardianRelation || 'Người thân' }}) - {{ patient.guardianPhone }}</span>
+              </div>
+            }
+            @if (patient.address) {
+              <div class="info-row">
+                <span class="info-label">Địa chỉ:</span>
+                <span class="info-value">{{ patient.address }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="card-actions">
+            <button class="btn-secondary" (click)="openEditModal(patient)">
+              <span class="material-symbols-outlined">edit</span>
+              Sửa hồ sơ
+            </button>
+            <button class="btn-primary" (click)="bookAppointment(patient)">
+              <span class="material-symbols-outlined">calendar_month</span>
+              Đặt lịch khám
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (isFormOpen) {
+    <app-patient-form
+      [patient]="selectedPatient"
+      (saved)="onFormSaved()"
+      (closed)="onFormClosed()">
+    </app-patient-form>
+  }
+</div>

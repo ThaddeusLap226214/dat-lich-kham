@@ -4,9 +4,12 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import {
+  AddIdentityRequest,
   CreatePatientResponse,
+  MergeHistoryResponse,
   Patient,
   PatientRequest,
+  ReviewNoteRequest,
   SpringPage
 } from '../models/patient.model';
 import { PatientSearchParams } from '../models/patient-search-params.model';
@@ -40,6 +43,10 @@ export class PatientService {
     });
   }
 
+  mine(): Observable<Patient[]> {
+    return this.http.get<Patient[]>(`${this.apiUrl}${this.basePath}/mine`);
+  }
+
   getById(id: number): Observable<Patient> {
     return this.http.get<Patient>(`${this.apiUrl}${this.basePath}/${id}`);
   }
@@ -50,5 +57,17 @@ export class PatientService {
 
   update(id: number, request: PatientRequest): Observable<Patient> {
     return this.http.put<Patient>(`${this.apiUrl}${this.basePath}/${id}`, request);
+  }
+
+  addIdentity(id: number, request: AddIdentityRequest): Observable<Patient> {
+    return this.http.post<Patient>(`${this.apiUrl}${this.basePath}/${id}/identity`, request);
+  }
+
+  unmerge(id: number, request: ReviewNoteRequest): Observable<MergeHistoryResponse> {
+    return this.http.post<MergeHistoryResponse>(`${this.apiUrl}${this.basePath}/${id}/unmerge`, request);
+  }
+
+  getMergeHistory(id: number): Observable<MergeHistoryResponse[]> {
+    return this.http.get<MergeHistoryResponse[]>(`${this.apiUrl}${this.basePath}/${id}/merge-history`);
   }
 }

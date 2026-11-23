@@ -53,6 +53,20 @@ export const routes: Routes = [
         loadComponent: () => import('./features/home/home-page.component').then(m => m.HomePageComponent)
       },
       {
+        path: 'my-patients',
+        canActivate: [roleGuard],
+        data: { page: pageOf('my-patients') },
+        loadComponent: () => import('./features/patient/pages/my-patients-page.component')
+          .then(m => m.MyPatientsPageComponent)
+      },
+      {
+        path: 'duplicate-queue',
+        canActivate: [roleGuard],
+        data: { page: pageOf('duplicate-queue') },
+        loadComponent: () => import('./features/duplicate-queue/pages/duplicate-queue-page.component')
+          .then(m => m.DuplicateQueuePageComponent)
+      },
+      {
         path: 'patients',
         canActivate: [roleGuard],
         data: { page: pageOf('patients') },
