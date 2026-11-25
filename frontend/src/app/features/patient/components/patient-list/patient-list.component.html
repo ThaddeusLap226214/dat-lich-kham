@@ -172,6 +172,12 @@
           </td>
           <td class="text-right">
             <div class="action-buttons">
+              @if (patient.status === TEMPORARY) {
+              <button class="btn-action btn-add-id" (click)="openAddIdentityModal(patient)"
+                title="Bổ sung giấy tờ tùy thân">
+                <span class="material-symbols-outlined">badge</span>
+              </button>
+              }
               <button class="btn-action btn-edit" (click)="onEditPatient(patient)"
                 [disabled]="patient.status === MERGED"
                 [title]="patient.status === MERGED ? 'Hồ sơ đã gộp, sửa trên hồ sơ chính' : 'Sửa'">
@@ -189,5 +195,49 @@
   @if (!isLoading() && patients().length > 0) {
   <app-pagination [pageMeta]="pageMeta()" (pageChange)="onPageChange($event)">
   </app-pagination>
+  }
+
+  @if (isAddIdentityModalOpen && selectedPatientForIdentity) {
+  <div class="modal-backdrop active" (click)="closeAddIdentityModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Bổ sung giấy tờ tùy thân</h3>
+        <button class="btn-close" (click)="closeAddIdentityModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          Bổ sung giấy tờ cho hồ sơ tạm <strong>#{{ selectedPatientForIdentity.id }} — {{ selectedPatientForIdentity.fullName }}</strong>. Nếu giấy tờ hợp lệ và chưa ai có, hồ sơ sẽ chuyển sang <strong>ACTIVE</strong>.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Loại giấy tờ:</label>
+          <select class="form-select" [(ngModel)]="selectedIdType">
+            <option value="CCCD">Căn cước công dân (CCCD)</option>
+            <option value="PASSPORT">Hộ chiếu (Passport)</option>
+            <option value="BHYT">Bảo hiểm y tế (BHYT)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Số giấy tờ:</label>
+          <input
+            type="text"
+            class="form-input"
+            placeholder="Nhập số giấy tờ (CCCD: 12 chữ số)..."
+            [(ngModel)]="identityNumberInput">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeAddIdentityModal()" [disabled]="isSubmittingIdentity">Hủy</button>
+        <button class="btn-primary" (click)="submitAddIdentity()" [disabled]="isSubmittingIdentity">
+          @if (!isSubmittingIdentity) {
+            <span>Lưu giấy tờ</span>
+          } @else {
+            <span>Đang lưu...</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
   }
 </div>

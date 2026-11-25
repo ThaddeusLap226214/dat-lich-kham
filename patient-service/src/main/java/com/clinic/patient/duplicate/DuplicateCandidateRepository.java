@@ -10,6 +10,9 @@ public interface DuplicateCandidateRepository extends JpaRepository<DuplicateCan
     @EntityGraph(attributePaths = {"patient", "candidatePatient"})
     Page<DuplicateCandidate> findByStatusOrderByCreatedAtDesc(CandidateStatus status, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"patient", "candidatePatient"})
+    Page<DuplicateCandidate> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
     long countByStatus(CandidateStatus status);
 
     boolean existsByPatientIdAndCandidatePatientId(Long patientId, Long candidatePatientId);

@@ -54,6 +54,29 @@ export interface CreatePatientResponse {
   duplicateQueued: boolean;
 }
 
+export interface AddIdentityRequest {
+  idType: IdType;
+  idNumber: string;
+}
+
+export interface ReviewNoteRequest {
+  note?: string;
+}
+
+export interface MergeHistoryResponse {
+  id: number;
+  action: 'MERGE' | 'UNMERGE';
+  sourcePatientId: number;
+  targetPatientId: number;
+  sourcePreviousStatus: PatientStatus;
+  duplicateCandidateId: number | null;
+  relatedMergeId: number | null;
+  eventId: string;
+  performedByAccountId: number;
+  performedAt: string;
+  note: string | null;
+}
+
 // Dạng trang Spring trả về: PageResponse<T>(content, page từ 0, size, totalElements, totalPages)
 export interface SpringPage<T> {
   content: T[];

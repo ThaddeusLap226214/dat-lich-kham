@@ -51,6 +51,14 @@ export class PatientListComponent implements OnInit {
   selectedStatus: string = 'ALL';
 
   readonly MERGED = PatientStatus.MERGED;
+  readonly TEMPORARY = PatientStatus.TEMPORARY;
+
+  // Add identity modal state
+  selectedPatientForIdentity: Patient | null = null;
+  isAddIdentityModalOpen = false;
+  selectedIdType: IdType = IdType.CCCD;
+  identityNumberInput: string = '';
+  isSubmittingIdentity = false;
 
   constructor() {
     effect(() => {
@@ -95,7 +103,6 @@ export class PatientListComponent implements OnInit {
     });
   }
 
-  // Đếm trên toàn bộ dữ liệu (không theo trang đang xem): mỗi thẻ gọi một lần với size=1 và đọc totalElements
   loadStats(): void {
     forkJoin({
       all: this.patientService.search({ size: 1 }),
@@ -146,6 +153,49 @@ export class PatientListComponent implements OnInit {
 
   onEditPatient(patient: Patient): void {
     this.editPatient.emit(patient);
+  }
+
+  openAddIdentityModal(patient: Patient): void {
+    this.selectedPatientForIdentity = patient;
+    this.selectedIdType = IdType.CCCD;
+    this.identityNumberInput = '';
+    this.isAddIdentityModalOpen = true;
+  }
+
+  closeAddIdentityModal(): void {
+    this.isAddIdentityModalOpen = false;
+    this.selectedPatientForIdentity = null;
+    this.isSubmittingIdentity = false;
+  }
+
+  submitAddIdentity(): void {
+    if (!this.selectedPatientForIdentity || !this.identityNumberInput.trim()) return;
+
+    if (this.selectedIdType === IdType.CCCD && !this.identityNumberInput.trim().match(/^\d{12}$/)) {
+      this.toastService.error('Lỗi nhập liệu', 'Số CCCD phải gồm đúng 12 chữ số');
+      return;
+    }
+
+    this.isSubmittingIdentity = true;
+    this.patientService.addIdentity(this.selectedPatientForIdentity.id, {
+      idType: this.selectedIdType,
+      idNumber: this.identityNumberInput.trim()
+    }).subscribe({
+      next: (updated) => {
+        if (updated.status === PatientStatus.ACTIVE) {
+          this.toastService.success('Thành công', 'Đã bổ sung giấy tờ và chuyển hồ sơ thành ACTIVE');
+        } else {
+          this.toastService.warning('Cảnh báo trùng lặp', 'Giấy tờ này đã thuộc hồ sơ khác! Đã ghi nhận vào Hàng chờ duyệt trùng.');
+        }
+        this.closeAddIdentityModal();
+        this.reload();
+      },
+      error: (err: any) => {
+        console.error('Failed to add identity', err);
+        this.toastService.error('Lỗi', err?.error?.message || 'Bổ sung giấy tờ thất bại');
+        this.isSubmittingIdentity = false;
+      }
+    });
   }
 
   getInitials(name: string): string {

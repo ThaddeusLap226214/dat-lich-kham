@@ -70,7 +70,8 @@ export const APP_PAGES: AppPage[] = [
     path: 'my-patients', title: 'Hồ sơ bệnh nhân của tôi', icon: 'family_restroom', roles: ['PATIENT'], part: 'P1',
     summary: 'Một tài khoản quản lý nhiều hồ sơ (bản thân, con, người nhà).',
     tasks: ['Danh sách hồ sơ (GET /api/v1/patients/mine)', 'Thêm hồ sơ (POST /api/v1/patients) — hiện kết quả REUSED / CREATED_ACTIVE / CREATED_TEMPORARY', 'Sửa hồ sơ (PUT /api/v1/patients/{id})'],
-    api: { method: 'GET', path: '/patients/mine' }
+    api: { method: 'GET', path: '/patients/mine' },
+    implemented: true
   },
   {
     path: 'patients', title: 'Hồ sơ bệnh nhân', icon: 'person_search', roles: ['RECEPTIONIST', 'DOCTOR'], part: 'P1',
@@ -81,7 +82,8 @@ export const APP_PAGES: AppPage[] = [
     path: 'duplicate-queue', title: 'Hàng chờ duyệt hồ sơ trùng', icon: 'rule', roles: ['RECEPTIONIST'], part: 'P1',
     summary: 'Các cặp hồ sơ nghi là cùng một người; lễ tân so sánh rồi gộp hoặc xác nhận không trùng.',
     tasks: ['Danh sách + số lượng chờ (GET /api/v1/duplicate-candidates, /count)', 'So sánh hai hồ sơ cạnh nhau', 'Gộp (POST …/{id}/merge) hoặc không trùng (POST …/{id}/reject)', 'Tách hồ sơ đã gộp nhầm (POST /api/v1/patients/{id}/unmerge)'],
-    api: { method: 'GET', path: '/duplicate-candidates' }
+    api: { method: 'GET', path: '/duplicate-candidates' },
+    implemented: true
   },
   {
     path: 'appointments', title: 'Lịch hẹn theo bác sĩ', icon: 'event_note', roles: ['RECEPTIONIST'], part: 'P2',
